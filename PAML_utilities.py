@@ -19,7 +19,7 @@ def write_ctl_file(ctl, seq, tree, out, model, fix_alpha="1", alpha="0"):
     :param alpha: alpha value
     :return: ctl file path
     """
-    ctl_file = open(ctl, "wb")
+    ctl_file = open(ctl, "w")
 
     noisy = "3"
     verbose = "1"
