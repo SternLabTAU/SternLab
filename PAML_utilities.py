@@ -82,7 +82,7 @@ def mlbs_to_df(output, mlbs = [], dirname = None):
     :param output: output csv file path
     :param mlbs: list of mlb files
     :param dirname: dirname that has mlb files
-    :return: ouput file path
+    :return: output file path
     """
     if mlbs == [] and dirname == None:
         raise Exception("you need to provide mlb or dirname that contains mlbs")
@@ -93,7 +93,7 @@ def mlbs_to_df(output, mlbs = [], dirname = None):
         dirname = check_dirname(dirname)
         mlbs = glob.glob(dirname + "/*.mlb")
     if mlbs != []:
-        mlbs = [check_dirname(m) for m in mlbs]
+        mlbs = [check_filename(m) for m in mlbs]
 
     output = check_filename(output, Truefile=False)
 
@@ -104,26 +104,32 @@ def mlbs_to_df(output, mlbs = [], dirname = None):
                         
 
     lnL_1 = re.compile("lnL.*")
-    lnL_2 = re.compile("\-\d*.\d*")
+    lnL_2 = re.compile("\-?\d*\.\d*")
     base_1 = re.compile("Base frequencies.*")
     base_2 = re.compile("0.\d+")
     rate_1 = re.compile("Rate matrix Q.*\n.*\n.*\n.*\n.*", re.IGNORECASE)
     rate_2 = re.compile("\d+.\d+")
-    for mlb in mlbs:
-        family = os.path.basename(mlb).split("viridae")[0]
-        group = os.path.splitext(os.path.basename(mlb))[0].split(".")[0].split("viridae_")[-1]
-        model = os.path.splitext(os.path.basename(mlb))[0].split(".")[1]
+    for mlb_file_name in mlbs:
+        print(mlb_file_name)
+        family = mlb_file_name.split("/")[-2]
+        filename = mlb_file_name.split("/")[-1]
+        model = mlb_file_name.split(".mlb")[0].split("_")[-1]
         
 
-        mlb = open(mlb, "rb").read()
+        mlb = open(mlb_file_name, "rb").read()
         L = lnL_1.findall(mlb)
         if len(L) != 1:
+            L = None
+        elif "nan" in L[0]:
             L = None
         else:
             L = float(lnL_2.findall(L[0])[0])
         
         B = base_1.findall(mlb)
         if len(B) != 1:
+            freq_T = None; freq_C = None
+            freq_A = None; freq_G = None
+        elif "nan" in B[0]:
             freq_T = None; freq_C = None
             freq_A = None; freq_G = None
         else:
@@ -134,12 +140,17 @@ def mlbs_to_df(output, mlbs = [], dirname = None):
             freq_G = float(B[3])
             
         R = rate_1.findall(mlb)
-
         if len(R) != 1:
             TC = None; TA = None; TG = None;
             CT = None; CA = None; CG = None;
             AT = None; AC = None; AG = None;
             GT = None; GC = None; GA = None
+        elif len(R) >= 1 and "nan" in R[0]:
+            TC = None; TA = None; TG = None;
+            CT = None; CA = None; CG = None;
+            AT = None; AC = None; AG = None;
+            GT = None; GC = None; GA = None
+
         else:
             R = R[0].split("\n")
             first = R[1]
@@ -155,8 +166,8 @@ def mlbs_to_df(output, mlbs = [], dirname = None):
             fourth = rate_2.findall(fourth)
             GT = fourth[0]; GC = fourth[1]; GA = fourth[2]
             
-        
-        df = df.append({"mlb_file_name":mlb, "family":family, "group":group, "model":model, "lnL":L,
+         
+        df = df.append({"mlb_file_name":mlb_file_name, "family":family, "group":filename, "model":model, "lnL":L,
                                  "freq_T":freq_T, "freq_C":freq_C, "freq_A":freq_A,
                                  "freq_G":freq_G, "TC":TC, "TA":TA, "TG":TG, 
                                  "CT":CT, "CA":CA, "CG":CG, "AT":AT,
