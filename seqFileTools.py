@@ -34,9 +34,9 @@ def unalign(filename, in_format="fasta", gap = "-", outfile = None):
 def convert_fasta_to_phylip(filename, outfile = None):
     if outfile == None:
         outfile = os.path.splitext(filename)[0] + ".phy"
-    filename = open(filename, "rb")
+    filename = open(filename, "r")
     fasta = filename.readlines()
-    phylip = open(outfile, "wb")
+    phylip = open(outfile, "w")
     count = 0
     subheader = []
     subcontent = []
@@ -170,11 +170,11 @@ def two_fasta_file_merger(first_file, second_file, output_file):
     """
     first_file = check_filename(first_file)
     second_file = check_filename(second_file)
-    first_file = open(first_file, "rb").read()
-    second_file = open(second_file, "rb").read()
+    first_file = open(first_file, "r").read()
+    second_file = open(second_file, "r").read()
     joined_file = first_file + second_file
 
-    output = open(output_file, "wb")
+    output = open(output_file, "w")
     output.write(joined_file)
     output.close()
     print("saved merged fasta files in %s" % output_file)
@@ -189,14 +189,14 @@ def split_fasta_file_per_seq(filename, remove = True):
     :return: list of output files
     """
     filename = check_filename(filename)
-    records = re.split(">", open(filename, "rb").read())[1:]
+    records = re.split(">", open(filename, "r").read())[1:]
     count = 0
     suffix = os.path.splitext(filename)[0]
     files = []
     for record in records:
         new_filename = suffix + "_" + str(count) + ".fasta"
         files.append(new_filename)
-        new_filename = open(new_filename, "wb")
+        new_filename = open(new_filename, "w")
         new_filename.write(">" + record)
         new_filename.close()
         count += 1
