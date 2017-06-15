@@ -19,17 +19,18 @@ def check_filename(filename, Truefile = True):
     return filename
 
 
-def check_dirname(dirname):
+def check_dirname(dirname, Truedir = True):
     """
     checks if dirname is legit and returns its absolute path
     :param dirname: input directory path
+    :param Truedir: is it an existing dir (default: True)
     :return: absolute directory path
     """
     if dirname == None:
         raise Exception("you must specify a dir name")
     if not path.isabs(dirname):
         dirname = path.abspath(dirname)
-    if not path.isdir(dirname):
+    if Truedir and not path.isdir(dirname):
         raise Exception("dir name %s does not exist" % dirname)
     return dirname
 
