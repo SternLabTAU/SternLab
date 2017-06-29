@@ -178,7 +178,7 @@ def mlbs_to_df(output, mlbs = [], dirname = None):
     return(output)
 
 
-def write_ctl_condeml_file(ctl, seq, tree, out):
+def write_ctl_codeml_file(ctl, seq, tree, out):
     """
     writes a ctl file for codeml PAML
     :param ctl: ctl file output path
