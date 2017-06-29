@@ -201,7 +201,7 @@ def write_ctl_codeml_file(ctl, seq, tree, out):
     noisy = "3"
     verbose = "1"
     runmode = "0"
-    seqtime = "1"
+    seqtype = "1"
     CodonFreq = "1"
     ndata = "1"  # was 100
     clock = "0"  # was 1
@@ -232,7 +232,7 @@ def write_ctl_codeml_file(ctl, seq, tree, out):
     ctl_file.write("\tnoisy = %s\n" % noisy)
     ctl_file.write("\tverbose = %s\n" % verbose)
     ctl_file.write("\trunmode = %s\n" % runmode)
-    ctl_file.write("\tseqtime = %s\n" % seqtime)
+    ctl_file.write("\tseqtype = %s\n" % seqtype)
     ctl_file.write("\tCodonFreq = %s\n" % CodonFreq)
     ctl_file.write("*\tndata = %s\n" % ndata)
     ctl_file.write("\tclock = %s\n" % clock)
