@@ -20,6 +20,21 @@ def baseml_runner(ctl, alias = "bml"):
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
 
+
+def codeml_runner(ctl, alias = "bml"):
+    """
+    run baseml program from PAML on cluster
+    :param ctl: ctl file path
+    :param alias: job name (default: bml)
+    :return: job id
+    """
+    ctl = check_filename(ctl)
+    cmdfile = "codeml.txt"; tnum = 1; gmem = 2
+    cmds = "echo %s \n/sternadi/home/volume1/taliakustin/software/paml4.8/bin/codeml %s" %(ctl, ctl)
+    pbs_jobs.create_pbs_cmd(cmdfile, alias, tnum, gmem, cmds)
+    job_id = pbs_jobs.submit(cmdfile)
+    return job_id
+
 def script_runner(cmds, alias = "script"):
     """
     run script on cluster
