@@ -178,3 +178,79 @@ def mlbs_to_df(output, mlbs = [], dirname = None):
     return(output)
 
 
+def write_ctl_condeml_file(ctl, seq, tree, out):
+    """
+    writes a ctl file for codeml PAML
+    :param ctl: ctl file output path
+    :param seq: sequence file path (phylip)
+    :param tree: tree file path
+    :param out: output file path
+    :param model: model to run
+    :param fix_alpha: fix_alpha value
+    :param alpha: alpha value
+    :return: ctl file path
+    """
+    ctl_file = open(ctl, "w")
+
+    noisy = "3"
+    verbose = "1"
+    runmode = "0"
+    seqtime = "1"
+    CodonFreq = "1"
+    ndata = "1"  # was 100
+    clock = "0"  # was 1
+    aaDist = "0"
+    model = "0"
+    NSsites = "M3"
+    icode = "0"
+    Mgene = "0"
+    fix_kappa = "0"
+    fix_omega = "0"
+    omega = ".4"
+    fix_alpha = "1"
+    alpha = "0"
+    Malpha = "0"
+    ncatG = "3"
+    fix_rho = "1"
+    rho = "0"
+    getSE = "0"
+    RateAncestor = "0"
+    Small_Diff = ".5e-6"
+    cleandata = "1"
+    fix_blength = "-0"
+    method = "0"
+
+    ctl_file.write("\tseqfile = %s\n" % seq)
+    ctl_file.write("\ttreefile = %s\n" % tree)
+    ctl_file.write("\toutfile = %s\n\n" % out)
+    ctl_file.write("\tnoisy = %s\n" % noisy)
+    ctl_file.write("\tverbose = %s\n" % verbose)
+    ctl_file.write("\trunmode = %s\n" % runmode)
+    ctl_file.write("\tseqtime = %s\n" % seqtime)
+    ctl_file.write("\tCodonFreq = %s\n" % CodonFreq)
+    ctl_file.write("*\tndata = %s\n" % ndata)
+    ctl_file.write("\tclock = %s\n" % clock)
+    ctl_file.write("\taaDist = %s\n" % aaDist)
+    ctl_file.write("\tmodel = %s\n" % model)
+    ctl_file.write("\tNSsites = %s\n" % NSsites)
+    ctl_file.write("*\ticode = %s\n" % icode)
+    ctl_file.write("\tMgene = %s\n" % Mgene)
+    ctl_file.write("\tfix_kappa = %s\n" % fix_kappa)
+    ctl_file.write("\tfix_omega = %s\n" % fix_omega)
+    ctl_file.write("\tomega = %s\n" % omega)
+    ctl_file.write("\tfix_alpha = %s\n" % fix_alpha)
+    ctl_file.write("\talpha = %s\n" % alpha)
+    ctl_file.write("\tMalpha = %s\n" % Malpha)
+    ctl_file.write("\tncatG = %s\n" % ncatG)
+    ctl_file.write("\tfix_rho = %s\n" % fix_rho)
+    ctl_file.write("\trho = %s\n" % rho)
+    ctl_file.write("\tgetSE = %s\n" % getSE)
+    ctl_file.write("\tRateAncestor = %s\n" % RateAncestor)
+    ctl_file.write("\tSmall_Diff = %s\n" % Small_Diff)
+    ctl_file.write("*\tcleandata = %s\n" % cleandata)
+    ctl_file.write("*\tfix_blength = %s\n" % fix_blength)
+    ctl_file.write("\tmethod = %s\n" % method)
+
+
+    ctl_file.close()
+    return ctl
