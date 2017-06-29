@@ -190,6 +190,12 @@ def write_ctl_codeml_file(ctl, seq, tree, out):
     :param alpha: alpha value
     :return: ctl file path
     """
+    ctl = check_filename(ctl, Truefile=False)
+    seq = check_filename(seq)
+    tree = check_filename(tree)
+    out =check_filename(out, Truefile=False)
+
+
     ctl_file = open(ctl, "w")
 
     noisy = "3"
