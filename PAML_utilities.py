@@ -202,17 +202,18 @@ def write_ctl_codeml_file(ctl, seq, tree, out):
     verbose = "1"
     runmode = "0"
     seqtype = "1"
-    CodonFreq = "1"
+    CodonFreq = "2"
     ndata = "1"  # was 100
     clock = "0"  # was 1
     aaDist = "0"
     model = "0"
-    NSsites = "M3"
+    NSsites = "3"
     icode = "0"
     Mgene = "0"
     fix_kappa = "0"
+    kappa = "0.3"
     fix_omega = "0"
-    omega = ".4"
+    omega = "1.3"
     fix_alpha = "1"
     alpha = "0"
     Malpha = "0"
@@ -223,7 +224,7 @@ def write_ctl_codeml_file(ctl, seq, tree, out):
     RateAncestor = "0"
     Small_Diff = ".5e-6"
     cleandata = "1"
-    fix_blength = "-0"
+    fix_blength = "0"
     method = "0"
 
     ctl_file.write("\tseqfile = %s\n" % seq)
@@ -239,23 +240,24 @@ def write_ctl_codeml_file(ctl, seq, tree, out):
     ctl_file.write("\taaDist = %s\n" % aaDist)
     ctl_file.write("\tmodel = %s\n" % model)
     ctl_file.write("\tNSsites = %s\n" % NSsites)
-    ctl_file.write("*\ticode = %s\n" % icode)
+    ctl_file.write("\ticode = %s\n" % icode)
     ctl_file.write("\tMgene = %s\n" % Mgene)
     ctl_file.write("\tfix_kappa = %s\n" % fix_kappa)
+    ctl_file.write("\tkappa = %s\n" % kappa)
     ctl_file.write("\tfix_omega = %s\n" % fix_omega)
     ctl_file.write("\tomega = %s\n" % omega)
-    ctl_file.write("\tfix_alpha = %s\n" % fix_alpha)
-    ctl_file.write("\talpha = %s\n" % alpha)
-    ctl_file.write("\tMalpha = %s\n" % Malpha)
+    #ctl_file.write("\tfix_alpha = %s\n" % fix_alpha)
+    #ctl_file.write("\talpha = %s\n" % alpha)
+    #ctl_file.write("\tMalpha = %s\n" % Malpha)
     ctl_file.write("\tncatG = %s\n" % ncatG)
-    ctl_file.write("\tfix_rho = %s\n" % fix_rho)
-    ctl_file.write("\trho = %s\n" % rho)
+    #ctl_file.write("\tfix_rho = %s\n" % fix_rho)
+    #ctl_file.write("\trho = %s\n" % rho)
     ctl_file.write("\tgetSE = %s\n" % getSE)
     ctl_file.write("\tRateAncestor = %s\n" % RateAncestor)
     ctl_file.write("\tSmall_Diff = %s\n" % Small_Diff)
-    ctl_file.write("*\tcleandata = %s\n" % cleandata)
-    ctl_file.write("*\tfix_blength = %s\n" % fix_blength)
-    ctl_file.write("\tmethod = %s\n" % method)
+    ctl_file.write("\tcleandata = %s\n" % cleandata)
+    ctl_file.write("\tfix_blength = %s\n" % fix_blength)
+    #ctl_file.write("\tmethod = %s\n" % method)
 
 
     ctl_file.close()
