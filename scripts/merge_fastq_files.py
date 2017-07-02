@@ -1,12 +1,10 @@
-#! /usr/local/python-anaconda-3.5//bin/python
+#! /usr/local/python_anaconda/bin/python3.4
 """
 @Author: odedkushnir
 
 """
 
 import sys
-
-
 from optparse import OptionParser
 from file_utilities import check_dirname
 

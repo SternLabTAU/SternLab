@@ -20,6 +20,22 @@ def baseml_runner(ctl, alias = "bml"):
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
 
+
+def codeml_runner(ctl, alias = "cml"):
+    """
+    run baseml program from PAML on cluster
+    :param ctl: ctl file path
+    :param alias: job name (default: bml)
+    :return: job id
+    """
+    ctl = check_filename(ctl)
+    base = os.path.split(ctl)[0]
+    cmdfile = "codeml.txt"; tnum = 1; gmem = 2
+    cmds = "cd %s\necho %s \n/sternadi/home/volume1/taliakustin/software/paml4.8/bin/codeml %s" %(base, ctl, ctl)
+    pbs_jobs.create_pbs_cmd(cmdfile, alias, tnum, gmem, cmds)
+    job_id = pbs_jobs.submit(cmdfile)
+    return job_id
+
 def script_runner(cmds, alias = "script"):
     """
     run script on cluster
@@ -129,6 +145,26 @@ def prank_runner(sequence, alignment=None, alias = "prank"):
     sequence = check_filename(sequence)
     alignment = check_filename(alignment, Truefile=False)
     cmds = "/powerapps/share/bin/prank -d=%s -o=%s -F" % (sequence, alignment)
+    cmdfile = "prank_alignment"; tnum=1; gmem=5
+    pbs_jobs.create_pbs_cmd(cmdfile, alias, tnum, gmem, cmds)
+    job_id = pbs_jobs.submit(cmdfile)
+    return job_id
+
+
+
+def prank_codon_runner(sequence, alignment=None, alias = "prank"):
+    """
+    run phyml on cluster
+    :param sequence: sequence file path (fasta format)
+    :param alignment: alignment output file (default: None)
+    :param alias: job name (default: prank)
+    :return: job id
+    """
+    if alignment == None:
+        alignment = sequence.split(".fasta")[0] + ".aln"
+    sequence = check_filename(sequence)
+    alignment = check_filename(alignment, Truefile=False)
+    cmds = "/powerapps/share/bin/prank -d=%s -o=%s -F -codon" % (sequence, alignment)
     cmdfile = "prank_alignment"; tnum=1; gmem=5
     pbs_jobs.create_pbs_cmd(cmdfile, alias, tnum, gmem, cmds)
     job_id = pbs_jobs.submit(cmdfile)
