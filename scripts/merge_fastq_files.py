@@ -35,19 +35,17 @@ def concat_fastq(file1, file2, output_file):
     with open(file1, 'r') as fastq1, open(file2, 'r') as fastq2, open(output_file, 'w') as output_file:
         f1 = fastq1.readlines()
         f2 = fastq2.readlines()
-        for i in range(len(f1)):
-            line = f1[i]
-            f1[i] = line.strip()
-            line = f2[i]
-            f2[i] = line.strip()
-        if f1[i].split(" ")[0] == f2[i].split(" ")[0]:
-            merge_id = f1[i].split(" ")[0]
-            merge_seq = f1[i + 1] + 'N' + f2[i + 1]
-            merge_dir = f1[i + 2]
-            merge_qual = f1[i + 3] + '!' + f2[i + 3]
-            output_file.write(merge_id + '\n' + merge_seq + '\n' + merge_dir + '\n' + merge_qual + '\n')
-        else:
-            print("problem: " + str(i))
+        for i in range(0, len(f1), 4):
+            f1[i].strip()
+            f2[i].strip()
+            if f1[i].split(" ")[0] == f2[i].split(" ")[0]:
+                merge_id = f1[i].split(" ")[0]
+                merge_seq = f1[i + 1].strip() + 'N' + f2[i + 1].strip()
+                merge_dir = f1[i + 2].strip()
+                merge_qual = f1[i + 3].strip() + '!' + f2[i + 3].strip()
+                output_file.write(merge_id + '\n' + merge_seq + '\n' + merge_dir + '\n' + merge_qual + '\n')
+            else:
+                print("Problem:" + str(i))
 
 if __name__ == "__main__":
     main()
