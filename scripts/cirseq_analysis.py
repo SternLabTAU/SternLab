@@ -1,9 +1,8 @@
+#! /usr/local/python_anaconda/bin/python3.4
 
-
-# get_ipython().magic('matplotlib inline')
 import matplotlib.pyplot as plt
 import pandas as pd
-import seaborn as sns
+# import seaborn as sns
 import numpy as np
 import re
 import glob
@@ -11,8 +10,9 @@ from Bio.Seq import Seq
 import matplotlib.gridspec as gridspec
 import time
 import os.path
-import Final_project
-sns.set_context("talk")
+import pathlib
+from optparse import OptionParser
+# sns.set_context("talk")
 start_time = time.time()
 
 
@@ -21,16 +21,15 @@ start_time = time.time()
 #           1. Get freqs file and CirSeq running directory.
 #           2. Analyze those file and directory to get the number of tandem repeats of the cirseq, repeats length and the
 #                 amount of reads per repeat
-#           3. Get the coverage of the CirSeq run
-#           4. Adding mutation types to the freqs file
-#           5. Run bowtie2 for human rRNA, mRNA and the virus
-#           6. Subplots all relevant graph in subplots
-#                 6.1. Distribution graph (=bowtie2 results)
-#                 6.2. Multiple tandem repeat graph (repeat len)
-#                 6.3. Reads length
-#                 6.4. Amount of reads per repeat (Reads VS. Repeats Graph)
-#                 6.5. Coverage
-#                 6.6 Plot virus mutation frequencies(rates)
+#           3. Adding mutation types to the freqs file
+#           4. Run bowtie2 for human rRNA, mRNA and the virus
+#           5. Subplots all relevant graph in subplots
+#                 5.1. Distribution graph (=bowtie2 results)
+#                 5.2. Multiple tandem repeat graph (repeat len)
+#                 5.3. Reads length
+#                 5.4. Amount of reads per repeat (Reads VS. Repeats Graph)
+#                 5.5. Coverage
+#                 5.6 Plot virus mutation frequencies(rates)
 
 #Functions
 def get_freqs_file(freqs_file):
@@ -57,7 +56,7 @@ def get_repeats_num(tmp_cirseq_dir, out_dir):
                 repeat_summery[key] += value
             else:
                 repeat_summery[key] = value
-    np.save(out_dir + '/repeat_summery.npy', repeat_summery)
+    np.save(out_dir + 'repeat_summery.npy', repeat_summery)
     return repeat_summery
 
 
@@ -66,8 +65,13 @@ def getoverlap(a, b):
 
 
 def get_read_and_repeat_length(tmp_cirseq_dir, out_dir):
+    """
+    :param tmp_cirseq_dir: The tmp Directory path of the relevant cirseq
+    :param out_dir: where to save the result
+    :return: Dictionary of the read and the repeats length
+    """
     results = {}
-    files = glob.glob(tmp_cirseq_dir + "/*.fasta.blast")
+    files = glob.glob(tmp_cirseq_dir + "*.fasta.blast")
     for file in files:
 
         data = pd.read_csv(file, delimiter="\t",  header=None, names=["sseqid", "qstart", "qend", "sstart", "send", "sstrand", "length", "btop"])
@@ -118,7 +122,7 @@ def get_read_and_repeat_length(tmp_cirseq_dir, out_dir):
                 results[repeat_num]["read_length"].append(read_length)
                 results[repeat_num]["repeat_length"] += repeat_lengths
     print("After a long for-loop")
-    np.save(out_dir + '/results.npy', results)
+    np.save(out_dir + 'results.npy', results)
     return results
 
 
@@ -143,6 +147,11 @@ def parse_reads(freqs):
 
 
 def find_mutation_type(freqs_file):
+    """
+    This function adds Mutation type to the freqs file
+    :param freqs_file:  The path of the relevant freqs file
+    :return:DataFrame of the frqs file with mutation type column, save it in txt file
+    """
     file_name = freqs_file
     data = freqs_to_dataframe(freqs_file)
     check_12mer(data)
@@ -169,6 +178,11 @@ def find_mutation_type(freqs_file):
 
 
 def freqs_to_dataframe(freqs_file):
+    """
+    This function returns arranged DataFrame without deletions
+    :param freqs_file: The path of the relevant freqs file
+    :return: DataFrame without deletions
+    """
     data = pd.read_table(freqs_file)
     data = data[data.Ref != '-']
     data = data[data.Base != '-']
@@ -177,6 +191,10 @@ def freqs_to_dataframe(freqs_file):
 
 
 def check_12mer(data):
+    """
+      :param data: pandas DataFrame of the freqs file
+      :return: None - checks that DataFrame is in 12 kmer
+      """
     if data.__len__() % 12 != 0:
         print('The data is not in 12 mer. arrange the data')
     else:
@@ -185,6 +203,10 @@ def check_12mer(data):
 
 
 def find_codon(data):
+    """
+    :param data: pandas DataFrame of the freqs file
+    :return: pandas DataFrame with codon column
+    """
     data['Codon'] = ""
     x = 4
     first_index_kmer = data.first_valid_index()
@@ -199,12 +221,20 @@ def find_codon(data):
 
 
 def translate(seq):
+    """
+    :param seq: string of ATGC
+    :return: protein sequence of seq
+    """
     seq = Seq(seq)
     protein = seq.translate()
     return protein
 
 
 def translate_codon(data):
+    """
+    :param data: pandas DataFrame of the freqs file
+    :return: pandas DataFrame with Reference protein column and Potential protein column
+    """
     data['Ref_Protein'] = ""
     data['Potential_Protein'] = ""
     protein_ref = Seq(data["Codon"][data.first_valid_index()]).translate()
@@ -219,6 +249,11 @@ def translate_codon(data):
 
 
 def check_mutation_type(protein1, protein2):
+    """
+    :param protein1: amino acid 1
+    :param protein2: amino acid 2
+    :return: The mutation type
+    """
     Mutation_Type = ""
     if protein1 == protein2:
         Mutation_Type = "Synonymous"
@@ -228,7 +263,7 @@ def check_mutation_type(protein1, protein2):
         Mutation_Type = "Premature Stop Codon"
     return Mutation_Type
 
-#Functions
+
 """Graphs"""
 #1.Distribution graph (=bowtie2 results)
 
@@ -236,7 +271,7 @@ def check_mutation_type(protein1, protein2):
 def distribution_graph(val, ax, virus):
     """
     makes distribution graph
-    :param val:
+    :param val: values from bowtie2 alignment
     :param ax:
     :return:
     """
@@ -245,15 +280,12 @@ def distribution_graph(val, ax, virus):
     ind = np.arange(column_number)  # the x locations for the groups
     width = 0.35  # the width of the bars
     rects1 = ax.bar(ind, val, width, color='DarkOrchid')
-    # add some text for labels, title and axes ticks
     ax.set_ylabel('% of Reads')
-    # ax.set_yticklabels()
-    # ax.set_title('Overall Alignment Rate')
     ax.set_xticks(ind)
     ax.set_xticklabels((virus, 'mRNA', 'rRNA'))
     labelsy = np.arange(0, 50, 10)
     ax.set_yticklabels(labelsy)
-    sns.set_style("darkgrid")
+    # sns.set_style("darkgrid")
     ax.set_xlim(-0.5, 3)
     return ax
 
@@ -285,7 +317,7 @@ def repeat_len_graphs(results, ax):
     labelsx = np.arange(1, 11, 1)
     ax.set_yticklabels(labelsy)
     ax.set_xticklabels(labelsx)
-    sns.set_style("darkgrid")
+    # sns.set_style("darkgrid")
     return ax
 
 #3. Reads length
@@ -296,9 +328,7 @@ def read_len_graphs(results, ax):
     medianprops = {'color': 'black', 'linewidth': 2}
     whiskerprops = {'color': 'black', 'linestyle': '-'}
     read_plt = ax.boxplot(y_read_len, patch_artist=True, medianprops=medianprops, whiskerprops=whiskerprops)
-#     ax = plt.boxplot(y_read_len, patch_artist=True, medianprops=medianprops, whiskerprops=whiskerprops)
     for box in read_plt['boxes']:
-#     for box in ax['boxes']:
         # change outline color
         box.set(color='DarkOrchid', linewidth=2)
         # change fill color
@@ -326,7 +356,7 @@ def read_repeat_graph(repeat_summery, ax):
     ax.set_xticklabels(list(range(1, 11)))
     ax.set_xlim(min(keys)-0.5, max(keys)+0.5)
     ax.yaxis.get_major_formatter().set_powerlimits((0, 1))
-    sns.set_style("darkgrid")
+    # sns.set_style("darkgrid")
     return ax
 
 
@@ -338,7 +368,7 @@ def coverage_graph(freqs, ax):
     graph = ax.plot(pos, reads, color="DarkOrchid")
     ax.set_xlabel("Position In The Genome [bp]")
     ax.set_ylabel("Number Of Reads")
-    sns.set_style("darkgrid")
+    # sns.set_style("darkgrid")
     ax.set_xlim(0, (len(pos)+10))
     ax.set_ylim(1000, 1000000)
     ax.set_yscale("log")
@@ -346,6 +376,12 @@ def coverage_graph(freqs, ax):
 
 #6. Mutation Rates
 def make_boxplot_mutation(data, ax):
+    """
+    Plots the mutation frequencies boxplot
+    :param data: pandas DataFrame after find_mutation_type function
+    :param ax: which ax to plot
+    :return:
+    """
     data['Base'].replace('T', 'U', inplace=True)
     data['Ref'].replace('T', 'U', inplace=True)
     min_read_count = 100000
@@ -363,7 +399,7 @@ def make_boxplot_mutation(data, ax):
     data['mutation_type'] = data['Ref'] + data['Base']
     data['mutation_class'] = np.where(data["Rank"] == 0, "self", np.where(data['mutation_type'] == 'GA', 'transition', np.where(data['mutation_type'] == 'AG', 'transition', np.where(data['mutation_type'] == 'CU', 'transition', np.where(data['mutation_type'] == 'UC', 'transition','transversion')))))
 
-    sns.set_palette(sns.color_palette("Paired", 12))
+    # sns.set_palette(sns.color_palette("Paired", 12))
     data["complement"] = 1 - data["Freq"]
     data = data[data['Ref'] != data['Base']]
     data = pd.merge(data, consensus_data[['Pos', 'next', 'prev']], on="Pos")
@@ -372,7 +408,7 @@ def make_boxplot_mutation(data, ax):
     data['abs_counts'] = data['Freq'] * data["Read_count"]
     data['Frequency'] = data['abs_counts'].apply(lambda x: 1 if x == 0 else x) / data["Read_count"]
     data["Mutation"] = data["Ref"] + "->" + data["Base"]
-    g = sns.boxplot(x="Mutation Type", y="Frequency", hue="Mutation", data=data[data["Base"] != "-"],
+    g = plt.boxplot(x="Mutation Type", y="Frequency", hue="Mutation", data=data[data["Base"] != "-"],
                     hue_order=["C->U", "U->C", "G->A", "A->G", "C->A", "G->U", "U->G", "U->A", "G->C", "A->C", "A->U",
                                "C->G"], order=["Synonymous", "Non-Synonymous", "Premature Stop Codon"])
     g.set(yscale="log")
@@ -381,29 +417,39 @@ def make_boxplot_mutation(data, ax):
 
 
 def main():
+    parser = OptionParser("usage: %prog [options]")
+    parser.add_option("-f", "--freqs_file_path", dest="freqs_file_path", help="path of the freqs file")
+    (options, args) = parser.parse_args()
+
+    freqs_file = options.freqs_file_path
+
     # 1. Get freqs file and CirSeq running directory.
-    out_dir = 'F:/Cirseq/RV/20170322_output_all_23_qscore'
-    tmp_cirseq_dir = out_dir + '/tmp'
-    freqs_file = out_dir + '/RVB14p2.freqs'
-    out_plots_dir = out_dir + '/plots/'
+    path = freqs_file.split('/')[0:-1]
+    out_dir = '' #the freqs directory
+    for i in path:
+        out_dir += str(i + '/')
+    tmp_cirseq_dir = out_dir + 'tmp/'
+    pathlib.Path('.\\plots').mkdir(parents=True)
+    out_plots_dir = out_dir + 'plots/'
 
 
     """2. Analyze those file and directory to get the number of tandem repeats of the cirseq,
     repeats length and the amount of reads per repeat"""
 
-    if os.path.isfile(out_dir + '/repeat_summery.npy'):
-            repeats_dict = np.load(out_dir + '/repeat_summery.npy', encoding='latin1').item() #dict for read vs. repeat
+    if os.path.isfile(out_dir + 'repeat_summery.npy'):
+            repeats_dict = np.load(out_dir + 'repeat_summery.npy').item() #dict for read vs. repeat  , encoding='latin1'
     else:
+            print("Counting the repeats number")
             repeats_dict = get_repeats_num(tmp_cirseq_dir, out_dir) #dict for read vs. repeat
 
-    if os.path.isfile(out_dir + '/results.npy'):
-            read_and_repeat_length = np.load(out_dir + '/results.npy', encoding='latin1').item() #dict for read and repeat length
+    if os.path.isfile(out_dir + 'results.npy'):
+            read_and_repeat_length = np.load(out_dir + 'results.npy').item() #dict for read and repeat length  , encoding='latin1'
     else:
+            print("Getting the read and repeat length")
             read_and_repeat_length = get_read_and_repeat_length(tmp_cirseq_dir, out_dir) #dict for read and repeat length
 
-    """3. Get the coverage of the CirSeq run"""
 
-    """ 4. Adding mutation types to the freqs file"""
+    """ 3. Adding mutation types to the freqs file"""
     if not os.path.isfile(freqs_file + ".with.mutation.type.txt"):
          append_mutation = find_mutation_type(freqs_file)
 
@@ -411,18 +457,21 @@ def main():
     mutation_rates = freqs_to_dataframe(mutation_file)
 
 
-    """5. Run bowtie2 for human rRNA, mRNA and the virus"""
-
-    #RV
-    values = (19.32, 40.52, 45.17)
+    """4. Run bowtie2 for human rRNA, mRNA and the virus"""
 
 
-    # 6. Subplots all relevant graph in subplots
-    #     6.1. Distribution graph (=bowtie2 results)
-    #     6.2. Multiple tandem repeat graph (repeat len)
-    #     6.3. Reads length
-    #     6.4. Amount of reads per repeat (Reads VS. Repeats Graph)
-    #     6.5. Coverage
+    # RV
+    # values = (19.32, 40.52, 45.17)
+    # CV
+    values = (96.09, 1.66, 1.18)
+
+    #   5. Subplots all relevant graph in subplots
+    #      5.1. Distribution graph (=bowtie2 results)
+    #      5.2. Multiple tandem repeat graph (repeat len)
+    #      5.3. Reads length
+    #      5.4. Amount of reads per repeat (Reads VS. Repeats Graph)
+    #      5.5. Coverage
+    #      5.6 Plot virus mutation frequencies(rates)
 
     plt.close('all')
     fig = plt.figure()
@@ -435,7 +484,7 @@ def main():
     ax5 = plt.subplot(gs[2:, :])
     gs.tight_layout(fig)
 
-    distribution_graph(values, ax0, 'RV')
+    distribution_graph(values, ax0, 'CV')
     # ax0.set_title('Reads Distribution')
 
     repeat_len_graphs(read_and_repeat_length, ax1)
@@ -453,10 +502,10 @@ def main():
     make_boxplot_mutation(mutation_rates, ax5)
     # ax5.set_title('Mutation Rates')
 
-    plt.show()
-    #     plt.savefig('C:/Users/Oded/Desktop/all.png', dpi=300)
-    #     plt.close("all")
-    #     print("The Plot is ready in the folder")
+    # plt.show()
+    plt.savefig(out_plots_dir + 'all.png', dpi=300)
+    plt.close("all")
+    print("The Plot is ready in the folder")
 
 if __name__ == "__main__":
     main()
