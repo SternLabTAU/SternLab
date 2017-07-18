@@ -2,7 +2,7 @@
 
 import matplotlib.pyplot as plt
 import pandas as pd
-# import seaborn as sns
+import seaborn as sns
 import numpy as np
 import re
 import glob
@@ -12,7 +12,7 @@ import time
 import os.path
 import pathlib
 from optparse import OptionParser
-# sns.set_context("talk")
+sns.set_context("talk")
 start_time = time.time()
 
 
@@ -57,6 +57,7 @@ def get_repeats_num(tmp_cirseq_dir, out_dir):
             else:
                 repeat_summery[key] = value
     np.save(out_dir + 'repeat_summery.npy', repeat_summery)
+    print("repeat_summery.npy is in your directory")
     return repeat_summery
 
 
@@ -78,6 +79,7 @@ def get_read_and_repeat_length(tmp_cirseq_dir, out_dir):
         unique_sseqid = data.sseqid.unique() #get all unique reads
 
         for sseqid in unique_sseqid:
+            print("iterating over unique_sseqid")
             sseqid_data = data.loc[data.sseqid == sseqid] #get the repeats of this read
             repeat_num = len(sseqid_data)
             # read with only one repeat
@@ -146,7 +148,7 @@ def parse_reads(freqs):
     return pos, reads
 
 
-def find_mutation_type(freqs_file):
+def find_mutation_type(freqs_file, ncbi_id):
     """
     This function adds Mutation type to the freqs file
     :param freqs_file:  The path of the relevant freqs file
@@ -154,23 +156,27 @@ def find_mutation_type(freqs_file):
     """
     file_name = freqs_file
     data = freqs_to_dataframe(freqs_file)
+    start_pos, end_pos = find_coding_region(ncbi_id)
+    data = data.loc[data['Pos'] >= start_pos]
     check_12mer(data)
     data['Codon'] = ""
     data['Ref_Protein'] = ""
     data['Potential_Protein'] = ""
     data['Mutation Type'] = ""
-
-    for kmer in range(data.first_valid_index(), len(data), 12):
-        print ("going over kmer: " + str(kmer) + "/" + str(data.__len__()))
+    data['Pos'] = data['Pos'].astype(int)
+    data.reset_index(drop=True, inplace=True)
+    for kmer in range(data.first_valid_index(), (len(data)), 12):
+        print ("going over kmer: " + str(kmer) + "/" + str((len(data))))
         kmer_df = data[:].loc[kmer:kmer+11]
         print("finding codons....")
         find_codon(kmer_df)
         print("translating codons....")
         translate_codon(kmer_df)
         print("Sets the Mutation type....")
-        kmer_df['Mutation Type'] = kmer_df[['Ref_Protein', 'Potential_Protein']].apply(lambda protein: check_mutation_type(protein[0], protein[1]), axis=1)
+        kmer_df['Mutation Type'] = kmer_df[['Ref_Protein', 'Potential_Protein']].apply(
+            lambda protein: check_mutation_type(protein[0], protein[1]), axis=1)
     print("After a long for loop")
-    file_name += ".with.mutation.type.txt"
+    file_name += ".with.mutation.type.func2.freqs"
     data.to_csv(file_name, sep='\t', encoding='utf-8')
     print("The File is ready in the folder")
     print("--- %s sec ---" % (time.time() - start_time))
@@ -190,16 +196,34 @@ def freqs_to_dataframe(freqs_file):
     return data
 
 
+def find_coding_region(ncbi_id):
+    """
+    :param ncbi_id:
+    :return: start and end Pos of CDS
+    """
+    try:
+        Entrez.email = "A.N.Other@example.com"
+        handle = Entrez.efetch(db="nucleotide", rettype="gb", retmode="text", id=ncbi_id)
+        ncbi_gb = SeqIO.read(handle, "gb")
+        handle.close()
+        location = list(ncbi_gb.features[1].location)
+        start_pos = location[0]
+        end_pos = location[-4]
+        return start_pos, end_pos
+    except:
+        print('Failed to fetch record.')
+
+
 def check_12mer(data):
     """
       :param data: pandas DataFrame of the freqs file
       :return: None - checks that DataFrame is in 12 kmer
       """
-    if data.__len__() % 12 != 0:
+    if (len(data)) % 12 != 0:
         print('The data is not in 12 mer. arrange the data')
     else:
         print('The data is in 12 mer. All OK.')
-        print('The length of data is:', data.__len__())
+        print('The length of data is:', (len(data)))
 
 
 def find_codon(data):
@@ -210,13 +234,12 @@ def find_codon(data):
     data['Codon'] = ""
     x = 4
     first_index_kmer = data.first_valid_index()
-    for row in data.itertuples(index=True):
-        if row.Index >= first_index_kmer and row.Index <= first_index_kmer+3:
-            data['Codon'][row.Index] = data["Base"].loc[row.Index] + data["Ref"].loc[first_index_kmer + x] + data["Ref"].loc[(first_index_kmer + (x * 2))]
-        elif row.Index >= first_index_kmer+4 and row.Index <= first_index_kmer+7:
-            data['Codon'][row.Index] = data["Ref"].loc[first_index_kmer] + data["Base"].loc[row.Index] + data["Ref"].loc[first_index_kmer + (x * 2)]
-        elif row.Index >= first_index_kmer+8 and row.Index <= first_index_kmer+11:
-            data['Codon'][row.Index] = data["Ref"].loc[first_index_kmer] + data["Ref"].loc[first_index_kmer + x] + data["Base"].loc[row.Index]
+    for i in range(first_index_kmer, first_index_kmer+x, 1):
+        data['Codon'][i] = data["Base"].loc[i] + data["Ref"].loc[first_index_kmer+x] + data["Ref"].loc[(first_index_kmer+(x*2))]
+    for i in range((first_index_kmer+x), (first_index_kmer+(x*2)), 1):
+            data['Codon'][i] = data["Ref"].loc[first_index_kmer] + data["Base"].loc[i] + data["Ref"].loc[first_index_kmer+(x*2)]
+    for i in range((first_index_kmer+(x*2)), (first_index_kmer+(x * 3)), 1):
+            data['Codon'][i] = data["Ref"].loc[first_index_kmer] + data["Ref"].loc[first_index_kmer+x] + data["Base"].loc[i]
     return data
 
 
@@ -225,7 +248,7 @@ def translate(seq):
     :param seq: string of ATGC
     :return: protein sequence of seq
     """
-    seq = Seq(seq)
+    seq = Seq(str(seq))
     protein = seq.translate()
     return protein
 
@@ -263,7 +286,6 @@ def check_mutation_type(protein1, protein2):
         Mutation_Type = "Premature Stop Codon"
     return Mutation_Type
 
-
 """Graphs"""
 #1.Distribution graph (=bowtie2 results)
 
@@ -285,7 +307,7 @@ def distribution_graph(val, ax, virus):
     ax.set_xticklabels((virus, 'mRNA', 'rRNA'))
     labelsy = np.arange(0, 50, 10)
     ax.set_yticklabels(labelsy)
-    # sns.set_style("darkgrid")
+    sns.set_style("darkgrid")
     ax.set_xlim(-0.5, 3)
     return ax
 
@@ -317,7 +339,7 @@ def repeat_len_graphs(results, ax):
     labelsx = np.arange(1, 11, 1)
     ax.set_yticklabels(labelsy)
     ax.set_xticklabels(labelsx)
-    # sns.set_style("darkgrid")
+    sns.set_style("darkgrid")
     return ax
 
 #3. Reads length
@@ -356,7 +378,7 @@ def read_repeat_graph(repeat_summery, ax):
     ax.set_xticklabels(list(range(1, 11)))
     ax.set_xlim(min(keys)-0.5, max(keys)+0.5)
     ax.yaxis.get_major_formatter().set_powerlimits((0, 1))
-    # sns.set_style("darkgrid")
+    sns.set_style("darkgrid")
     return ax
 
 
@@ -368,7 +390,7 @@ def coverage_graph(freqs, ax):
     graph = ax.plot(pos, reads, color="DarkOrchid")
     ax.set_xlabel("Position In The Genome [bp]")
     ax.set_ylabel("Number Of Reads")
-    # sns.set_style("darkgrid")
+    sns.set_style("darkgrid")
     ax.set_xlim(0, (len(pos)+10))
     ax.set_ylim(1000, 1000000)
     ax.set_yscale("log")
@@ -399,7 +421,7 @@ def make_boxplot_mutation(data, ax):
     data['mutation_type'] = data['Ref'] + data['Base']
     data['mutation_class'] = np.where(data["Rank"] == 0, "self", np.where(data['mutation_type'] == 'GA', 'transition', np.where(data['mutation_type'] == 'AG', 'transition', np.where(data['mutation_type'] == 'CU', 'transition', np.where(data['mutation_type'] == 'UC', 'transition','transversion')))))
 
-    # sns.set_palette(sns.color_palette("Paired", 12))
+    sns.set_palette(sns.color_palette("Paired", 12))
     data["complement"] = 1 - data["Freq"]
     data = data[data['Ref'] != data['Base']]
     data = pd.merge(data, consensus_data[['Pos', 'next', 'prev']], on="Pos")
@@ -417,11 +439,15 @@ def make_boxplot_mutation(data, ax):
 
 
 def main():
+    # for Cluster
     parser = OptionParser("usage: %prog [options]")
     parser.add_option("-f", "--freqs_file_path", dest="freqs_file_path", help="path of the freqs file")
     (options, args) = parser.parse_args()
 
     freqs_file = options.freqs_file_path
+
+    #for Local
+    # freqs_file = 'W:/volume1/okushnir/Cirseq/CV/20170711_edited_ouput_id/CVB3-p2.freqs'
 
     # 1. Get freqs file and CirSeq running directory.
     path = freqs_file.split('/')[0:-1]
@@ -429,7 +455,7 @@ def main():
     for i in path:
         out_dir += str(i + '/')
     tmp_cirseq_dir = out_dir + 'tmp/'
-    pathlib.Path('.\\plots').mkdir(parents=True)
+    pathlib.Path(out_dir + 'plots/').mkdir(parents=True, exist_ok=True)
     out_plots_dir = out_dir + 'plots/'
 
 
