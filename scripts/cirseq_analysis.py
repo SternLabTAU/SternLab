@@ -419,7 +419,10 @@ def make_boxplot_mutation(data, ax):
     data['Pos'] = data[['Pos']].apply(pd.to_numeric)
     data = data[data['Read_count'] > min_read_count]
     data['mutation_type'] = data['Ref'] + data['Base']
-    data['mutation_class'] = np.where(data["Rank"] == 0, "self", np.where(data['mutation_type'] == 'GA', 'transition', np.where(data['mutation_type'] == 'AG', 'transition', np.where(data['mutation_type'] == 'CU', 'transition', np.where(data['mutation_type'] == 'UC', 'transition','transversion')))))
+    data['mutation_class'] = np.where(data["Rank"] == 0, "self", np.where(data['mutation_type'] == 'GA', 'transition',
+                                np.where(data['mutation_type'] == 'AG', 'transition', np.where(data['mutation_type']
+                                == 'CU', 'transition', np.where(data['mutation_type'] ==
+                                                                'UC', 'transition','transversion')))))
 
     sns.set_palette(sns.color_palette("Paired", 12))
     data["complement"] = 1 - data["Freq"]
@@ -442,11 +445,11 @@ def main():
     # for Cluster
     parser = OptionParser("usage: %prog [options]")
     parser.add_option("-f", "--freqs_file_path", dest="freqs_file_path", help="path of the freqs file")
-    parser.add_option("-n", "--ncbi_id", dest="ncbi_id", help="The ID from NCBI of the virus whole genome")
+    parser.add_option("-v", "--virus", dest="virus", help="Virus name: CVB3 for CV; RVB14 for RV; PV for PV")
     (options, args) = parser.parse_args()
 
     freqs_file = options.freqs_file_path
-    ncbi_id = options.ncbi_id
+    virus = options.virus
 
     #for Local
     # freqs_file = 'W:/volume1/okushnir/Cirseq/CV/20170711_edited_ouput_id/CVB3-p2.freqs'
@@ -459,6 +462,17 @@ def main():
     tmp_cirseq_dir = out_dir + 'tmp/'
     pathlib.Path(out_dir + 'plots/').mkdir(parents=True, exist_ok=True)
     out_plots_dir = out_dir + 'plots/'
+
+    if virus == "CVB3":
+        ncbi_id ="M16572"
+    if virus == "RVB14":
+        ncbi_id = "NC_001490"
+    if virus == "PV":
+        ncbi_id ="V01149"
+    file_name = freqs_file.split('/')[-1]
+    virus_name = file_name.split('-')[0]
+    virus_name += file_name.split(sep='-')[1].split(sep='.')[0]
+
 
 
     """2. Analyze those file and directory to get the number of tandem repeats of the cirseq,
@@ -512,6 +526,7 @@ def main():
     ax5 = plt.subplot(gs[2:, :])
     gs.tight_layout(fig)
 
+    fig.suptitle(virus_name + ' Analysis', fontsize=20)
     distribution_graph(values, ax0, 'CV')
     # ax0.set_title('Reads Distribution')
 
@@ -528,7 +543,7 @@ def main():
     # ax4.set_title('Coverage')
 
     make_boxplot_mutation(mutation_rates, ax5)
-    # ax5.set_title('Mutation Rates')
+    # ax5.set_title(virus_name + ' Mutation Rates')
 
     # plt.show()
     plt.savefig(out_plots_dir + 'all.png', dpi=300)
