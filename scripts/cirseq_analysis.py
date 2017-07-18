@@ -442,9 +442,11 @@ def main():
     # for Cluster
     parser = OptionParser("usage: %prog [options]")
     parser.add_option("-f", "--freqs_file_path", dest="freqs_file_path", help="path of the freqs file")
+    parser.add_option("-n", "--ncbi_id", dest="ncbi_id", help="The ID from NCBI of the virus whole genome")
     (options, args) = parser.parse_args()
 
     freqs_file = options.freqs_file_path
+    ncbi_id = options.ncbi_id
 
     #for Local
     # freqs_file = 'W:/volume1/okushnir/Cirseq/CV/20170711_edited_ouput_id/CVB3-p2.freqs'
@@ -476,10 +478,10 @@ def main():
 
 
     """ 3. Adding mutation types to the freqs file"""
-    if not os.path.isfile(freqs_file + ".with.mutation.type.txt"):
-         append_mutation = find_mutation_type(freqs_file)
+    if not os.path.isfile(freqs_file + ".with.mutation.type.func2.freqs"):
+         append_mutation = find_mutation_type(freqs_file, ncbi_id)
 
-    mutation_file = freqs_file + ".with.mutation.type.txt"
+    mutation_file = freqs_file + ".with.mutation.type.func2.freqs"
     mutation_rates = freqs_to_dataframe(mutation_file)
 
 
