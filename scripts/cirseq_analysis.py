@@ -1,4 +1,3 @@
-#! /usr/local/python_anaconda/bin/python3.4
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -11,6 +10,8 @@ import matplotlib.gridspec as gridspec
 import time
 import os.path
 import pathlib
+from Bio import Entrez
+from Bio import SeqIO
 from optparse import OptionParser
 sns.set_context("talk")
 start_time = time.time()
@@ -61,71 +62,17 @@ def get_repeats_num(tmp_cirseq_dir, out_dir):
     return repeat_summery
 
 
-def getoverlap(a, b):
-    return max(0, min(a[1], b[1]) - max(a[0], b[0]))
-
-
-def get_read_and_repeat_length(tmp_cirseq_dir, out_dir):
-    """
-    :param tmp_cirseq_dir: The tmp Directory path of the relevant cirseq
-    :param out_dir: where to save the result
-    :return: Dictionary of the read and the repeats length
-    """
-    results = {}
-    files = glob.glob(tmp_cirseq_dir + "*.fasta.blast")
+def get_read_and_repeat_length(in_dir, out_dir):
+    files = glob.glob(in_dir + "/*.fasta.blast")
+    arr_names = ["sseqid", "qstart", "qend", "sstart", "send", "sstrand", "length", "btop"]
+    wdf = pd.DataFrame()
     for file in files:
-
-        data = pd.read_csv(file, delimiter="\t",  header=None, names=["sseqid", "qstart", "qend", "sstart", "send", "sstrand", "length", "btop"])
-        unique_sseqid = data.sseqid.unique() #get all unique reads
-
-        for sseqid in unique_sseqid:
-            print("iterating over unique_sseqid")
-            sseqid_data = data.loc[data.sseqid == sseqid] #get the repeats of this read
-            repeat_num = len(sseqid_data)
-            # read with only one repeat
-            if repeat_num == 1:
-                read_length = sseqid_data["length"].tolist()[0]
-                if not repeat_num in results:
-                    results[repeat_num] = {}
-                    results[repeat_num]["read_length"] = []
-                    results[repeat_num]["repeat_length"] = []
-                results[repeat_num]["read_length"].append(read_length)
-                results[repeat_num]["repeat_length"].append(read_length)
-                continue
-            #check if read is good
-            start = sseqid_data["qstart"].tolist()
-            end = sseqid_data["qend"].tolist()
-            overlap = True
-            for i in range(0, len(start)-1):
-                overlap = getoverlap([start[i], end[i]], [start[i+1], end[i+1]])
-                if overlap == 0:
-                    overlap = False
-
-            #calculate read length and repeat lengths
-            repeat_lengths = sseqid_data["length"].tolist()
-            read_length = sum(repeat_lengths)
-
-            #deal with a bad read
-            if not overlap: # overlap==False
-                if not "bad" in results:
-                    results["bad"] = {}
-                    results["bad"] = {}
-                if not repeat_num in results["bad"]:
-                    results["bad"][repeat_num] = {}
-                    results["bad"][repeat_num]["read_length"] = []
-                    results["bad"][repeat_num]["repeat_length"] = []
-                results["bad"][repeat_num]["read_length"].append(read_length)
-                results["bad"][repeat_num]["repeat_length"] += repeat_lengths
-            else:
-                if not repeat_num in results:
-                    results[repeat_num] = {}
-                    results[repeat_num]["read_length"] = []
-                    results[repeat_num]["repeat_length"] = []
-                results[repeat_num]["read_length"].append(read_length)
-                results[repeat_num]["repeat_length"] += repeat_lengths
-    print("After a long for-loop")
-    np.save(out_dir + 'results.npy', results)
-    return results
+        data = pd.read_csv(file, delimiter="\t",  header=None, names=arr_names)
+        grouped_and_filtered = data.groupby("sseqid").filter(lambda x: min(x["qend"]) - max(x["qstart"]) > 0).groupby("sseqid")["length"].agg([np.count_nonzero, np.sum, np.max])
+    wdf = pd.DataFrame.append(wdf, grouped_and_filtered)
+    wdf.to_csv(out_dir + '/length_df.csv', sep='\t', encoding='utf-8')
+    print("length_df.csv is in your folder")
+    return wdf
 
 
 def parse_reads(freqs):
@@ -313,28 +260,16 @@ def distribution_graph(val, ax, virus):
 
 
 #2. Multiple tandem repeat graph (repeat len)
-def repeat_len_graphs(results, ax):
+def repeat_len_graphs(dataframe, ax):
     """
      makes a repeat length graph
     :param results:
     :param ax:
     :return:
     """
-    results.pop("bad", None)
-    x_values = results.keys()
-    y_repeat_len = [results[x]["repeat_length"] for x in x_values]
-
-    medianprops = {'color': 'black', 'linewidth': 2}
-    whiskerprops = {'color': 'black', 'linestyle': '-'}
-
-    repeat_plt = ax.boxplot(y_repeat_len, patch_artist=True, medianprops=medianprops, whiskerprops=whiskerprops)
-    for box in repeat_plt['boxes']:
-        # change outline color
-        box.set(color='DarkOrchid', linewidth=2)
-        # change fill color
-        box.set(facecolor='DarkOrchid')
+    sns.boxplot(x="count_nonzero", y="amax", data=dataframe, ax=ax)
     ax.set_xlabel("Number of Repeats")
-    ax.set_ylabel("Fragment Size [bp]")
+    ax.set_ylabel("Repeat Length [bp]")
     labelsy = np.arange(0, 350, 50)
     labelsx = np.arange(1, 11, 1)
     ax.set_yticklabels(labelsy)
@@ -343,20 +278,12 @@ def repeat_len_graphs(results, ax):
     return ax
 
 #3. Reads length
-def read_len_graphs(results, ax):
-    results.pop("bad", None)
-    x_values = results.keys()
-    y_read_len = [results[x]["read_length"] for x in x_values]
-    medianprops = {'color': 'black', 'linewidth': 2}
-    whiskerprops = {'color': 'black', 'linestyle': '-'}
-    read_plt = ax.boxplot(y_read_len, patch_artist=True, medianprops=medianprops, whiskerprops=whiskerprops)
-    for box in read_plt['boxes']:
-        # change outline color
-        box.set(color='DarkOrchid', linewidth=2)
-        # change fill color
-        box.set(facecolor='DarkOrchid')
+def read_len_graphs(dataframe, ax):
+
+    graph = sns.boxplot(x="count_nonzero", y="sum", data=dataframe, ax=ax)
     ax.set_xlabel("Number of Repeats")
-    ax.set_ylabel("Read Length (bp)")
+    ax.set_ylabel("Read Length [bp]")
+    sns.set_style("darkgrid")
 
 
 #4. Amount of reads per repeat (Reads VS. Repeats Graph)
@@ -387,7 +314,7 @@ def coverage_graph(freqs, ax):
     data = parse_reads(freqs)
     pos = data[0]
     reads = data[1]
-    graph = ax.plot(pos, reads, color="DarkOrchid")
+    ax.plot(pos, reads)
     ax.set_xlabel("Position In The Genome [bp]")
     ax.set_ylabel("Number Of Reads")
     sns.set_style("darkgrid")
@@ -407,38 +334,23 @@ def make_boxplot_mutation(data, ax):
     data['Base'].replace('T', 'U', inplace=True)
     data['Ref'].replace('T', 'U', inplace=True)
     min_read_count = 100000
-
-    consensus_data = data[['Pos', 'Base']][data['Rank'] == 0]
-    consensus_data = consensus_data[consensus_data['Pos'] == np.round(consensus_data['Pos'])]
-    consensus_data['next'] = consensus_data['Base'] + consensus_data.shift(-1)['Base']
-    consensus_data['prev'] = consensus_data.shift(1)['Base'] + consensus_data['Base']
-    consensus_data['Pos'] = consensus_data[['Pos']].apply(pd.to_numeric)
-
-    data['counts_for_position'] = np.round(data['Read_count'] * data['Freq'])
     data = data[data['Pos'] == np.round(data['Pos'])]  # remove insertions
     data['Pos'] = data[['Pos']].apply(pd.to_numeric)
     data = data[data['Read_count'] > min_read_count]
     data['mutation_type'] = data['Ref'] + data['Base']
-    data['mutation_class'] = np.where(data["Rank"] == 0, "self", np.where(data['mutation_type'] == 'GA', 'transition',
-                                np.where(data['mutation_type'] == 'AG', 'transition', np.where(data['mutation_type']
-                                == 'CU', 'transition', np.where(data['mutation_type'] ==
-                                                                'UC', 'transition','transversion')))))
-
-    sns.set_palette(sns.color_palette("Paired", 12))
-    data["complement"] = 1 - data["Freq"]
     data = data[data['Ref'] != data['Base']]
-    data = pd.merge(data, consensus_data[['Pos', 'next', 'prev']], on="Pos")
-
     data = data[data["Base"] != "-"]
-    data['abs_counts'] = data['Freq'] * data["Read_count"]
+    data['abs_counts'] = data['Freq'] * data["Read_count"]  # .apply(lambda x: abs(math.log(x,10))/3.45)
     data['Frequency'] = data['abs_counts'].apply(lambda x: 1 if x == 0 else x) / data["Read_count"]
     data["Mutation"] = data["Ref"] + "->" + data["Base"]
-    g = plt.boxplot(x="Mutation Type", y="Frequency", hue="Mutation", data=data[data["Base"] != "-"],
-                    hue_order=["C->U", "U->C", "G->A", "A->G", "C->A", "G->U", "U->G", "U->A", "G->C", "A->C", "A->U",
-                               "C->G"], order=["Synonymous", "Non-Synonymous", "Premature Stop Codon"])
-    g.set(yscale="log")
+    sns.set_palette(sns.color_palette("Paired", 12))
+    g1 = sns.boxplot(x="Mutation Type", y="Frequency", hue="Mutation", data=data,
+                     hue_order=["C->U", "U->C", "G->A", "A->G", "C->A", "G->U", "U->G", "U->A", "G->C", "A->C",
+                                "A->U", "C->G"], order=["Synonymous", "Non-Synonymous", "Premature Stop Codon"], ax=ax)
+    g1.set(yscale="log")
     plt.legend(bbox_to_anchor=(1.0, 1), loc=2, borderaxespad=0.)
-    ax.set_ylim(10 ** -6, 1)
+    g1.set_ylim(10 ** -6, 1)
+    g1.tick_params(labelsize=7)
 
 
 def main():
@@ -452,7 +364,11 @@ def main():
     virus = options.virus
 
     #for Local
-    # freqs_file = 'W:/volume1/okushnir/Cirseq/CV/20170711_edited_ouput_id/CVB3-p2.freqs'
+
+    # freqs_file = 'C:/Users/Oded/Google Drive/Studies/PhD/test/CVB3-p2.freqs'
+    # virus = "CVB3"
+
+
 
     # 1. Get freqs file and CirSeq running directory.
     path = freqs_file.split('/')[0:-1]
@@ -478,17 +394,17 @@ def main():
     """2. Analyze those file and directory to get the number of tandem repeats of the cirseq,
     repeats length and the amount of reads per repeat"""
 
-    if os.path.isfile(out_dir + 'repeat_summery.npy'):
-            repeats_dict = np.load(out_dir + 'repeat_summery.npy').item() #dict for read vs. repeat  , encoding='latin1'
+    if os.path.isfile(out_dir + '/repeat_summery.npy'):
+            repeats_dict = np.load(out_dir + '/repeat_summery.npy').item() #dict for read vs. repeat  , encoding='latin1'
     else:
             print("Counting the repeats number")
             repeats_dict = get_repeats_num(tmp_cirseq_dir, out_dir) #dict for read vs. repeat
 
-    if os.path.isfile(out_dir + 'results.npy'):
-            read_and_repeat_length = np.load(out_dir + 'results.npy').item() #dict for read and repeat length  , encoding='latin1'
+    if os.path.isfile(out_dir + '/length_df.csv'):
+            read_and_repeat_length = pd.DataFrame.from_csv(out_dir + '/length_df.csv', sep='\t', encoding='utf-8') #pandas_df for read and repeat length
     else:
             print("Getting the read and repeat length")
-            read_and_repeat_length = get_read_and_repeat_length(tmp_cirseq_dir, out_dir) #dict for read and repeat length
+            read_and_repeat_length = get_read_and_repeat_length(tmp_cirseq_dir, out_dir) #pandas_df for read and repeat length
 
 
     """ 3. Adding mutation types to the freqs file"""
@@ -527,7 +443,7 @@ def main():
     gs.tight_layout(fig)
 
     fig.suptitle(virus_name + ' Analysis', fontsize=20)
-    distribution_graph(values, ax0, 'CV')
+    distribution_graph(values, ax0, virus)
     # ax0.set_title('Reads Distribution')
 
     repeat_len_graphs(read_and_repeat_length, ax1)
