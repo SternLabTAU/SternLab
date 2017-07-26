@@ -355,18 +355,18 @@ def make_boxplot_mutation(data, ax):
 
 def main():
     # for Cluster
-    # parser = OptionParser("usage: %prog [options]")
-    # parser.add_option("-f", "--freqs_file_path", dest="freqs_file_path", help="path of the freqs file")
-    # parser.add_option("-v", "--virus", dest="virus", help="Virus name: CVB3 for CV; RVB14 for RV; PV for PV")
-    # (options, args) = parser.parse_args()
-    #
-    # freqs_file = options.freqs_file_path
-    # virus = options.virus
+    parser = OptionParser("usage: %prog [options]")
+    parser.add_option("-f", "--freqs_file_path", dest="freqs_file_path", help="path of the freqs file")
+    parser.add_option("-v", "--virus", dest="virus", help="Virus name: CVB3 for CV; RVB14 for RV; PV for PV")
+    (options, args) = parser.parse_args()
+    
+    freqs_file = options.freqs_file_path
+    virus = options.virus
 
     #for Local
 
-    freqs_file = 'C:/Users/Oded/Google Drive/Studies/PhD/test/CVB3-p2.freqs'
-    virus = "CVB3"
+    # freqs_file = 'C:/Users/Oded/Google Drive/Studies/PhD/test/CVB3-p2.freqs'
+    # virus = "CVB3"
 
 
 
