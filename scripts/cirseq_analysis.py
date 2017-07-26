@@ -441,8 +441,6 @@ def main():
     ax4 = plt.subplot(gs[1, 1:])
     ax5 = plt.subplot(gs[2:, :])
     # gs.tight_layout(fig)
-    manager = plt.get_current_fig_manager()
-    manager.window.showMaximized()
     fig.subplots_adjust(hspace=0.3, wspace=0.21, top=0.93, bottom=0.05, right=0.96, left=0.04)
 
     fig.suptitle(virus_name + ' Analysis', fontsize=20)
