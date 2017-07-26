@@ -267,7 +267,7 @@ def repeat_len_graphs(dataframe, ax):
     :param ax:
     :return:
     """
-    sns.boxplot(x="count_nonzero", y="amax", data=dataframe, ax=ax)
+    sns.boxplot(x="count_nonzero", y="amax", data=dataframe, ax=ax, color='DarkOrchid')
     ax.set_xlabel("Number of Repeats")
     ax.set_ylabel("Repeat Length [bp]")
     labelsy = np.arange(0, 350, 50)
@@ -280,7 +280,7 @@ def repeat_len_graphs(dataframe, ax):
 #3. Reads length
 def read_len_graphs(dataframe, ax):
 
-    graph = sns.boxplot(x="count_nonzero", y="sum", data=dataframe, ax=ax)
+    graph = sns.boxplot(x="count_nonzero", y="sum", data=dataframe, ax=ax, color='DarkOrchid')
     ax.set_xlabel("Number of Repeats")
     ax.set_ylabel("Read Length [bp]")
     sns.set_style("darkgrid")
@@ -348,25 +348,25 @@ def make_boxplot_mutation(data, ax):
                      hue_order=["C->U", "U->C", "G->A", "A->G", "C->A", "G->U", "U->G", "U->A", "G->C", "A->C",
                                 "A->U", "C->G"], order=["Synonymous", "Non-Synonymous", "Premature Stop Codon"], ax=ax)
     g1.set(yscale="log")
-    plt.legend(bbox_to_anchor=(1.0, 1), loc=2, borderaxespad=0.)
+    plt.legend(bbox_to_anchor=(1.0, 1), loc=2, borderaxespad=0., fontsize=6)
     g1.set_ylim(10 ** -6, 1)
     g1.tick_params(labelsize=7)
 
 
 def main():
     # for Cluster
-    parser = OptionParser("usage: %prog [options]")
-    parser.add_option("-f", "--freqs_file_path", dest="freqs_file_path", help="path of the freqs file")
-    parser.add_option("-v", "--virus", dest="virus", help="Virus name: CVB3 for CV; RVB14 for RV; PV for PV")
-    (options, args) = parser.parse_args()
-
-    freqs_file = options.freqs_file_path
-    virus = options.virus
+    # parser = OptionParser("usage: %prog [options]")
+    # parser.add_option("-f", "--freqs_file_path", dest="freqs_file_path", help="path of the freqs file")
+    # parser.add_option("-v", "--virus", dest="virus", help="Virus name: CVB3 for CV; RVB14 for RV; PV for PV")
+    # (options, args) = parser.parse_args()
+    #
+    # freqs_file = options.freqs_file_path
+    # virus = options.virus
 
     #for Local
 
-    # freqs_file = 'C:/Users/Oded/Google Drive/Studies/PhD/test/CVB3-p2.freqs'
-    # virus = "CVB3"
+    freqs_file = 'C:/Users/Oded/Google Drive/Studies/PhD/test/CVB3-p2.freqs'
+    virus = "CVB3"
 
 
 
@@ -432,7 +432,7 @@ def main():
     #      5.6 Plot virus mutation frequencies(rates)
 
     plt.close('all')
-    fig = plt.figure()
+    fig = plt.figure(figsize=(16, 9))
     gs = gridspec.GridSpec(3, 3)
     ax0 = plt.subplot(gs[0, 0])
     ax1 = plt.subplot(gs[0, 1])
@@ -440,7 +440,10 @@ def main():
     ax3 = plt.subplot(gs[1, 0])
     ax4 = plt.subplot(gs[1, 1:])
     ax5 = plt.subplot(gs[2:, :])
-    gs.tight_layout(fig)
+    # gs.tight_layout(fig)
+    manager = plt.get_current_fig_manager()
+    manager.window.showMaximized()
+    fig.subplots_adjust(hspace=0.3, wspace=0.21, top=0.93, bottom=0.05, right=0.96, left=0.04)
 
     fig.suptitle(virus_name + ' Analysis', fontsize=20)
     distribution_graph(values, ax0, virus)
