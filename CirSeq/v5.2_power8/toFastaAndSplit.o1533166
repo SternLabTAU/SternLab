@@ -1,0 +1,9 @@
+TERM environment variable not set.
+compute-0-167.power5
+awk: cmd. line:2: NR==
+awk: cmd. line:2:     ^ unexpected newline or end of string
+cat: /sternadi/home/volume1/taliakustin/Cirseq/open/.fastq: No such file or directory
+fasta split checkpoint 1***0***
+number of reads for file is 0, number of lines is 0
+number of files to split into =  0, with 50000 reads per file
+cannot open /sternadi/home/volume1/taliakustin/Cirseq/open/.fastq
