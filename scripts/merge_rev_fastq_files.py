@@ -7,6 +7,7 @@
 import sys
 from optparse import OptionParser
 from file_utilities import check_dirname
+from Bio.Seq import Seq
 
 
 
