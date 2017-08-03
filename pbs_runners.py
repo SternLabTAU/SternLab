@@ -362,6 +362,26 @@ def blast_runner(seqfile, dbfile = "/sternadi/home/volume1/shared/data/nt/nt", o
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
 
+def bowtie2_runner(bowtie_index_path, fastq_file, sam_output, alias="bowtie2"):
+    """
+    run bowtie2 - very fast local flag is on
+    :param bowtie_index_path: bowtie index file path (output of bowtie2-build)
+    :param fastq_file: fastq file path
+    :param sam_output: output file for sam file
+    :param alias: job name (bowtie2)
+    :return: job id
+    """
+    bowtie_index_path = check_filename(bowtie_index_path, Truefile=False)
+    fastq_file = check_filename(fastq_file)
+    sam_output = check_filename(sam_output, Truefile=False)
+    cmdfile = "bowtie2"; tnum = 1; gmem = 2
+    cmds = "/usr/local/bin/bowtie2"\
+           + " --very-fast-local -x  %s %s -S %s" % (bowtie_index_path, fastq_file, sam_output)
+    pbs_jobs.create_pbs_cmd(cmdfile, alias, tnum, gmem, cmds)
+    job_id = pbs_jobs.submit(cmdfile)
+    return job_id
+
+
 
 
 def r4s_runner(tree_file, seq_file, outfile, dirname, tree_outfile=None, unormelized_outfile=None, log_outfile=None,\
