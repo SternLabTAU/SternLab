@@ -311,3 +311,28 @@ def check_duplicate_seqs(filename, in_format="fasta"):
                 print("DUPLICATE: %s - %s" % (dataset[i].id, dataset[j].id))
                 duplicate_ids.append((dataset[i].id, dataset[j].id))
     return duplicate_ids
+
+
+def sam_to_fasta(input, output=None):
+    """
+    covert sam file format to fasta file format.
+    if output not provided - output will be the input filename.fasta (without the .sam extension)
+    :param input: sam file path
+    :param output: outpu file name (default:None)
+    :return: nothing
+    """
+    #-v OFS=\\\n
+    input = check_filename(input)
+    if output == None:
+        output = input.split(".sam")[0] + ".fasta"
+    output = check_filename(output, Truefile=False)
+
+    os.system("cat %s | awk -F \\\t  -v OFS=delimiter '{print $1,$10}' > %s" % (input, output))
+    out_fasta = open(output, "r").read()
+    out_fasta = out_fasta.replace("delimiter", "\n")
+    out_fasta = re.sub("\nM", "\n>M", out_fasta)
+    out_fasta = ">" + out_fasta
+
+    out = open(output, "w")
+    out.write(out_fasta)
+    out.close()
