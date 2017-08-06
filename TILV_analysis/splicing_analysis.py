@@ -1,11 +1,9 @@
 #! /usr/local/python_anaconda/bin/python3.4
 
 from optparse import OptionParser
-import glob
 from file_utilities import check_filename, check_dirname
-from freqs_utilities import merge_freqs_files, filter_freqs_for_indel_analysis, add_mutation_to_freq_file, mutation_accomulation_analysis
-from pandas_utilities import merge_dfs
 import pandas as pd
+import os
 
 
 def main():
@@ -57,6 +55,8 @@ def main():
             continue
         if first_start == second_start or first_end == second_end:
             continue
+        if second_start >= first_start and second_start <= first_end:
+            continue
         if first_end > second_start:
             print(first_start, first_end, second_start, second_end)
 
@@ -69,6 +69,17 @@ def main():
 
     df.to_csv(output, index=False)
 
+def filter_reads_that_aligned_more_than_once(input_sam, output_sam):
+    """
+    aligned >1 times
+    :param input_sam: input sam file path
+    :param output_sam: output sam file path
+    :return: nothing
+    """
+    input_sam = check_filename(input_sam)
+    output_sam = check_filename(output_sam, Truefile=False)
+
+    os.system("grep 'XS:i:' %s > %s" %(input_sam, output_sam))
 
 
 if __name__ == "__main__":
