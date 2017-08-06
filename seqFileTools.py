@@ -7,6 +7,7 @@ from Bio import AlignIO
 from Bio import Alphabet
 from Bio.Alphabet import IUPAC
 from Bio.Seq import Seq
+from Bio.Align import MultipleSeqAlignment
 import re
 from file_utilities import check_filename
 
@@ -311,3 +312,29 @@ def check_duplicate_seqs(filename, in_format="fasta"):
                 print("DUPLICATE: %s - %s" % (dataset[i].id, dataset[j].id))
                 duplicate_ids.append((dataset[i].id, dataset[j].id))
     return duplicate_ids
+
+def remove_gapped_positions(aln_file, output = None, in_format = "fasta"):
+    """
+    removes positions in an alignment which are all gapped
+    if output == None - rewrites on the input file
+    :param aln_file: input alignment file path
+    :param output: output file path (default: None)
+    :param in_format: input format (default: fatsa)
+    :return: ouptut file path
+    """
+    aln_file = check_filename(aln_file)
+    if output == None:
+        output = aln_file
+    else:
+        output = check_filename(output, Truefile=False)
+    aln = AlignIO.read(aln_file, in_format, alphabet=Alphabet.Gapped(IUPAC.unambiguous_dna))
+    new_aln = None
+    for i in range(len(aln[0])):
+        position = aln[:, i]
+        if "".join(set(position)) != "-":
+            if new_aln == None:
+                new_aln = aln[:, i:i+1]
+            else:
+                new_aln = new_aln + aln[:, i:i+1]
+
+    AlignIO.write(new_aln, output, "fasta")
