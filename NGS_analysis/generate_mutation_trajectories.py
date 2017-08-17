@@ -5,9 +5,14 @@ import seaborn as sns
 import pylab
 
 
+# MS2  positions to discard
+problematic = [17,18,19,20,21,22,23,183,188,189,190,196,274,317,364,452,762,2719,3117,3133,3139,3143,3146,3150,3401,3539,3542]
+coding_regions = list(range(130,1312)) + list(range(1335,3399))
+
+
 def main(args):
     df = pd.read_csv(args.in_file, sep='\t')
-
+    df = df[df["Pos"].isin(list(range(130,1312)))]
     m_type = args.mutation_type
 
     if args.line != None:
@@ -68,6 +73,8 @@ def filter_df(df, mutation_type, transitions=False, line=None):
     if transitions:
         df = df[(df['Mutation'] == 'AG') | (df['Mutation'] == 'GA') | (df['Mutation'] == 'CT') | (df['Mutation'] == 'TC')]
 
+    df = df[(df["Pos"].isin(coding_regions)) & (~df["Pos"].isin(problematic))]
+
     return df
 
 def plot_trajectory(df, mutation_type, line=None):
@@ -78,13 +85,17 @@ def plot_trajectory(df, mutation_type, line=None):
     :param line: default None, will be used for the plots title
     :return: plot
     """
-    sns.pointplot(x="Time", y="Freq", hue="Pos", data=df, legend=False)
+    ax = sns.pointplot(x="Time", y="Freq", hue="Pos", data=df, legend=False)
     plt.title("{} trajectories".format(mutation_type))
+    ax.legend_.remove()
 
     if line != None:
         plt.title("{} trajectories at {}".format(mutation_type, line))
 
+    plt.ylabel("Frequency")
+    plt.xlabel("Passage")
     pylab.get_current_fig_manager().window.showMaximized()
+    plt.show()
 
 
 if __name__ == "__main__":
