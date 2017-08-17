@@ -8,6 +8,7 @@ import re
 from scipy.stats import chi2_contingency, fisher_exact
 from Bio.Seq import Seq
 from Bio.Seq import Seq
+from os import path
 
 
 
@@ -15,14 +16,20 @@ from Bio.Seq import Seq
 
 def main():
     parser = OptionParser("usage: %prog [options]")
-    parser.add_option("-d", "--dir", dest="directory", help="directory with fastml output files")
+    parser.add_option("-d", "--dir", dest="dir", help="directory with fastml output files")
+    parser.add_option("-o", "--output", dest="output", help="output file perfix")
 
     (options, args) = parser.parse_args()
     dir = options.dir
     dir = check_dirname(dir)
+    output = options.output
+    if output == None:
+        output = "fastml_anlysis.csv"
+
     files = glob.glob(dir + "*prob.marginal.txt")
     basenames = [f.split(".prob.marginal.txt")[0] for f in files]
-    df = pd.DataFrame(columns=["Basename", "Mutation", "Branch", "Context", "Mutation_type", "Codon_position", "APOBEC_context"])
+    df = pd.DataFrame(columns=["Basename", "Mutation", "Branch", "Context", "Mutation_type",
+                               "Codon_position", "APOBEC_context_GA","APOBEC_context_CT"])
 
     for basename in basenames:
         print(basename)
@@ -30,13 +37,15 @@ def main():
         seq_marginal = basename + ".seq.marginal.txt"
         tree_ancestor = basename + ".tree.ancestor.txt"
 
+        basename = basename.split("/")[-1]
+
         positions_to_remove = get_position_to_remove(prob_marginal)
         ancestor_info, seqs = get_sequence_and_ancestry_data(tree_ancestor, seq_marginal)
         df = go_over_positions(ancestor_info, seqs, positions_to_remove, basename, df)
 
 
 
-    df.to_csv(dir + "fastml_anlysis.csv", index=False)
+    df.to_csv(dir + output, index=False)
 
 
 def go_over_positions(ancestor_info, seqs, positions_to_remove, basename, df, mutations_to_check=["GA"]):
@@ -116,15 +125,21 @@ def go_over_positions(ancestor_info, seqs, positions_to_remove, basename, df, mu
 
             #print(i, context)
             if  context[2] in ["G", "A"]:
-                APOBEC_context = True
+                APOBEC_context_GA = True
             else:
 
-                APOBEC_context =  False
+                APOBEC_context_GA =  False
+            if context[0] in ["C", "T"]:
+                APOBEC_context_CT = True
+            else:
+                APOBEC_context_CT = False
+
 
 
 
             df = df.append({"Basename": basename, "Mutation": mutation, "Branch": branch, "Context": context,
-                                "Mutation_type": mutation_type, "Codon_position": (i % 3) + 1, "APOBEC_context":APOBEC_context}, ignore_index=True)
+                                "Mutation_type": mutation_type, "Codon_position": (i % 3) + 1,
+                            "APOBEC_context_GA":APOBEC_context_GA, "APOBEC_context_CT":APOBEC_context_CT}, ignore_index=True)
 
     return(df)
 
@@ -142,6 +157,7 @@ def get_sequence_and_ancestry_data(tree_ancestor, seq_marginal):
     for line in ancestors:
         line = re.sub(pattern, '$', line)
         line = line.split("$")
+        """
         if len(line[0].split("N")) != 2 and line[0].count("N") == 2:
             line = line[0].split("N")
             son = "N" +  line[1]
@@ -150,6 +166,12 @@ def get_sequence_and_ancestry_data(tree_ancestor, seq_marginal):
             son = line[0]
             father = line[1]
         ancestor_info[son] = father
+        """
+        son = line[0]
+        father = line[1]
+        ancestor_info[son] = father
+
+
 
     #create seq dictionary - name and sequance
     seqs = open(seq_marginal, "r").read()
