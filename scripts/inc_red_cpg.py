@@ -1,5 +1,8 @@
 #! /usr/local/python_anaconda/bin/python3.4
-import sys
+"""
+@Author: odedkushnir
+
+"""
 from Bio.Alphabet import generic_dna
 from Bio.Seq import Seq
 from optparse import OptionParser

@@ -1,3 +1,8 @@
+#! /usr/local/python_anaconda/bin/python3.4
+"""
+@Author: odedkushnir
+
+"""
 import sys
 from optparse import OptionParser
 from Bio.Seq import Seq
