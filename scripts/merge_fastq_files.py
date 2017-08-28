@@ -1,8 +1,5 @@
 #! /usr/local/python_anaconda/bin/python3.4
-"""
-@Author: odedkushnir
 
-"""
 
 import sys
 from optparse import OptionParser
@@ -11,16 +8,15 @@ from file_utilities import check_dirname
 
 
 def main():
-    # parser = OptionParser("usage: %prog [options]")
-    # parser.add_option("-f", "--file1", dest="file1", help="fastq1 file")
-    # parser.add_option("-e", "--file2", dest="file2", help="fastq2 file")
-    # parser.add_option("-o", "--output_file", dest="output_file", help="output fastq merged file")
-    # (options, args) = parser.parse_args()
-    # file1 = options.file1
-    # file2 = options.file2
-    # output_file = options.output_file
+    parser = OptionParser("usage: %prog [options]")
+    parser.add_option("-f", "--file1", dest="file1", help="fastq1 file")
+    parser.add_option("-e", "--file2", dest="file2", help="fastq2 file")
+    parser.add_option("-o", "--output_file", dest="output_file", help="output fastq merged file")
+    (options, args) = parser.parse_args()
+    file1 = options.file1
+    file2 = options.file2
+    output_file = options.output_file
 
-    file
     concat_fastq(file1, file2, output_file)
 
 
