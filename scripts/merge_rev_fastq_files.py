@@ -1,14 +1,13 @@
 #! /usr/local/python_anaconda/bin/python3.4
+"""
+@Author: odedkushnir
 
-from optparse import OptionParser
-from file_utilities import check_filename, check_dirname
-import os
-
-
+"""
 import sys
 from optparse import OptionParser
-from file_utilities import check_dirname
 from Bio.Seq import Seq
+from file_utilities import check_filename, check_dirname
+import os
 
 
 

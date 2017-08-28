@@ -1,6 +1,4 @@
-#! /usr/local/python-anaconda-2.7//bin/python
-
-import sys, itertools
+import sys
 sys.path.insert(0, '/sternadi/home/volume1/okushnir/scripts/')
 import matplotlib
 matplotlib.use('Agg') # Must be before importing matplotlib.pyplot or pylab!
