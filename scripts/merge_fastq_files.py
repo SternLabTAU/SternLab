@@ -1,8 +1,5 @@
 #! /usr/local/python_anaconda/bin/python3.4
-"""
-@Author: odedkushnir
 
-"""
 
 import sys
 from optparse import OptionParser
@@ -48,3 +45,4 @@ def concat_fastq(file1, file2, output_file):
 
 if __name__ == "__main__":
     main()
+
