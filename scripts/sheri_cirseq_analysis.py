@@ -117,7 +117,7 @@ def coverage_graph(freqs, ax):
     ax.set_ylabel("Number Of Reads")
     sns.set_style("darkgrid")
     ax.set_xlim(0, (len(pos)+10))
-    ax.set_ylim(1000, 1000000)
+    ax.set_ylim(100, 1000000)
     ax.set_yscale("log")
 
 
