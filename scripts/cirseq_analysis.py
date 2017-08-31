@@ -183,9 +183,9 @@ def main():
         ncbi_id = "NC_001490"
     if virus == "PV":
         ncbi_id ="V01149"
-    file_name = freqs_file.split('/')[-1]
-    virus_name = file_name.split('-')[0]
-    virus_name += file_name.split(sep='-')[1].split(sep='.')[0]
+    # file_name = freqs_file.split('/')[-1]
+    # virus_name = file_name.split('-')[0]
+    # virus_name += file_name.split(sep='-')[1].split(sep='.')[0]
 
 
 
@@ -241,7 +241,7 @@ def main():
     # gs.tight_layout(fig)
     fig.subplots_adjust(hspace=0.3, wspace=0.21, top=0.93, bottom=0.05, right=0.96, left=0.05)
 
-    fig.suptitle(virus_name + ' Analysis', fontsize=20)
+    fig.suptitle(virus + ' Analysis', fontsize=20)
     distribution_graph(values, ax0, virus)
     # ax0.set_title('Reads Distribution')
 
@@ -261,7 +261,7 @@ def main():
     # ax5.set_title(virus_name + ' Mutation Rates')
 
     # plt.show()
-    plt.savefig(out_plots_dir + 'all.png', dpi=300)
+    plt.savefig(out_plots_dir + 'CirSeq_Report.png', dpi=300)
     plt.close("all")
     print("The Plot is ready in the folder")
 
