@@ -71,7 +71,7 @@ def repeat_len_graphs(dataframe, ax):
     ax.set_xlabel("Number of Repeats")
     ax.set_ylabel("Repeat Length [bp]")
     labelsy = np.arange(0, 350, 50)
-    labelsx = np.arange(1, 11, 1)
+    labelsx = np.arange(1, len(dataframe["count_nonzero"]), 1)
     ax.set_yticklabels(labelsy)
     ax.set_xticklabels(labelsx)
     sns.set_style("darkgrid")
@@ -118,7 +118,7 @@ def coverage_graph(freqs, ax):
     ax.set_ylabel("Number Of Reads")
     sns.set_style("darkgrid")
     ax.set_xlim(0, (len(pos)+10))
-    ax.set_ylim(1000, 1000000)
+    ax.set_ylim(100, 10000000)
     ax.set_yscale("log")
 
 
