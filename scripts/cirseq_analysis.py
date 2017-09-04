@@ -12,6 +12,7 @@ import pathlib
 from repeats_num_pandas import *
 from syn_nonsyn_mutations_func_mode import *
 from coverage import *
+from file_utilities import *
 
 from optparse import OptionParser
 sns.set_context("talk")
@@ -161,6 +162,7 @@ def main():
     freqs_file = options.freqs_file_path
     virus = options.virus
 
+    freqs_file = check_filename(freqs_file)
     #for Local
 
     # freqs_file = 'C:/Users/Oded/Google Drive/Studies/PhD/test/CVB3-p2.freqs'
