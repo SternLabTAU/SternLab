@@ -218,10 +218,10 @@ def main():
     """4. Run bowtie2 for human rRNA, mRNA and the virus"""
 
 
-    # RV
-    # values = (19.32, 40.52, 45.17)
-    # CV
-    values = (96.09, 1.66, 1.18)
+    if virus=="RVB14":
+        values = (19.32, 40.52, 45.17)
+    if virus=="CVB3":
+        values = (96.09, 1.66, 1.18)
 
     #   5. Subplots all relevant graph in subplots
     #      5.1. Distribution graph (=bowtie2 results)
