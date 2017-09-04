@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 :wq
 
+=======
+>>>>>>> 51530ab1b6714ef70e532955e9eabd4df485b68e
 """
 @Author: odedkushnir
 
