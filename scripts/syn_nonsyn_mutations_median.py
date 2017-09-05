@@ -22,12 +22,12 @@ start_time = time.time()
 
 def main():
     # For Local Run
-    path = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/CV/20170904_q30r3_blastn/"
+    path = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/RV/20170904_q30r3_blastn/"
 
     # For Cluster Run
     # path = "/sternadi/nobackup/volume1/okushnir/Cirseq/CV/20170719_q30r2_edited/"
 
-    file_name = "CVB3-p2.freqs"
+    file_name = "RVB14-p2.freqs"
     virus = file_name.split(sep='-')[0]
     # virus += file_name.split(sep='-')[1].split(sep='.')[0]
     freqs = path + file_name
@@ -212,18 +212,20 @@ def make_boxplot_mutation(data, out_dir, virus_name):
 
     non_syn = data[data['Mutation Type'] == 'Non-Synonymous']
 
-    med_val = non_syn.groupby(["Mutation"])["Freq"].median().values
-    median_labels = [str(np.round(s, 2)) for s in med_val]
-    pos = range(len(medians))
-    for tick, label in zip(pos, ax.get_xticklabels()):
-        ax.text(pos[tick], medians[tick] + 0.5, median_labels[tick],
-                horizontalalignment='center', size='x-small', color='w', weight='semibold')
 
-    g1 = sns.boxplot(x="Mutation Type", y="Frequency", hue="Mutation", data=non_syn,
-                     hue_order=["C->U", "U->C", "G->A", "A->G", "C->A", "G->U", "U->G", "U->A", "G->C", "A->C",
-                                "A->U", "C->G"], order=["Synonymous", "Non-Synonymous", "Premature Stop Codon"])
+
+    g1 = sns.boxplot(x="Mutation", y="Frequency", data=non_syn,
+                     order=["A->C", "A->G", "A->U", "C->A", "C->G", "C->U", "G->A", "G->C", "G->U", "U->A",
+                                "U->C", "U->G"])
+    medians = non_syn.groupby(["Mutation"])["Frequency"].median().values
+    median_labels = [str(np.round(s, 6)) for s in medians]
+    pos = range(len(medians))
+    for tick, label in zip(pos, g1.get_xticklabels()):
+        g1.text(pos[tick], medians[tick] + 0.5, median_labels[tick],
+                horizontalalignment='center', size='x-small', color='black', weight='semibold', fontsize=5)
+
     g1.set(yscale="log")
-    plt.legend(bbox_to_anchor=(1.0, 1), loc=2, borderaxespad=0.)
+    plt.legend(bbox_to_anchor=(1.0, 1), loc=2, borderaxespad=0., fontsize=7)
     g1.set_ylim(10 ** -6, 1)
     g1.tick_params(labelsize=7)
     plt.title(virus_name + ' Mutations Frequencies', fontsize=22)
