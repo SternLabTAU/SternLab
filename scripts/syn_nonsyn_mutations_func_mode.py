@@ -45,8 +45,8 @@ def main():
     mutation_file = freqs + ".with.mutation.type.func2.freqs"
     mutation_rates = freqs_to_dataframe(mutation_file)
 
-    make_boxplot_mutation(mutation_rates, path, virus)
-    make_boxplot_mutation_median(mutation_rates, path, virus)
+    df = make_boxplot_mutation(mutation_rates, path, virus)
+    make_boxplot_mutation_median(df, path, virus)
 
 
 def find_mutation_type(freqs_file, ncbi_id):
@@ -210,13 +210,14 @@ def make_boxplot_mutation(data, out_dir, virus_name):
                      hue_order=["C->U", "U->C", "G->A", "A->G", "C->A", "G->U", "U->G", "U->A", "G->C", "A->C",
                                 "A->U", "C->G"], order=["Synonymous", "Non-Synonymous", "Premature Stop Codon"])
     g1.set(yscale="log")
-    plt.legend(bbox_to_anchor=(1.0, 1), loc=2, borderaxespad=0.)
+    plt.legend(bbox_to_anchor=(1.0, 1), loc=2, borderaxespad=0., fontsize=7)
     g1.set_ylim(10 ** -6, 1)
     g1.tick_params(labelsize=7)
     plt.title(virus_name + ' Mutations Frequencies', fontsize=22)
     plt.savefig(out_dir + "plots/freqs_type_%s.png" % str(min_read_count), dpi=300)
     plt.close("all")
     print("The Plot is ready in the folder")
+    return data
 
 
 def make_boxplot_mutation_median(data, out_dir, virus_name):
@@ -224,20 +225,7 @@ def make_boxplot_mutation_median(data, out_dir, virus_name):
             :param data: pandas DataFrame after find_mutation_type function
             :return: pandas DataFrame ready for plotting
             """
-        data['Base'].replace('T', 'U', inplace=True)
-        data['Ref'].replace('T', 'U', inplace=True)
         min_read_count = 100000
-        data = data[data['Pos'] == np.round(data['Pos'])]  # remove insertions
-        data['Pos'] = data[['Pos']].apply(pd.to_numeric)
-        data = data[data['Read_count'] > min_read_count]
-        data['mutation_type'] = data['Ref'] + data['Base']
-        data = data[data['Ref'] != data['Base']]
-        data = data[data["Base"] != "-"]
-        data['abs_counts'] = data['Freq'] * data["Read_count"]  # .apply(lambda x: abs(math.log(x,10))/3.45)
-        data['Frequency'] = data['abs_counts'].apply(lambda x: 1 if x == 0 else x) / data["Read_count"]
-        data["Mutation"] = data["Ref"] + "->" + data["Base"]
-        sns.set_palette(sns.color_palette("Paired", 12))
-
         non_syn = data[data['Mutation Type'] == 'Non-Synonymous']
 
         g1 = sns.boxplot(x="Mutation", y="Frequency", data=non_syn,
@@ -254,7 +242,7 @@ def make_boxplot_mutation_median(data, out_dir, virus_name):
         plt.legend(bbox_to_anchor=(1.0, 1), loc=2, borderaxespad=0., fontsize=7)
         g1.set_ylim(10 ** -6, 1)
         g1.tick_params(labelsize=7)
-        plt.title(virus_name + ' Mutations Frequencies', fontsize=22)
+        plt.title(virus_name + ' Non-Synonymous Mutations Frequencies', fontsize=22)
         plt.savefig(out_dir + "plots/non_syn_median_%s.png" % str(min_read_count), dpi=300)
         plt.close("all")
         print("The Plot is ready in the folder")
