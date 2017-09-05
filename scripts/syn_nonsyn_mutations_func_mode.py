@@ -218,6 +218,47 @@ def make_boxplot_mutation(data, out_dir, virus_name):
     print("The Plot is ready in the folder")
 
 
+def make_boxplot_mutation_median(data, out_dir, virus_name):
+        """
+            :param data: pandas DataFrame after find_mutation_type function
+            :return: pandas DataFrame ready for plotting
+            """
+        data['Base'].replace('T', 'U', inplace=True)
+        data['Ref'].replace('T', 'U', inplace=True)
+        min_read_count = 100000
+        data = data[data['Pos'] == np.round(data['Pos'])]  # remove insertions
+        data['Pos'] = data[['Pos']].apply(pd.to_numeric)
+        data = data[data['Read_count'] > min_read_count]
+        data['mutation_type'] = data['Ref'] + data['Base']
+        data = data[data['Ref'] != data['Base']]
+        data = data[data["Base"] != "-"]
+        data['abs_counts'] = data['Freq'] * data["Read_count"]  # .apply(lambda x: abs(math.log(x,10))/3.45)
+        data['Frequency'] = data['abs_counts'].apply(lambda x: 1 if x == 0 else x) / data["Read_count"]
+        data["Mutation"] = data["Ref"] + "->" + data["Base"]
+        sns.set_palette(sns.color_palette("Paired", 12))
+
+        non_syn = data[data['Mutation Type'] == 'Non-Synonymous']
+
+        g1 = sns.boxplot(x="Mutation", y="Frequency", data=non_syn,
+                         order=["A->C", "A->G", "A->U", "C->A", "C->G", "C->U", "G->A", "G->C", "G->U", "U->A",
+                                "U->C", "U->G"])
+        medians = non_syn.groupby(["Mutation"])["Frequency"].median().values
+        median_labels = [str(np.round(s, 6)) for s in medians]
+        pos = range(len(medians))
+        for tick, label in zip(pos, g1.get_xticklabels()):
+            g1.text(pos[tick], medians[tick] + 0.5, median_labels[tick],
+                    horizontalalignment='center', size='x-small', color='black', weight='semibold', fontsize=5)
+
+        g1.set(yscale="log")
+        plt.legend(bbox_to_anchor=(1.0, 1), loc=2, borderaxespad=0., fontsize=7)
+        g1.set_ylim(10 ** -6, 1)
+        g1.tick_params(labelsize=7)
+        plt.title(virus_name + ' Mutations Frequencies', fontsize=22)
+        plt.savefig(out_dir + "plots/non_syn_median_%s.png" % str(min_read_count), dpi=300)
+        plt.close("all")
+        print("The Plot is ready in the folder")
+
+
 if __name__ == "__main__":
     main()
 
