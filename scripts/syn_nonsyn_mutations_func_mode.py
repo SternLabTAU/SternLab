@@ -210,6 +210,7 @@ def make_boxplot_mutation(data, out_dir, virus_name):
                      hue_order=["C->U", "U->C", "G->A", "A->G", "C->A", "G->U", "U->G", "U->A", "G->C", "A->C",
                                 "A->U", "C->G"], order=["Synonymous", "Non-Synonymous", "Premature Stop Codon"])
     g1.set(yscale="log")
+    sns.set_style("darkgrid")
     plt.legend(bbox_to_anchor=(1.0, 1), loc=2, borderaxespad=0., fontsize=7)
     g1.set_ylim(10 ** -6, 1)
     g1.tick_params(labelsize=7)
@@ -230,19 +231,20 @@ def make_boxplot_mutation_median(data, out_dir, virus_name):
 
         g1 = sns.boxplot(x="Mutation", y="Frequency", data=non_syn,
                          order=["A->C", "A->G", "A->U", "C->A", "C->G", "C->U", "G->A", "G->C", "G->U", "U->A",
-                                "U->C", "U->G"])
+                                "U->C", "U->G"], color="DarkOrchid")
+        sns.set_style("darkgrid")
         medians = non_syn.groupby(["Mutation"])["Frequency"].median().values
         median_labels = [str(np.round(s, 6)) for s in medians]
         pos = range(len(medians))
         for tick, label in zip(pos, g1.get_xticklabels()):
-            g1.text(pos[tick], medians[tick] + 0.5, median_labels[tick],
+            g1.text(pos[tick], medians[tick]*1.1, median_labels[tick],
                     horizontalalignment='center', size='x-small', color='black', weight='semibold', fontsize=5)
 
         g1.set(yscale="log")
         plt.legend(bbox_to_anchor=(1.0, 1), loc=2, borderaxespad=0., fontsize=7)
         g1.set_ylim(10 ** -6, 1)
         g1.tick_params(labelsize=7)
-        plt.title(virus_name + ' Non-Synonymous Mutations Frequencies', fontsize=22)
+        plt.title(virus_name + ' Non-Synonymous Mutations Frequencies', fontsize=19)
         plt.savefig(out_dir + "plots/non_syn_median_%s.png" % str(min_read_count), dpi=300)
         plt.close("all")
         print("The Plot is ready in the folder")
