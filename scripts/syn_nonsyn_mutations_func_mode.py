@@ -22,12 +22,12 @@ start_time = time.time()
 
 def main():
     # For Local Run
-    path = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/CV/20170904_q30r3_blastn/"
+    path = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/RV/20170904_q30r3_blastn/"
 
     # For Cluster Run
     # path = "/sternadi/nobackup/volume1/okushnir/Cirseq/CV/20170719_q30r2_edited/"
 
-    file_name = "CVB3-p2.freqs"
+    file_name = "RVB14-p2.freqs"
     virus = file_name.split(sep='-')[0]
     # virus += file_name.split(sep='-')[1].split(sep='.')[0]
     freqs = path + file_name
