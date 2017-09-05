@@ -44,6 +44,10 @@ def main():
 
     mutation_file = freqs + ".with.mutation.type.func2.freqs"
     mutation_rates = freqs_to_dataframe(mutation_file)
+    # result = find_mutation_type(freqs, 'M16572')
+#Just the graph
+    # mutation_file = path + file_name + ".with.mutation.type.func2.freqs"
+    # result = freqs_to_dataframe(mutation_file)
 
     make_boxplot_mutation(mutation_rates, path, virus)
 
@@ -205,7 +209,17 @@ def make_boxplot_mutation(data, out_dir, virus_name):
     data['Frequency'] = data['abs_counts'].apply(lambda x: 1 if x == 0 else x) / data["Read_count"]
     data["Mutation"] = data["Ref"] + "->" + data["Base"]
     sns.set_palette(sns.color_palette("Paired", 12))
-    g1 = sns.boxplot(x="Mutation Type", y="Frequency", hue="Mutation", data=data,
+
+    non_syn = data[data['Mutation Type'] == 'Non-Synonymous']
+
+    med_val = non_syn.groupby(["Mutation"])["Freq"].median().values
+    median_labels = [str(np.round(s, 2)) for s in med_val]
+    pos = range(len(medians))
+    for tick, label in zip(pos, ax.get_xticklabels()):
+        ax.text(pos[tick], medians[tick] + 0.5, median_labels[tick],
+                horizontalalignment='center', size='x-small', color='w', weight='semibold')
+
+    g1 = sns.boxplot(x="Mutation Type", y="Frequency", hue="Mutation", data=non_syn,
                      hue_order=["C->U", "U->C", "G->A", "A->G", "C->A", "G->U", "U->G", "U->A", "G->C", "A->C",
                                 "A->U", "C->G"], order=["Synonymous", "Non-Synonymous", "Premature Stop Codon"])
     g1.set(yscale="log")
