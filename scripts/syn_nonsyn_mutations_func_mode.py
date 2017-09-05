@@ -46,6 +46,7 @@ def main():
     mutation_rates = freqs_to_dataframe(mutation_file)
 
     make_boxplot_mutation(mutation_rates, path, virus)
+    make_boxplot_mutation_median(mutation_rates, path, virus)
 
 
 def find_mutation_type(freqs_file, ncbi_id):
