@@ -13,7 +13,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from Bio import Entrez
 from Bio import SeqIO
-import os
+import os.path
+import pathlib
 
 
 
@@ -22,12 +23,12 @@ start_time = time.time()
 
 def main():
     # For Local Run
-    path = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/RV/20170904_q30r3_blastn/"
+    path = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/CV/20170904_q30r3_blastn/"
 
     # For Cluster Run
     # path = "/sternadi/nobackup/volume1/okushnir/Cirseq/CV/20170719_q30r2_edited/"
 
-    file_name = "RVB14-p2.freqs"
+    file_name = "CVB3-p2.freqs"
     virus = file_name.split(sep='-')[0]
     # virus += file_name.split(sep='-')[1].split(sep='.')[0]
     freqs = path + file_name
@@ -45,8 +46,13 @@ def main():
     mutation_file = freqs + ".with.mutation.type.func2.freqs"
     mutation_rates = freqs_to_dataframe(mutation_file)
 
+    pathlib.Path(path + 'plots/').mkdir(parents=True, exist_ok=True)
+    out_plots_dir = path + 'plots/'
+
     df = make_boxplot_mutation(mutation_rates, path, virus)
     make_boxplot_mutation_median(df, path, virus)
+
+
 
 
 def find_mutation_type(freqs_file, ncbi_id):
@@ -202,11 +208,11 @@ def make_boxplot_mutation(data, out_dir, virus_name):
     data['mutation_type'] = data['Ref'] + data['Base']
     data = data[data['Ref'] != data['Base']]
     data = data[data["Base"] != "-"]
-    data['abs_counts'] = data['Freq'] * data["Read_count"]  # .apply(lambda x: abs(math.log(x,10))/3.45)
-    data['Frequency'] = data['abs_counts'].apply(lambda x: 1 if x == 0 else x) / data["Read_count"]
+    # data['abs_counts'] = data['Freq'] * data["Read_count"]  # .apply(lambda x: abs(math.log(x,10))/3.45)
+    # data['Frequency'] = data['abs_counts'].apply(lambda x: 1 if x == 0 else x) / data["Read_count"]
     data["Mutation"] = data["Ref"] + "->" + data["Base"]
     sns.set_palette(sns.color_palette("Paired", 12))
-    g1 = sns.boxplot(x="Mutation Type", y="Frequency", hue="Mutation", data=data,
+    g1 = sns.boxplot(x="Mutation Type", y="Freq", hue="Mutation", data=data,
                      hue_order=["C->U", "U->C", "G->A", "A->G", "C->A", "G->U", "U->G", "U->A", "G->C", "A->C",
                                 "A->U", "C->G"], order=["Synonymous", "Non-Synonymous", "Premature Stop Codon"])
     g1.set(yscale="log")
@@ -228,18 +234,26 @@ def make_boxplot_mutation_median(data, out_dir, virus_name):
             """
         min_read_count = 100000
         non_syn = data[data['Mutation Type'] == 'Non-Synonymous']
-
-        g1 = sns.boxplot(x="Mutation", y="Frequency", data=non_syn,
+        g1 = sns.boxplot(x="Mutation", y="Freq", data=non_syn,
                          order=["A->C", "A->G", "A->U", "C->A", "C->G", "C->U", "G->A", "G->C", "G->U", "U->A",
                                 "U->C", "U->G"], color="DarkOrchid")
         sns.set_style("darkgrid")
-        medians = non_syn.groupby(["Mutation"])["Frequency"].median().values
+        grouped_df = non_syn.groupby(["Mutation"])["Freq"]
+        for key, item in grouped_df:
+            print(grouped_df.get_group(key), "\n\n")
+
+        medians = non_syn.groupby(["Mutation"])["Freq"].median()
+        print(medians)
         median_labels = [str(np.round(s, 6)) for s in medians]
         pos = range(len(medians))
         for tick, label in zip(pos, g1.get_xticklabels()):
-            g1.text(pos[tick], medians[tick]*1.1, median_labels[tick],
-                    horizontalalignment='center', size='x-small', color='black', weight='semibold', fontsize=5)
+            g1.text(pos[tick], medians[tick]*1.01, median_labels[tick],
+                    horizontalalignment='center', size='x-small', color='w', weight='semibold', fontsize=5)
 
+        len_col = non_syn.groupby(["Mutation"])["Freq"].size()
+        for tick, label in zip(pos, g1.get_xticklabels()):
+            g1.text(pos[tick], medians[tick]+0.5, len_col[tick],
+                    horizontalalignment='center', size='x-small', color='navy', weight='semibold', fontsize=5)
         g1.set(yscale="log")
         plt.legend(bbox_to_anchor=(1.0, 1), loc=2, borderaxespad=0., fontsize=7)
         g1.set_ylim(10 ** -6, 1)
