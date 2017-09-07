@@ -15,6 +15,8 @@ from Bio import Entrez
 from Bio import SeqIO
 import os.path
 import pathlib
+from optparse import OptionParser
+from file_utilities import *
 
 
 
@@ -24,14 +26,23 @@ start_time = time.time()
 def main():
     # For Local Run
     # path = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/PV/Mahoney/P3/20170907_q20r3_blastn/"
+    # file_name = "PV-p3.1036617.freqs"
+    # virus = file_name.split(sep='-')[0]
+    # virus += file_name.split(sep='-')[1].split(sep='.')[0]
+    # freqs = path + file_name
 
     # For Cluster Run
-    path = "/sternadi/nobackup/volume1/okushnir/PV/Mahoney/P3/20170907_q23r2_blastn/"
+    parser = OptionParser("usage: %prog [options]")
+    parser.add_option("-f", "--freqs_file_path", dest="freqs_file_path", help="path of the freqs file")
+    parser.add_option("-v", "--virus", dest="virus", help="Virus name: CVB3 for CV; RVB14 for RV; PV for PV")
+    (options, args) = parser.parse_args()
 
-    file_name = "PV-p3.1036617.freqs"
-    virus = file_name.split(sep='-')[0]
-    # virus += file_name.split(sep='-')[1].split(sep='.')[0]
-    freqs = path + file_name
+    path = options.freqs_file_path
+    virus = options.virus
+
+
+
+
     if virus == "CVB3":
         ncbi_id ="M16572"
     if virus == "RVB14":
@@ -39,11 +50,11 @@ def main():
     if virus == "PV":
         ncbi_id ="V01149"
 
-    if not os.path.isfile(freqs + ".with.mutation.type.func2.freqs"):
-        append_mutation = find_mutation_type(freqs, ncbi_id)
+    if not os.path.isfile(path + ".with.mutation.type.func2.freqs"):
+        append_mutation = find_mutation_type(path, ncbi_id)
 
 
-    mutation_file = freqs + ".with.mutation.type.func2.freqs"
+    mutation_file = path + ".with.mutation.type.func2.freqs"
     mutation_rates = freqs_to_dataframe(mutation_file)
 
     pathlib.Path(path + 'plots/').mkdir(parents=True, exist_ok=True)
