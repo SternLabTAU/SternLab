@@ -63,8 +63,8 @@ def main():
 
     pathlib.Path(plots_path + 'plots/').mkdir(parents=True, exist_ok=True)
 
-    df = make_boxplot_mutation(mutation_rates, path, virus)
-    make_boxplot_mutation_median(df, path, virus)
+    df = make_boxplot_mutation(mutation_rates, plots_path, virus)
+    make_boxplot_mutation_median(df, plots_path, virus)
 
 
 
