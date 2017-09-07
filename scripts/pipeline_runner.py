@@ -19,6 +19,7 @@ def main():
     parser.add_option("-g", "--gaps", dest="gaps", default="Y", help="refer to gaps? Y/N default Y")
     parser.add_option("--NGS_or_Cirseq", dest="NGS_or_Cirseq", type="int", help="NGS/Cirseq? type 2 for Cirseq (default;min num repeats=2) or 1 for NGS (min num repeats=1)")
     parser.add_option("-q", "--q_score", dest="q_score", default=23, type="int", help="Q-score cutoff, default =23")
+    parser.add_option("-mn", "--min_repeat", dest="min_repeat", default=2, type="int", help="Min repeat, default =2")
     parser.add_option("-b", "--blast", dest="blast_id", default=85, type="int", help="% id for blast, default=85")
 
 
@@ -72,17 +73,18 @@ def main():
         raise Exception("Not a valid gap - must be Y or N")
     q_score = options.q_score
     blast_id = options.blast_id
+    min_repeat = options.min_repeat
 
     path_to_save_pipeline_command = output + "/pipeline_command.txt"
-    print(start, end, q_score, blast_id, NGS_or_Cirseq)
+    print(start, end, q_score, blast_id, min_repeat, NGS_or_Cirseq)
     if pipeline_type == 1: #NGS
         cmd = "perl %s %s %s %s %s %i %i %s %s %i %i %i" % (pipeline_path, input_dir, output, reference, error,
                                                            start, end, type_of_input_file, gaps, pipeline_type,
-                                                           q_score, blast_id)
+                                                           q_score,blast_id)
     elif pipeline_type == 2: #cirseq
-        cmd = "perl %s %s %s %s %s %i %i %s %s %i %i" % (pipeline_path, input_dir, output, reference, error,
+        cmd = "perl %s %s %s %s %s %i %i %s %s %i %i %i" % (pipeline_path, input_dir, output, reference, error,
                                                            start, end, type_of_input_file, gaps,
-                                                           q_score, blast_id)
+                                                            blast_id, q_score, min_repeat)
     print("running this pipeline command:")
     print(cmd)
     os.system(cmd)
