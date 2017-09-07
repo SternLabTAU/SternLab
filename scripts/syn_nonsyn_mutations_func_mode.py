@@ -25,7 +25,7 @@ start_time = time.time()
 
 def main():
     # For Local Run
-    # path = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/PV/Mahoney/P3/20170907_q20r3_blastn/PV-p3.1036617.freqs"
+    # path = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/PV/Mahoney/P3/20170907_q23r2_blastn/PV-p3.1036617.freqs"
     # virus = "PV"
     # file_name = "PV-p3.1036617.freqs"
     # virus = file_name.split(sep='-')[0]
@@ -248,6 +248,8 @@ def make_boxplot_mutation_median(data, out_dir, virus_name):
             """
         min_read_count = 100000
         non_syn = data[data['Mutation Type'] == 'Non-Synonymous']
+        # non_syn = non_syn[non_syn['Pos'] > 1000]
+        # non_syn = non_syn[non_syn['Pos'] < 2800]
         g1 = sns.boxplot(x="Mutation", y="Freq", data=non_syn,
                          order=["A->C", "A->G", "A->U", "C->A", "C->G", "C->U", "G->A", "G->C", "G->U", "U->A",
                                 "U->C", "U->G"], color="DarkOrchid")
@@ -256,7 +258,7 @@ def make_boxplot_mutation_median(data, out_dir, virus_name):
         for key, item in grouped_df:
             print(grouped_df.get_group(key), "\n\n")
 
-        medians = non_syn.groupby(["Mutation"])["Freq"].median()
+        medians = grouped_df.median()
         print(medians)
         median_labels = [str(np.round(s, 6)) for s in medians]
         pos = range(len(medians))
@@ -264,7 +266,7 @@ def make_boxplot_mutation_median(data, out_dir, virus_name):
             g1.text(pos[tick], medians[tick]*1.01, median_labels[tick],
                     horizontalalignment='center', size='x-small', color='w', weight='semibold', fontsize=5)
 
-        len_col = non_syn.groupby(["Mutation"])["Freq"].size()
+        len_col = grouped_df.size()
         for tick, label in zip(pos, g1.get_xticklabels()):
             g1.text(pos[tick], medians[tick]+0.5, len_col[tick],
                     horizontalalignment='center', size='x-small', color='navy', weight='semibold', fontsize=5)
