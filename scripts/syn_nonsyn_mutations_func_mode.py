@@ -40,6 +40,10 @@ def main():
     path = options.freqs_file_path
     virus = options.virus
 
+    path_list = path.split(sep="-")[0].split(sep="/")
+    plots_path = ''
+    for i in range(0, len(path_list) - 1, 1):
+        plots_path += path_list[i] + "/"
 
 
 
@@ -57,8 +61,7 @@ def main():
     mutation_file = path + ".with.mutation.type.func2.freqs"
     mutation_rates = freqs_to_dataframe(mutation_file)
 
-    pathlib.Path(path + 'plots/').mkdir(parents=True, exist_ok=True)
-    out_plots_dir = path + 'plots/'
+    pathlib.Path(plots_path + 'plots/').mkdir(parents=True, exist_ok=True)
 
     df = make_boxplot_mutation(mutation_rates, path, virus)
     make_boxplot_mutation_median(df, path, virus)
