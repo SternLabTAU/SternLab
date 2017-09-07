@@ -19,7 +19,7 @@ def main():
     parser.add_option("-g", "--gaps", dest="gaps", default="Y", help="refer to gaps? Y/N default Y")
     parser.add_option("--NGS_or_Cirseq", dest="NGS_or_Cirseq", type="int", help="NGS/Cirseq? type 2 for Cirseq (default;min num repeats=2) or 1 for NGS (min num repeats=1)")
     parser.add_option("-q", "--q_score", dest="q_score", default=23, type="int", help="Q-score cutoff, default =23")
-    parser.add_option("--mn", "--min_repeat", dest="min_repeat", default=2, type="int", help="Min repeat, default =2")
+    parser.add_option("--mn", dest="min_repeat", default=2, type="int", help="Min repeat, default =2")
     parser.add_option("-b", "--blast", dest="blast_id", default=85, type="int", help="% id for blast, default=85")
 
 
