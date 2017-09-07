@@ -23,7 +23,7 @@ def main():
     parser.add_option("-b", "--blast", dest="blast_id", default=85, type="int", help="% id for blast, default=85")
 
 
-    cirseq_pipeline_path = "/sternadi/home/volume1/shared/tools/pipeline/v5.2_power7/pipeline_runner.v5.1.pl"
+    cirseq_pipeline_path = "/sternadi/home/volume1/shared/tools/pipeline/v5.2_power8_blastn/pipeline_runner.v5.1.pl"
     NGS_pipeline_path = "/sternadi/home/volume1/shared/tools/pipelineNGS/5.1_power7/pipeline_runner.v5.1.1.pl "
 
     (options, args) = parser.parse_args()
