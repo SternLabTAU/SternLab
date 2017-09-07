@@ -24,8 +24,8 @@ def main():
     # out_dir = "Z:/volume1/okushnir/Cirseq/RV/20170322_output_all_23_qscore/plots/"
     # coverage_graph(freqs_file_path, out_dir)
 #CV
-    freqs_file_path = r"W:\volume1\okushnir\Cirseq\CV\20170719_q30r2_edited\CVB3-p2.freqs"
-    out_dir = r"W:\volume1\okushnir\Cirseq\CV\20170719_q30r2_edited\plots"
+    freqs_file_path = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/PV/Mahoney/P3/20170907_q23r2_blastn/PV-p3.1036617.freqs"
+    out_dir = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/PV/Mahoney/P3/20170907_q23r2_blastn/plots"
     coverage_graph(freqs_file_path, out_dir)
 
 def coverage_graph(freqs, out_dir):
@@ -47,7 +47,7 @@ def coverage_graph(freqs, out_dir):
     plt.ylim(1, 100000000)
     plt.yscale("log")
     plt.tight_layout()
-    plt.savefig(out_dir + "\coverage_0_106.png", dpi=680)
+    plt.savefig(out_dir + "/coverage_0_106.png", dpi=680)
     plt.close('all')
 
     return graph
