@@ -16,7 +16,7 @@ from Bio import SeqIO
 import os.path
 import pathlib
 from optparse import OptionParser
-from file_utilities import *
+# from file_utilities import *
 
 
 
@@ -25,11 +25,11 @@ start_time = time.time()
 
 def main():
     # For Local Run
-    # path = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/PV/Mahoney/P3/20170907_q20r3_blastn/"
+    # path = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/PV/Mahoney/P3/20170907_q20r3_blastn/PV-p3.1036617.freqs"
+    # virus = "PV"
     # file_name = "PV-p3.1036617.freqs"
     # virus = file_name.split(sep='-')[0]
     # virus += file_name.split(sep='-')[1].split(sep='.')[0]
-    # freqs = path + file_name
 
     # For Cluster Run
     parser = OptionParser("usage: %prog [options]")
