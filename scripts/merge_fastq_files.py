@@ -32,6 +32,7 @@ def concat_fastq(file1, file2, output_file, number_of_Ns = 1):
     :return:
     """
     separator = "N" * number_of_Ns
+    quality_separator = "!" * number_of_Ns
     with open(file1, 'r') as fastq1, open(file2, 'r') as fastq2, open(output_file, 'w') as output_file:
         f1 = fastq1.readlines()
         f2 = fastq2.readlines()
@@ -42,7 +43,7 @@ def concat_fastq(file1, file2, output_file, number_of_Ns = 1):
                 merge_id = f1[i].split(" ")[0]
                 merge_seq = f1[i + 1].strip() + separator + f2[i + 1].strip()
                 merge_dir = f1[i + 2].strip()
-                merge_qual = f1[i + 3].strip() + '!' + f2[i + 3].strip()
+                merge_qual = f1[i + 3].strip() + quality_separator + f2[i + 3].strip()
                 output_file.write(merge_id + '\n' + merge_seq + '\n' + merge_dir + '\n' + merge_qual + '\n')
             else:
                 print("Problem:" + str(i))
