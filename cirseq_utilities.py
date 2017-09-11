@@ -12,8 +12,6 @@ from Bio import SeqIO
 
 
 
-
-
 def parse_reads(freqs):
 
     ''' this method returns a vector of reads corresponding to genome positions.
@@ -76,6 +74,7 @@ def find_mutation_type(freqs_file, ncbi_id):
     :param freqs_file:  The path of the relevant freqs file
     :return:DataFrame of the frqs file with mutation type column, save it in txt file
     """
+    start_time = time.time()
     file_name = freqs_file
     data = freqs_to_dataframe(freqs_file)
     start_pos, end_pos = find_coding_region(ncbi_id)

@@ -1,38 +1,16 @@
 
-import pandas as pd
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
-import numpy as np
 import matplotlib.gridspec as gridspec
-import time
 import os.path
 import pathlib
-from repeats_num_pandas import *
-from syn_nonsyn_mutations_func_mode import *
-from coverage import *
 from file_utilities import *
-
 from optparse import OptionParser
+from cirseq_utilities import *
 sns.set_context("talk")
 start_time = time.time()
-
-
-
-# ### Pipeline:
-#           1. Get freqs file and CirSeq running directory.
-#           2. Analyze those file and directory to get the number of tandem repeats of the cirseq, repeats length and the
-#                 amount of reads per repeat
-#           3. Adding mutation types to the freqs file
-#           4. Run bowtie2 for human rRNA, mRNA and the virus
-#           5. Subplots all relevant graph in subplots
-#                 5.1. Distribution graph (=bowtie2 results)
-#                 5.2. Multiple tandem repeat graph (repeat len)
-#                 5.3. Reads length
-#                 5.4. Amount of reads per repeat (Reads VS. Repeats Graph)
-#                 5.5. Coverage
-#                 5.6 Plot virus mutation frequencies(rates)
 
 
 """Graphs"""
@@ -118,7 +96,7 @@ def coverage_graph(freqs, ax):
     ax.set_ylabel("Number Of Reads")
     sns.set_style("darkgrid")
     ax.set_xlim(0, (len(pos)+10))
-    ax.set_ylim(100, 10000000)
+    ax.set_ylim(100, (max(reads)+1000000))
     ax.set_yscale("log")
 
 
@@ -154,19 +132,21 @@ def make_boxplot_mutation(data, ax):
 
 def main():
     # for Cluster
-    parser = OptionParser("usage: %prog [options]")
-    parser.add_option("-f", "--freqs_file_path", dest="freqs_file_path", help="path of the freqs file")
-    parser.add_option("-v", "--virus", dest="virus", help="Virus name: CVB3 for CV; RVB14 for RV; PV for PV")
-    (options, args) = parser.parse_args()
+    # parser = OptionParser("usage: %prog [options]")
+    # parser.add_option("-f", "--freqs_file_path", dest="freqs_file_path", help="path of the freqs file")
+    # parser.add_option("-v", "--virus", dest="virus", help="Virus name: CVB3 for CV; RVB14 for RV; PV for PV")
+    # (options, args) = parser.parse_args()
+    #
+    # freqs_file = options.freqs_file_path
+    # virus = options.virus
+    #
+    # freqs_file = check_filename(freqs_file)
 
-    freqs_file = options.freqs_file_path
-    virus = options.virus
-
-    freqs_file = check_filename(freqs_file)
     #for Local
 
-    # freqs_file = 'C:/Users/Oded/Google Drive/Studies/PhD/test/CVB3-p2.freqs'
-    # virus = "CVB3"
+    suffix = "CVB3-p2.freqs"
+    freqs_file = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/CV/20170906_q20r3_blastn/" + suffix
+    virus = "CVB3"
 
 
 
