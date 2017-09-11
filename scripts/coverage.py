@@ -6,16 +6,13 @@
 
 '''preprocess .freqs files in order to get for each genome position it's num of reads'''
 
-import os.path
-import os
+
 import pandas as pd
-import random
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
-import argparse
-import glob
+
 
 
 def main():
@@ -43,13 +40,12 @@ def coverage_graph(freqs, out_dir):
     plt.yticks(fontsize=16)
     sns.set_style("darkgrid")
     # plt.legend()
-    plt.xlim(0, 6550)
-    plt.ylim(1, 100000000)
+    plt.xlim(0, len(pos))
+    plt.ylim(1, len(reads) + 1000)
     plt.yscale("log")
     plt.tight_layout()
     plt.savefig(out_dir + "/coverage_0_106.png", dpi=680)
     plt.close('all')
-
     return graph
 
 
