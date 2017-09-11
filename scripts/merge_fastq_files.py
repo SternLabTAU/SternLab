@@ -12,12 +12,15 @@ def main():
     parser.add_option("-f", "--file1", dest="file1", help="fastq1 file")
     parser.add_option("-e", "--file2", dest="file2", help="fastq2 file")
     parser.add_option("-o", "--output_file", dest="output_file", help="output fastq merged file")
+    parser.add_option("-n", "--number_of_ns", dest="number_of_Ns",  default = 1, help="number of N's to use as seperators")
     (options, args) = parser.parse_args()
     file1 = options.file1
     file2 = options.file2
     output_file = options.output_file
+    number_of_Ns = options.number_of_Ns
 
-    concat_fastq(file1, file2, output_file)
+
+    concat_fastq(file1, file2, output_file, number_of_Ns)
 
 
 def concat_fastq(file1, file2, output_file, number_of_Ns = 1):
