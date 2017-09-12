@@ -7,12 +7,12 @@
 '''preprocess .freqs files in order to get for each genome position it's num of reads'''
 
 
-import pandas as pd
+
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
-
+from cirseq_utilities import *
 
 
 def main():
@@ -20,14 +20,13 @@ def main():
     # freqs_file_path = "Z:/volume1/okushnir/Cirseq/RV/20170322_output_all_23_qscore/RVB14p2.freqs"
     # out_dir = "Z:/volume1/okushnir/Cirseq/RV/20170322_output_all_23_qscore/plots/"
     # coverage_graph(freqs_file_path, out_dir)
-#CV
+#PV
     freqs_file_path = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/PV/Mahoney/P3/20170907_q23r2_blastn/PV-p3.1036617.freqs"
     out_dir = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/PV/Mahoney/P3/20170907_q23r2_blastn/plots"
     coverage_graph(freqs_file_path, out_dir)
 
-def coverage_graph(freqs, out_dir):
-    # show a unified graph otherwise
 
+def coverage_graph(freqs, out_dir):
     data = parse_reads(freqs)
     pos = data[0]
     reads = data[1]
@@ -38,40 +37,14 @@ def coverage_graph(freqs, out_dir):
     plt.title("Coverage", fontsize=30)
     plt.xticks(fontsize=16)
     plt.yticks(fontsize=16)
+    plt.xlim(0, (max(pos)+10))
+    plt.ylim(1, (max(reads)+1000000))
     sns.set_style("darkgrid")
-    # plt.legend()
-    plt.xlim(0, len(pos))
-    plt.ylim(1, len(reads) + 1000)
     plt.yscale("log")
     plt.tight_layout()
-    plt.savefig(out_dir + "/coverage_0_106.png", dpi=680)
+    plt.savefig(out_dir + "/coverage.png", dpi=680)
     plt.close('all')
     return graph
-
-
-def parse_reads(freqs):
-
-    ''' this method returns a vector of reads corresponding to genome positions.
-input:
-        freqs file
-output:
-        an integer vector containing for each position in the genome it's num of reads.
-'''
-
-    path = freqs
-    df = pd.read_csv(path, sep='\t')
-
-    # remove all duplicates from Pos except the first occurrence
-    # remove all x.number duplicates
-    df[["Pos"]] = df[["Pos"]].astype(int)
-    df = df.drop_duplicates("Pos")
-
-    pos = df["Pos"]  # a vector of all positions
-    reads = df["Read_count"]
-    med_reads = reads.median()
-    print(med_reads)
-    return pos, reads
-
 
 if __name__ == "__main__":
     main()

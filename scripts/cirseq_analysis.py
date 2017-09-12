@@ -15,6 +15,8 @@ start_time = time.time()
 
 """Graphs"""
 #1.Distribution graph (=bowtie2 results)
+
+
 def distribution_graph(val, ax, virus):
     """
     makes distribution graph
@@ -95,8 +97,8 @@ def coverage_graph(freqs, ax):
     ax.set_xlabel("Position In The Genome [bp]")
     ax.set_ylabel("Number Of Reads")
     sns.set_style("darkgrid")
-    ax.set_xlim(0, (len(pos)+10))
-    ax.set_ylim(100, (max(reads)+1000000))
+    ax.set_xlim(0, (max(pos)+10))
+    ax.set_ylim(1, (max(reads)+1000000))
     ax.set_yscale("log")
 
 
@@ -197,10 +199,9 @@ def main():
 
     """4. Run bowtie2 for human rRNA, mRNA and the virus"""
 
-
-    if virus=="RVB14":
+    if virus == "RVB14":
         values = (19.32, 40.52, 45.17)
-    if virus=="CVB3":
+    if virus == "CVB3":
         values = (96.09, 1.66, 1.18)
 
     #   5. Subplots all relevant graph in subplots
