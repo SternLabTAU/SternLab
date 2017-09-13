@@ -103,13 +103,18 @@ def coverage_graph(freqs, ax):
 
 
 #6. Mutation Rates
-def make_boxplot_mutation(data, ax):
+def make_boxplot_mutation(freqs_file, ax):
     """
     Plots the mutation frequencies boxplot
     :param data: pandas DataFrame after find_mutation_type function
     :param ax: which ax to plot
     :return:
     """
+    data = pd.read_table(freqs_file)
+    data.reset_index(drop=True, inplace=True)
+    flag = '-' in data.Base.values
+    if flag is True:
+        raise Exception("This script does not support freqs file with deletions, for support please contact Maoz ;)")
     data['Base'].replace('T', 'U', inplace=True)
     data['Ref'].replace('T', 'U', inplace=True)
     min_read_count = 100000
@@ -193,8 +198,8 @@ def main():
     if not os.path.isfile(freqs_file + ".with.mutation.type.func2.freqs"):
          append_mutation = find_mutation_type(freqs_file, ncbi_id)
 
-    mutation_file = freqs_file + ".with.mutation.type.func2.freqs"
-    mutation_rates = freqs_to_dataframe(mutation_file)
+    freqs_file_mutations = freqs_file + ".with.mutation.type.func2.freqs"
+
 
 
     """4. Run bowtie2 for human rRNA, mRNA and the virus"""
@@ -240,7 +245,7 @@ def main():
     coverage_graph(freqs_file, ax4)
     # ax4.set_title('Coverage')
 
-    make_boxplot_mutation(mutation_rates, ax5)
+    make_boxplot_mutation(freqs_file_mutations, ax5)
     # ax5.set_title(virus_name + ' Mutation Rates')
 
     # plt.show()
