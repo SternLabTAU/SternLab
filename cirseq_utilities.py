@@ -37,6 +37,11 @@ output:
 
 
 def get_repeats_num(tmp_cirseq_dir, out_dir):
+    """
+    :param tmp_cirseq_dir: tmp directory path of the cirseq pipeline analysis
+    :param out_dir: the output directory path
+    :return: a dictionary of the repeat stats from the cirseq pipeline analysis
+    """
     files = glob.glob(tmp_cirseq_dir + "/*.fasta.blast.freqs.stats")
     repeat_summery = {}
     for file in files:
@@ -56,6 +61,11 @@ def get_repeats_num(tmp_cirseq_dir, out_dir):
 
 
 def get_read_and_repeat_length(in_dir, out_dir):
+    """
+    :param in_dir: directory path of the cirseq pipeline analysis
+    :param out_dir: the output directory path
+    :return: DataFrame of the freqs file with the reads and repeats length, and saves it into csv file
+    """
     files = glob.glob(in_dir + "/*.fasta.blast")
     arr_names = ["sseqid", "qstart", "qend", "sstart", "send", "sstrand", "length", "btop"]
     wdf = pd.DataFrame()
@@ -72,7 +82,7 @@ def find_mutation_type(freqs_file, ncbi_id):
     """
     This function adds Mutation type to the freqs file
     :param freqs_file:  The path of the relevant freqs file
-    :return:DataFrame of the frqs file with mutation type column, save it in txt file
+    :return:DataFrame of the freqs file with mutation type column, save it into txt file
     """
     start_time = time.time()
     file_name = freqs_file
@@ -120,8 +130,8 @@ def freqs_to_dataframe(freqs_file):
 
 def find_coding_region(ncbi_id):
     """
-    :param ncbi_id:
-    :return:
+    :param ncbi_id: NCBI_ID number
+    :return:the start and the end positions of the Coding region
     """
     try:
         Entrez.email = "A.N.Other@example.com"
