@@ -76,7 +76,8 @@ def find_mutation_type(freqs_file, ncbi_id):
     """
     start_time = time.time()
     file_name = freqs_file
-    data = freqs_to_dataframe(freqs_file)
+    data = pd.read_table(freqs_file)
+    data.reset_index(drop=True, inplace=True)
     start_pos, end_pos = find_coding_region(ncbi_id)
     data = data.loc[data['Pos'] >= start_pos]
     check_12mer(data)
