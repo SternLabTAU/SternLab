@@ -51,8 +51,8 @@ def main():
 
     pathlib.Path(plots_path + 'plots/').mkdir(parents=True, exist_ok=True)
 
-    df = make_boxplot_mutation(mutation_rates, plots_path, virus, suffix)
-    make_boxplot_mutation_median(df, plots_path, virus, suffix[:-6])
+    df = make_boxplot_mutation(mutation_rates, plots_path, suffix[:-6])
+    make_boxplot_mutation_median(df, plots_path, suffix[:-6], "Premature Stop Codon")
 
 
 # from Maoz
@@ -68,13 +68,13 @@ def make_boxplot_mutation(data, out_dir, samplename):
     data['Ref'].replace('T', 'U', inplace=True)
     min_read_count = 100000
     data = data[data['Pos'] == np.round(data['Pos'])]  # remove insertions
-    data['Pos'] = data[['Pos']].apply(pd.to_numeric)
+    # data['Pos'] = data[['Pos']].apply(pd.to_numeric)
     data = data[data['Read_count'] > min_read_count]
     data['mutation_type'] = data['Ref'] + data['Base']
     data = data[data['Ref'] != data['Base']]
     data = data[data["Base"] != "-"]
-    # data['abs_counts'] = data['Freq'] * data["Read_count"]  # .apply(lambda x: abs(math.log(x,10))/3.45)
-    data['Frequency'] = data['abs_counts'].apply(lambda x: 1/(data["Read_count"]+1) if x == 0 else x/data["Read_count"])
+    data['abs_counts'] = data['Freq'] * data["Read_count"]  # .apply(lambda x: abs(math.log(x,10))/3.45)
+    data['Frequency'] = data['abs_counts'].apply(lambda x: 1 if x == 0 else x) / (data["Read_count"]+1)
     data["Mutation"] = data["Ref"] + "->" + data["Base"]
     sns.set_palette(sns.color_palette("Paired", 12))
     g1 = sns.boxplot(x="Mutation Type", y="Freq", hue="Mutation", data=data,
@@ -86,18 +86,18 @@ def make_boxplot_mutation(data, out_dir, samplename):
     g1.set_ylim(10 ** -6, 1)
     g1.tick_params(labelsize=7)
     plt.title(samplename + ' Mutations Frequencies', fontsize=22)
-    plt.savefig(out_dir + "plots/" + samplename + "_freqs_type_%s.png" % str(min_read_count), dpi=300)
+    plt.savefig(out_dir + "plots/" + samplename + "_freqs_type_%s_with_correction.png" % str(min_read_count), dpi=300)
     plt.close("all")
     print("The Plot is ready in the folder")
     return data
 
 
-def make_boxplot_mutation_median(data, out_dir, virus, filename, mutation_type):
+def make_boxplot_mutation_median(data, out_dir, samplename, mutation_type):
         """
             :param data: pandas DataFrame after find_mutation_type function
             :param out_dir:
             :param virus:
-            :param filename:
+            :param samplename:
             :param mutation_type: "Synonymous"/"Non-Synonymous"/"Premature Stop Codon"
             :return: pandas DataFrame ready for plotting
             """
@@ -105,7 +105,9 @@ def make_boxplot_mutation_median(data, out_dir, virus, filename, mutation_type):
         mutation_df = data[data['Mutation Type'] == mutation_type]
         # mutation_df = mutation_df[mutation_df['Pos'] > 1000]
         # mutation_df = mutation_df[mutation_df['Pos'] < 2800]
-        g1 = sns.boxplot(x="Mutation", y="Freq", data=mutation_df,
+        mutation_df['abs_counts'] = mutation_df['Freq'] * mutation_df["Read_count"]  # .apply(lambda x: abs(math.log(x,10))/3.45)
+        mutation_df['Frequency'] = mutation_df['abs_counts'].apply(lambda x: 1 if x == 0 else x) / (mutation_df["Read_count"]+1)
+        g1 = sns.boxplot(x="Mutation", y="Frequency", data=mutation_df,
                          order=["A->U", "C->A", "C->G", "C->U", "G->A", "G->U", "U->A", "U->G"], color="DarkOrchid")
         sns.set_style("darkgrid")
         grouped_df = mutation_df.groupby(["Mutation"])["Freq"]
@@ -128,8 +130,8 @@ def make_boxplot_mutation_median(data, out_dir, virus, filename, mutation_type):
         plt.legend(bbox_to_anchor=(1.0, 1), loc=2, borderaxespad=0., fontsize=7)
         g1.set_ylim(10 ** -6, 1)
         g1.tick_params(labelsize=7)
-        plt.title(virus + mutation_type +' Mutations Frequencies', fontsize=19)
-        plt.savefig(out_dir + "plots/" + filename[:-6] + "_" + mutation_type + "_median_%s.png" % str(min_read_count), dpi=300)
+        plt.title(samplename + mutation_type +' Mutations Frequencies', fontsize=19)
+        plt.savefig(out_dir + "plots/" + samplename + "_" + mutation_type + "_median_%s_with_correction.png" % str(min_read_count), dpi=300)
         plt.close("all")
         print("The Plot is ready in the folder")
 
