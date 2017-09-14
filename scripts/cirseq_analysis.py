@@ -13,129 +13,6 @@ sns.set_context("talk")
 start_time = time.time()
 
 
-"""Graphs"""
-#1.Distribution graph (=bowtie2 results)
-
-
-def distribution_graph(val, ax, virus):
-    """
-    makes distribution graph
-    :param val: values from bowtie2 alignment
-    :param ax:
-    :return:
-    """
-    column_number = 3
-
-    ind = np.arange(column_number)  # the x locations for the groups
-    width = 0.35  # the width of the bars
-    rects1 = ax.bar(ind, val, width, color='DarkOrchid')
-    ax.set_ylabel('% of Reads')
-    ax.set_xticks(ind)
-    ax.set_xticklabels((virus, 'mRNA', 'rRNA'))
-    labelsy = np.arange(0, 50, 10)
-    ax.set_yticklabels(labelsy)
-    sns.set_style("darkgrid")
-    ax.set_xlim(-0.5, 3)
-    return ax
-
-
-#2. Multiple tandem repeat graph (repeat len)
-def repeat_len_graphs(dataframe, ax):
-    """
-     makes a repeat length graph
-    :param results:
-    :param ax:
-    :return:
-    """
-    sns.boxplot(x="count_nonzero", y="amax", data=dataframe, ax=ax, color='DarkOrchid')
-    ax.set_xlabel("Number of Repeats")
-    ax.set_ylabel("Repeat Length [bp]")
-    labelsy = np.arange(0, 350, 50)
-    labelsx = np.arange(1, len(dataframe["count_nonzero"]), 1)
-    ax.set_yticklabels(labelsy)
-    ax.set_xticklabels(labelsx)
-    sns.set_style("darkgrid")
-    return ax
-
-#3. Reads length
-def read_len_graphs(dataframe, ax):
-
-    graph = sns.boxplot(x="count_nonzero", y="sum", data=dataframe, ax=ax, color='DarkOrchid')
-    ax.set_xlabel("Number of Repeats")
-    ax.set_ylabel("Read Length [bp]")
-    sns.set_style("darkgrid")
-
-
-#4. Amount of reads per repeat (Reads VS. Repeats Graph)
-def read_repeat_graph(repeat_summery, ax):
-    """
-    makes read VS. repeat graph
-    :param repeat_summery:
-    :param ax:
-    :return:
-    """
-    keys = []
-    values = []
-    for key, val in repeat_summery.items():
-        keys.append(key)
-        values.append(val)
-    graph = ax.bar(keys, values, color='DarkOrchid')
-    ax.set_xlabel("Number of Repeats")
-    ax.set_ylabel("Number of Reads")
-    ax.set_xlim(min(keys)-0.5, max(keys)+0.5)
-    ax.yaxis.get_major_formatter().set_powerlimits((0, 1))
-    sns.set_style("darkgrid")
-    return ax
-
-
-#5. Coverage
-def coverage_graph(freqs, ax):
-    data = parse_reads(freqs)
-    pos = data[0]
-    reads = data[1]
-    ax.plot(pos, reads, color='DarkOrchid')
-    ax.set_xlabel("Position In The Genome [bp]")
-    ax.set_ylabel("Number Of Reads")
-    sns.set_style("darkgrid")
-    ax.set_xlim(0, (max(pos)+10))
-    ax.set_ylim(1, (max(reads)+1000000))
-    ax.set_yscale("log")
-
-
-#6. Mutation Rates
-def make_boxplot_mutation(freqs_file, ax):
-    """
-    Plots the mutation frequencies boxplot
-    :param data: pandas DataFrame after find_mutation_type function
-    :param ax: which ax to plot
-    :return:
-    """
-    data = pd.read_table(freqs_file)
-    data.reset_index(drop=True, inplace=True)
-    flag = '-' in data.Base.values
-    if flag is True:
-        raise Exception("This script does not support freqs file with deletions, for support please contact Maoz ;)")
-    data['Base'].replace('T', 'U', inplace=True)
-    data['Ref'].replace('T', 'U', inplace=True)
-    min_read_count = 100000
-    data = data[data['Pos'] == np.round(data['Pos'])]  # remove insertions
-    data['Pos'] = data[['Pos']].apply(pd.to_numeric)
-    data = data[data['Read_count'] > min_read_count]
-    data['mutation_type'] = data['Ref'] + data['Base']
-    data = data[data['Ref'] != data['Base']]
-    data = data[data["Base"] != "-"]
-    data['abs_counts'] = data['Freq'] * data["Read_count"]  # .apply(lambda x: abs(math.log(x,10))/3.45)
-    data['Frequency'] = data['abs_counts'].apply(lambda x: 1 if x == 0 else x) / data["Read_count"]
-    data["Mutation"] = data["Ref"] + "->" + data["Base"]
-    sns.set_palette(sns.color_palette("Paired", 12))
-    g1 = sns.boxplot(x="Mutation Type", y="Frequency", hue="Mutation", data=data,
-                     hue_order=["C->U", "U->C", "G->A", "A->G", "C->A", "G->U", "U->G", "U->A", "G->C", "A->C",
-                                "A->U", "C->G"], order=["Synonymous", "Non-Synonymous", "Premature Stop Codon"], ax=ax)
-    g1.set(yscale="log")
-    plt.legend(bbox_to_anchor=(1.0, 1), loc=2, borderaxespad=0., fontsize=6)
-    g1.set_ylim(10 ** -6, 1)
-    g1.tick_params(labelsize=7)
-
 
 def main():
     # for Cluster
@@ -252,6 +129,147 @@ def main():
     plt.savefig(out_plots_dir + 'CirSeq_Report.png', dpi=300)
     plt.close("all")
     print("The Plot is ready in the folder")
+
+"""Graphs"""
+#1.Distribution graph (=bowtie2 results)
+
+
+def distribution_graph(val, ax, virus):
+    """
+    makes distribution graph
+    :param val: values from bowtie2 alignment
+    :param ax: ax location
+    :param virus: Virus name
+    :return:
+    """
+    column_number = 3
+
+    ind = np.arange(column_number)  # the x locations for the groups
+    width = 0.35  # the width of the bars
+    rects1 = ax.bar(ind, val, width, color='DarkOrchid')
+    ax.set_ylabel('% of Reads')
+    ax.set_xticks(ind)
+    ax.set_xticklabels((virus, 'mRNA', 'rRNA'))
+    labelsy = np.arange(0, 50, 10)
+    ax.set_yticklabels(labelsy)
+    sns.set_style("darkgrid")
+    ax.set_xlim(-0.5, 3)
+    return ax
+
+
+#2. Multiple tandem repeat graph (repeat len)
+def repeat_len_graphs(dataframe, ax):
+    """
+     makes a repeat length graph
+    :param dataframe: cirseq pipeline analysis dataframe
+    :param ax: ax location
+    :return:
+    """
+    sns.boxplot(x="count_nonzero", y="amax", data=dataframe, ax=ax, color='DarkOrchid')
+    ax.set_xlabel("Number of Repeats")
+    ax.set_ylabel("Repeat Length [bp]")
+    labelsy = np.arange(0, 350, 50)
+    labelsx = np.arange(1, len(dataframe["count_nonzero"]), 1)
+    ax.set_yticklabels(labelsy)
+    ax.set_xticklabels(labelsx)
+    sns.set_style("darkgrid")
+    return ax
+
+#3. Reads length
+def read_len_graphs(dataframe, ax):
+    """
+    Plots the reads VS. number of repeats graph
+    :param dataframe: cirseq pipeline analysis dataframe
+    :param ax: ax location
+    :return:
+    """
+    graph = sns.boxplot(x="count_nonzero", y="sum", data=dataframe, ax=ax, color='DarkOrchid')
+    ax.set_xlabel("Number of Repeats")
+    ax.set_ylabel("Read Length [bp]")
+    sns.set_style("darkgrid")
+
+
+#4. Amount of reads per repeat (Reads VS. Repeats Graph)
+def read_repeat_graph(repeat_summery, ax):
+    """
+    Pltos the Reads VS. Repeats Graph
+    :param repeat_summery: Dictionary of the repeats from the stas file in the pipeline analysis
+    :param ax:ax location
+    :return:
+    """
+    keys = []
+    values = []
+    for key, val in repeat_summery.items():
+        keys.append(key)
+        values.append(val)
+    graph = ax.bar(keys, values, color='DarkOrchid')
+    ax.set_xlabel("Number of Repeats")
+    ax.set_ylabel("Number of Reads")
+    ax.set_xlim(min(keys)-0.5, max(keys)+0.5)
+    ax.yaxis.get_major_formatter().set_powerlimits((0, 1))
+    sns.set_style("darkgrid")
+    return ax
+
+
+#5. Coverage
+def coverage_graph(freqs, ax):
+    """
+    Plots the coverage graph
+    :param freqs: freqs file from the cirseq pipeline
+    :param ax: ax location
+    :return:
+    """
+    data = parse_reads(freqs)
+    pos = data[0]
+    reads = data[1]
+    ax.plot(pos, reads, color='DarkOrchid')
+    ax.set_xlabel("Position In The Genome [bp]")
+    ax.set_ylabel("Number Of Reads")
+    sns.set_style("darkgrid")
+    ax.set_xlim(0, (max(pos)+10))
+    ax.set_ylim(1, (max(reads)+1000000))
+    ax.set_yscale("log")
+
+
+#6. Mutation Rates
+def make_boxplot_mutation(freqs_file, ax):
+    """
+    Plots the mutation frequencies boxplot
+    :param freqs_file: pandas DataFrame after find_mutation_type function
+    :param ax: ax location
+    :return:
+    """
+    data = pd.read_table(freqs_file)
+    data.reset_index(drop=True, inplace=True)
+    flag = '-' in data.Base.values
+    if flag is True:
+        data = data[data.Ref != '-']
+        data = data[data.Base != '-']
+        data.reset_index(drop=True, inplace=True)
+        # data['abs_counts'] = data['Freq'] * data["Read_count"]  # .apply(lambda x: abs(math.log(x,10))/3.45)
+        # data['Frequency'] = data['abs_counts'].apply(lambda x: 1 if x == 0 else x) / data["Read_count"]
+        # raise Exception("This script does not support freqs file with deletions, for support please contact Maoz ;)"
+    data['Base'].replace('T', 'U', inplace=True)
+    data['Ref'].replace('T', 'U', inplace=True)
+    min_read_count = 100000
+    data = data[data['Pos'] == np.round(data['Pos'])]  # remove insertions
+    data['Pos'] = data[['Pos']].apply(pd.to_numeric)
+    data = data[data['Read_count'] > min_read_count]
+    data['mutation_type'] = data['Ref'] + data['Base']
+    data = data[data['Ref'] != data['Base']]
+    data = data[data["Base"] != "-"]
+    data['abs_counts'] = data['Freq'] * data["Read_count"]  # .apply(lambda x: abs(math.log(x,10))/3.45)
+    data['Frequency'] = data['abs_counts'].apply(lambda x: 1 if x == 0 else x) / data["Read_count"]
+    data["Mutation"] = data["Ref"] + "->" + data["Base"]
+    sns.set_palette(sns.color_palette("Paired", 12))
+    g1 = sns.boxplot(x="Mutation Type", y="Frequency", hue="Mutation", data=data,
+                     hue_order=["C->U", "U->C", "G->A", "A->G", "C->A", "G->U", "U->G", "U->A", "G->C", "A->C",
+                                "A->U", "C->G"], order=["Synonymous", "Non-Synonymous", "Premature Stop Codon"], ax=ax)
+    g1.set(yscale="log")
+    plt.legend(bbox_to_anchor=(1.0, 1), loc=2, borderaxespad=0., fontsize=6)
+    g1.set_ylim(10 ** -6, 1)
+    g1.tick_params(labelsize=7)
+
 
 if __name__ == "__main__":
     main()
