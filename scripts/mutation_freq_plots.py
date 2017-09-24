@@ -74,10 +74,10 @@ def make_boxplot_mutation(data, out_dir, samplename):
     data = data[data['Ref'] != data['Base']]
     data = data[data["Base"] != "-"]
     data['abs_counts'] = data['Freq'] * data["Read_count"]  # .apply(lambda x: abs(math.log(x,10))/3.45)
-    data['Frequency'] = data['abs_counts'].apply(lambda x: 1 if x == 0 else x) / (data["Read_count"]+1)
+    data['Frequency'] = data['abs_counts'].apply(lambda x: 1 if x == 0 else x) / data["Read_count"]+1
     data["Mutation"] = data["Ref"] + "->" + data["Base"]
     sns.set_palette(sns.color_palette("Paired", 12))
-    g1 = sns.boxplot(x="Mutation Type", y="Freq", hue="Mutation", data=data,
+    g1 = sns.boxplot(x="Mutation Type", y="Frequency", hue="Mutation", data=data,
                      hue_order=["C->U", "U->C", "G->A", "A->G", "C->A", "G->U", "U->G", "U->A", "G->C", "A->C",
                                 "A->U", "C->G"], order=["Synonymous", "Non-Synonymous", "Premature Stop Codon"])
     g1.set(yscale="log")
@@ -130,7 +130,7 @@ def make_boxplot_mutation_median(data, out_dir, samplename, mutation_type):
         plt.legend(bbox_to_anchor=(1.0, 1), loc=2, borderaxespad=0., fontsize=7)
         g1.set_ylim(10 ** -6, 1)
         g1.tick_params(labelsize=7)
-        plt.title(samplename + mutation_type +' Mutations Frequencies', fontsize=19)
+        plt.title(samplename + " " + mutation_type + ' Mutations Frequencies', fontsize=19)
         plt.savefig(out_dir + "plots/" + samplename + "_" + mutation_type + "_median_%s_with_correction.png" % str(min_read_count), dpi=300)
         plt.close("all")
         print("The Plot is ready in the folder")
