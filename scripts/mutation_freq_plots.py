@@ -16,7 +16,7 @@ def main():
     path = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/CV/20170906_q20r3_blastn/" + suffix
     virus = "CVB3"
 
-    # file_name = "PV-p3.1036617.freqs"
+
     # virus = file_name.split(sep='-')[0]
     # virus += file_name.split(sep='-')[1].split(sep='.')[0]
 
@@ -32,8 +32,6 @@ def main():
     plots_path = ''
     for i in range(0, len(path_list) - 1, 1):
         plots_path += path_list[i] + "/"
-
-
 
     if virus == "CVB3":
         ncbi_id ="M16572"
@@ -73,13 +71,10 @@ def make_boxplot_mutation(data, out_dir, samplename):
     data['mutation_type'] = data['Ref'] + data['Base']
     data = data[data['Ref'] != data['Base']]
     data = data[data["Base"] != "-"]
-<<<<<<< HEAD
     data['abs_counts'] = np.round(data['Freq'] * data["Read_count"])
     data['Frequency'] = data['abs_counts'].apply(lambda x: 1 if x == 0 else x) / data["Read_count"]
-=======
     data['abs_counts'] = data['Freq'] * data["Read_count"]  # .apply(lambda x: abs(math.log(x,10))/3.45)
     data['Frequency'] = data['abs_counts'].apply(lambda x: 1 if x == 0 else x) / data["Read_count"]+1
->>>>>>> 184c35c9cc099de25ca4fa5a26b38b086ded3ea6
     data["Mutation"] = data["Ref"] + "->" + data["Base"]
     sns.set_palette(sns.color_palette("Paired", 12))
     g1 = sns.boxplot(x="Mutation Type", y="Frequency", hue="Mutation", data=data,
