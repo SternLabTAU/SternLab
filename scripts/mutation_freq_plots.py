@@ -50,7 +50,8 @@ def main():
     pathlib.Path(plots_path + 'plots/').mkdir(parents=True, exist_ok=True)
 
     df = make_boxplot_mutation(mutation_rates, plots_path, suffix[:-6])
-    make_boxplot_mutation_median(df, plots_path, suffix[:-6], "Premature Stop Codon")
+    mutation_type = "Premature Stop Codon"
+    make_boxplot_mutation_median(df, plots_path, suffix[:-6], mutation_type)
 
 
 # from Maoz
@@ -95,9 +96,8 @@ def make_boxplot_mutation(data, out_dir, samplename):
 def make_boxplot_mutation_median(data, out_dir, samplename, mutation_type):
         """
             :param data: pandas DataFrame after find_mutation_type function
-            :param out_dir:
-            :param virus:
-            :param samplename:
+            :param out_dir: The output directory
+            :param samplename: The objective name
             :param mutation_type: "Synonymous"/"Non-Synonymous"/"Premature Stop Codon"
             :return: pandas DataFrame ready for plotting
             """
@@ -111,8 +111,8 @@ def make_boxplot_mutation_median(data, out_dir, samplename, mutation_type):
                          order=["A->U", "C->A", "C->G", "C->U", "G->A", "G->U", "U->A", "U->G"], color="DarkOrchid")
         sns.set_style("darkgrid")
         grouped_df = mutation_df.groupby(["Mutation"])["Freq"]
-        for key, item in grouped_df:
-            print(grouped_df.get_group(key), "\n\n")
+        # for key, item in grouped_df:
+        #     print(grouped_df.get_group(key), "\n\n")
 
         medians = grouped_df.median()
         print(medians)
@@ -130,7 +130,7 @@ def make_boxplot_mutation_median(data, out_dir, samplename, mutation_type):
         plt.legend(bbox_to_anchor=(1.0, 1), loc=2, borderaxespad=0., fontsize=7)
         g1.set_ylim(10 ** -6, 1)
         g1.tick_params(labelsize=7)
-        plt.title(samplename + " " + mutation_type + ' Mutations Frequencies', fontsize=19)
+        plt.title(samplename + " " + mutation_type + ' Mutations Frequencies', fontsize=16)
         plt.savefig(out_dir + "plots/" + samplename + "_" + mutation_type + "_median_%s_with_correction.png" % str(min_read_count), dpi=300)
         plt.close("all")
         print("The Plot is ready in the folder")
