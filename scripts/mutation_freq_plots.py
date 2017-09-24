@@ -73,11 +73,11 @@ def make_boxplot_mutation(data, out_dir, samplename):
     data['mutation_type'] = data['Ref'] + data['Base']
     data = data[data['Ref'] != data['Base']]
     data = data[data["Base"] != "-"]
-    data['abs_counts'] = data['Freq'] * data["Read_count"]  # .apply(lambda x: abs(math.log(x,10))/3.45)
-    data['Frequency'] = data['abs_counts'].apply(lambda x: 1 if x == 0 else x) / (data["Read_count"]+1)
+    data['abs_counts'] = np.round(data['Freq'] * data["Read_count"])
+    data['Frequency'] = data['abs_counts'].apply(lambda x: 1 if x == 0 else x) / data["Read_count"]
     data["Mutation"] = data["Ref"] + "->" + data["Base"]
     sns.set_palette(sns.color_palette("Paired", 12))
-    g1 = sns.boxplot(x="Mutation Type", y="Freq", hue="Mutation", data=data,
+    g1 = sns.boxplot(x="Mutation Type", y="Frequency", hue="Mutation", data=data,
                      hue_order=["C->U", "U->C", "G->A", "A->G", "C->A", "G->U", "U->G", "U->A", "G->C", "A->C",
                                 "A->U", "C->G"], order=["Synonymous", "Non-Synonymous", "Premature Stop Codon"])
     g1.set(yscale="log")
@@ -105,8 +105,8 @@ def make_boxplot_mutation_median(data, out_dir, samplename, mutation_type):
         mutation_df = data[data['Mutation Type'] == mutation_type]
         # mutation_df = mutation_df[mutation_df['Pos'] > 1000]
         # mutation_df = mutation_df[mutation_df['Pos'] < 2800]
-        mutation_df['abs_counts'] = mutation_df['Freq'] * mutation_df["Read_count"]  # .apply(lambda x: abs(math.log(x,10))/3.45)
-        mutation_df['Frequency'] = mutation_df['abs_counts'].apply(lambda x: 1 if x == 0 else x) / (mutation_df["Read_count"]+1)
+        mutation_df['abs_counts'] = np.round(mutation_df['Freq'] * mutation_df["Read_count"])  # .apply(lambda x: abs(math.log(x,10))/3.45)
+        mutation_df['Frequency'] = mutation_df['abs_counts'].apply(lambda x: 1 if x == 0 else x) / mutation_df["Read_count"]
         g1 = sns.boxplot(x="Mutation", y="Frequency", data=mutation_df,
                          order=["A->U", "C->A", "C->G", "C->U", "G->A", "G->U", "U->A", "U->G"], color="DarkOrchid")
         sns.set_style("darkgrid")
