@@ -2,7 +2,7 @@
 
 import os
 
-def create_pbs_cmd(cmdfile, alias, tnum, gmem, cmds, dir = ""):
+def create_pbs_cmd(cmdfile, alias, tnum, gmem, cmds, dir = "", load_python=True):
     with open (cmdfile, 'w') as o:
         o.write("#!/bin/bash\n#PBS -S /bin/bash\n#PBS -j oe\n#PBS -r y\n")
         o.write("#PBS -q adis\n")
@@ -17,7 +17,8 @@ def create_pbs_cmd(cmdfile, alias, tnum, gmem, cmds, dir = ""):
             o.write("ls -land %s\n" % dir)
         o.write("id\n")
         o.write("hostname\n")
-        o.write("module load python/anaconda_python-3.4.0\n")
+        if load_python:
+            o.write("module load python/anaconda_python-3.4.0\n")
         o.write("'echo %s\n'" % cmds)
         o.write("\n")
         o.write(cmds)

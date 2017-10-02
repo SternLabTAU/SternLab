@@ -1,4 +1,5 @@
 #! /usr/local/python_anaconda/bin/python3.4
+#! /usr/local/python_anaconda/bin/python3.4
 
 import pbs_jobs
 import os
@@ -66,14 +67,17 @@ def phyml_runner(alignment, alias = "phyml", phylip=True):
     return job_id
 
 
-def phyml_aa_runner(alignment, alias = "phyml"):
+def phyml_aa_runner(alignment, alias = "phyml", phylip=True):
     """
     run phyml on aa alignment on cluster
     :param alignment: alignment file path
     :param alias: job name (default: phyml)
+    :param phylip: True if phylip file, False if fasta file
     :return: job id
     """
     alignment = check_filename(alignment)
+    if phylip == False:
+        alignment = convert_fasta_to_phylip(alignment)
     cmdfile = "phyml"; tnum = 1; gmem = 2
     cmds = "/sternadi/home/volume1/shared/tools/PhyML/PhyML_3.0_linux64 -i %s -d aa -q -b 0" % alignment
     pbs_jobs.create_pbs_cmd(cmdfile, alias, tnum, gmem, cmds)
@@ -134,7 +138,7 @@ def mafft_runner(sequence, alignment = None, alias = "mafft"):
 
 def prank_runner(sequence, alignment=None, alias = "prank"):
     """
-    run phyml on cluster
+    run prank on cluster
     :param sequence: sequence file path (fasta format)
     :param alignment: alignment output file (default: None)
     :param alias: job name (default: prank)
@@ -150,6 +154,25 @@ def prank_runner(sequence, alignment=None, alias = "prank"):
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
 
+
+
+def prank_codon_runner(sequence, alignment=None, alias = "prank"):
+    """
+    run prank codon on cluster
+    :param sequence: sequence file path (fasta format)
+    :param alignment: alignment output file (default: None)
+    :param alias: job name (default: prank)
+    :return: job id
+    """
+    if alignment == None:
+        alignment = sequence.split(".fasta")[0] + ".codon_aln"
+    sequence = check_filename(sequence)
+    alignment = check_filename(alignment, Truefile=False)
+    cmds = "/powerapps/share/bin/prank -d=%s -o=%s -F -codon" % (sequence, alignment)
+    cmdfile = "prank_alignment"; tnum=1; gmem=5
+    pbs_jobs.create_pbs_cmd(cmdfile, alias, tnum, gmem, cmds)
+    job_id = pbs_jobs.submit(cmdfile)
+    return job_id
 
 
 def prank_codon_runner(sequence, alignment=None, alias = "prank"):
@@ -174,7 +197,7 @@ def prank_codon_runner(sequence, alignment=None, alias = "prank"):
 
 def prank_runner_with_tree(sequence, tree, alignment=None, alias = "prank"):
     """
-    run phyml with tree on cluster
+    run prank with tree on cluster
     :param sequence: sequence file path (fasta format)
     :param tree: tree file path
     :param alignment: alignment output file (default: None)
@@ -362,6 +385,31 @@ def blast_runner(seqfile, dbfile = "/sternadi/home/volume1/shared/data/nt/nt", o
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
 
+
+def blast_output6_runner(seqfile, dbfile, outfile, alias = "blast"):
+    """
+    run blast on cluster - output as pipeline - format 6
+    :param seqfile: sequence file path
+    :param dbfile: db file
+    :param outfile: output file path
+    :param alias: job name (blast)
+    :return: job id
+    """
+    seqfile = check_filename(seqfile)
+    if outfile != None:
+        outfile = check_filename(outfile, Truefile=False)
+    cmdfile = "blast_cmd"; tnum = 1; gmem = 2
+    cmds = "/sternadi/home/volume1/shared/tools/ncbi-blast-2.2.30+/bin/blastn"\
+                + " -query %s -task megablast -out %s -db %s -outfmt '6 sseqid qseqid qstart qend qstrand sstart send sstrand length btop' " \
+                  "-num_alignments 100 -dust no -soft_masking F -perc_identity 85 -evalue 1e-7"\
+                  % (seqfile, outfile, dbfile)
+
+    pbs_jobs.create_pbs_cmd(cmdfile, alias, tnum, gmem, cmds)
+    job_id = pbs_jobs.submit(cmdfile)
+    return job_id
+
+
+
 def bowtie2_runner(bowtie_index_path, fastq_file, sam_output, alias="bowtie2"):
     """
     run bowtie2 - very fast local flag is on
@@ -381,6 +429,25 @@ def bowtie2_runner(bowtie_index_path, fastq_file, sam_output, alias="bowtie2"):
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
 
+def tophat2_runner(output_dir, bowtie_reference, fastq, alias="tophat2"):
+    """
+    tophat2 runner
+    :param output_dir: output directory
+    :param bowtie_reference: bowtie reference path
+    :param fastq: fastq path
+    :param alias: job name (tophat2)
+    :return: job id
+    """
+    output_dir = check_dirname(output_dir, Truedir=False)
+    bowtie_reference = check_filename(bowtie_reference, Truefile=False)
+    fastq = check_filename(fastq)
+
+    cmdfile = "tophat2"; tnum = 1; gmem = 2
+    cmds = "/sternadi/home/volume1/taliakustin/software/tophat-2.1.1.Linux_x86_64/tophat2"\
+           + " -o %s %s %s" % (output_dir, bowtie_reference, fastq)
+    pbs_jobs.create_pbs_cmd(cmdfile, alias, tnum, gmem, cmds, dir="", load_python=False)
+    job_id = pbs_jobs.submit(cmdfile)
+    return job_id
 
 
 
@@ -405,7 +472,7 @@ def r4s_runner(tree_file, seq_file, outfile, dirname, tree_outfile=None, unormel
     if tree_outfile != None:
         tree_outfile = check_filename(tree_outfile, Truefile=False)
     else:
-        tree_file = dirname + "/" + "out-tree"
+        tree_outfile = dirname + "/" + "out-tree"
     if unormelized_outfile != None:
         unormelized_outfile = check_filename(unormelized_outfile, Truefile=False)
     else:
@@ -413,7 +480,8 @@ def r4s_runner(tree_file, seq_file, outfile, dirname, tree_outfile=None, unormel
     if log_outfile != None:
         log_outfile = check_filename(log_outfile, Truefile=False)
     else:
-        logfile = dirname + "/out-log"
+        log_outfile = dirname + "/out-log"
+
 
     cmdfile = "r4s_cmd.txt"; tnum = 1; gmem = 2
     if tree_file !=None:

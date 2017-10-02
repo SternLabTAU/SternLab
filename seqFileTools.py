@@ -203,7 +203,7 @@ def split_fasta_file_per_seq(filename, remove = True):
         count += 1
     if remove:
         os.remove(filename)
-    print("saved $i files" % count)
+    print("saved %i files" % count)
     return files
 
 def remove_description(filename, outfile = None):
