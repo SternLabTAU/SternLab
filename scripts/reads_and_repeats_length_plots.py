@@ -1,41 +1,33 @@
-#! /usr/local/python-anaconda-2.7//bin/python
-
-import sys, itertools
-sys.path.insert(0, '/sternadi/home/volume1/okushnir/scripts/')
 import matplotlib
 matplotlib.use('Agg') # Must be before importing matplotlib.pyplot or pylab!
-import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-import numpy as np
-from optparse import OptionParser
-# from file_utilities import check_dirname
-import re
-import glob
 import os.path
+from cirseq_utilities import *
 
 sns.set_context("talk")
 
 
 def main():
     # for Cluster Run
-    parser = OptionParser("usage: %prog [options]")
-    parser.add_option("-d", "--dir", dest="dir", help="dir of temp files of cirseq pipeline run")
-    parser.add_option("-o", "--output", dest="output", help="output folder to save")
-    (options, args) = parser.parse_args()
-    in_dir = options.dir
-    out_dir = options.output
-    # in_dir = check_dirname(in_dir)
-    # out_dir = check_dirname(out_dir)
+    # parser = OptionParser("usage: %prog [options]")
+    # parser.add_option("-d", "--dir", dest="dir", help="dir of temp files of cirseq pipeline run")
+    # parser.add_option("-o", "--output", dest="output", help="output folder to save")
+    # (options, args) = parser.parse_args()
+    # in_dir = options.dir
+    # out_dir = options.output
+    # # in_dir = check_dirname(in_dir)
+    # # out_dir = check_dirname(out_dir)
 
     # for local run
-    #CV
-    # in_dir = "C:/Users/Oded/Google Drive/Studies/PhD/test/tmp"
-    # out_dir = "C:/Users/Oded/Google Drive/Studies/PhD/test"
+    #PV
+    in_dir = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/PV/Mahoney/P3/20170907_q23r2_blastn/tmp"
+    out_dir = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/PV/Mahoney/P3/20170907_q23r2_blastn/"
 
     #RV
-    # in_dir = "Z:/volume1/okushnir/Cirseq/RV/20170322_output_all_23_qscore/tmp"
-    # out_dir = "Z:/volume1/okushnir/Cirseq/RV/20170322_output_all_23_qscore"
+
+
+    #CV
 
     if os.path.isfile(out_dir + '/repeat_summery.npy'):
             repeats_dict = np.load(out_dir + '/repeat_summery.npy').item() #dict for read vs. repeat  , encoding='latin1'
@@ -52,37 +44,6 @@ def main():
     repeat_len_plot(read_and_repeat_length, out_dir)
     read_len_plot(read_and_repeat_length, out_dir)
 
-"""Functions"""
-def get_repeats_num(tmp_cirseq_dir, out_dir):
-    files = glob.glob(tmp_cirseq_dir + "/*.fasta.blast.freqs.stats")
-    repeat_summery = {}
-    for file in files:
-        pattern = re.compile("(\d+\t{1}\d+\n{1})", re.MULTILINE)
-        text = open(file, "r").read()
-        reads = pattern.findall(text)
-        for r in reads:
-            key = int(r.split("\t")[0])
-            value = int(r.split("\t")[1].split("\n")[0])
-            if key in repeat_summery:
-                repeat_summery[key] += value
-            else:
-                repeat_summery[key] = value
-    np.save(out_dir + '/repeat_summery.npy', repeat_summery)
-    print("repeat_summery.npy is in your folder")
-    return repeat_summery
-
-
-def get_read_and_repeat_length(in_dir, out_dir):
-    files = glob.glob(in_dir + "/*.fasta.blast")
-    arr_names = ["sseqid", "qstart", "qend", "sstart", "send", "sstrand", "length", "btop"]
-    wdf = pd.DataFrame()
-    for file in files:
-        data = pd.read_csv(file, sep="\t",  header=None, names=arr_names)
-        grouped_and_filtered = data.groupby("sseqid").filter(lambda x: min(x["qend"]) - max(x["qstart"]) > 0).groupby("sseqid")["length"].agg([np.count_nonzero, np.sum, np.max])
-    wdf = pd.DataFrame.append(wdf, grouped_and_filtered)
-    wdf.to_csv(out_dir + '/length_df.csv', sep=',', encoding='utf-8')
-    print("length_df.csv is in your folder")
-    return wdf
 
 """Plots"""
 def repeat_read_plot(repeat_summery, out_dir):

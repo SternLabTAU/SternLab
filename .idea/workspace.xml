@@ -2,29 +2,34 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a435ee77-ec92-4932-9b42-e2bd86de0834" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/CirSeq/v5.2_power8/Create_cmd.pm" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/CirSeq/v5.2_power8/base_call_and_freqs.v5.1.pl" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/CirSeq/v5.2_power8/join_freqs_files.v5.1.pl" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/CirSeq/v5.2_power8/pbs-template.sh" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/CirSeq/v5.2_power8/pipeline_runner.v5.1.pl" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/CirSeq/v5.2_power8/toFastaAndSplit.o1533166" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/CirSeq/v5.2_power8/toFastaAndSplit_v5.1.1.pl" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/CirSeq/v5.2_power8/toFastaAndSplit_v5.1.pl" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/coverage.py" afterPath="" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/dictionaries/odedkushnir.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/pipeline/Create_cmd.pm" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/pipeline/ascii_table_processed.txt" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/pipeline/base_call_and_freqs_v5.3.pl" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/pipeline/join_freqs_file_v5.3.pl" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/pipeline/pbs-template.sh" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/pipeline/runner.pl" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/pipeline/toFastaAndSplit_v5.3.pl" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/scripts/Median_mutation_rates_human_rrna.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/scripts/coverage_plot.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/scripts/mutation_freq_plots.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/scripts/reads_edges_count.py" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/scripts/merge_rev_fastq_files.py" afterPath="$PROJECT_DIR$/scripts/merge_fastq_files.py" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/scripts/repeats_num_pandas.py" afterPath="$PROJECT_DIR$/scripts/reads_and_repeats_length_plots.py" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/scripts/syn_nonsyn_mutations_func_mode.py" afterPath="$PROJECT_DIR$/cirseq_utilities.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/SternLab.iml" afterPath="$PROJECT_DIR$/.idea/SternLab.iml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Candida_Positive_Selection/create_gene_table.py" afterPath="$PROJECT_DIR$/Candida_Positive_Selection/create_gene_table.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Candida_Positive_Selection/create_genes_for_samples.py" afterPath="$PROJECT_DIR$/Candida_Positive_Selection/create_genes_for_samples.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Candida_Positive_Selection/main.py" afterPath="$PROJECT_DIR$/Candida_Positive_Selection/main.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Candida_Positive_Selection/utilities.py" afterPath="$PROJECT_DIR$/Candida_Positive_Selection/utilities.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/FITS/fitness_utilities.py" afterPath="$PROJECT_DIR$/FITS/fitness_utilities.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MS2_analysis/analayze_MS2_fitness.py" afterPath="$PROJECT_DIR$/MS2_analysis/analayze_MS2_fitness.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/NGS_analysis/dinucleotide_analysis.py" afterPath="$PROJECT_DIR$/NGS_analysis/dinucleotide_analysis.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/NGS_analysis/generate_mutation_trajectories.py" afterPath="$PROJECT_DIR$/NGS_analysis/generate_mutation_trajectories.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/NGS_analysis/mutation_rate_utils.py" afterPath="$PROJECT_DIR$/NGS_analysis/mutation_rate_utils.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/README.md" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/pipelineNGS/5.1_power7/base_call_and_freqs.v5.1.pl" afterPath="$PROJECT_DIR$/pipelineNGS/5.1_power7/base_call_and_freqs.v5.1.pl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/scripts/pbs_script_runner.py" afterPath="$PROJECT_DIR$/scripts/pbs_script_runner.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/seqFileAnalyzer.py" afterPath="$PROJECT_DIR$/seqFileAnalyzer.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/seqTools.py" afterPath="$PROJECT_DIR$/seqTools.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/pbs_jobs.py" afterPath="$PROJECT_DIR$/pbs_jobs.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/pbs_runners.py" afterPath="$PROJECT_DIR$/pbs_runners.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/scripts/cirseq_analysis.py" afterPath="$PROJECT_DIR$/scripts/cirseq_analysis.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/scripts/inc_red_cpg.py" afterPath="$PROJECT_DIR$/scripts/inc_red_cpg.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/scripts/pipeline_runner.py" afterPath="$PROJECT_DIR$/scripts/pipeline_runner.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/seqFileTools.py" afterPath="$PROJECT_DIR$/seqFileTools.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -33,19 +38,22 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FileEditorManager">
+    <leaf />
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="145" />
-    <option name="y" value="126" />
+    <option name="x" value="49" />
+    <option name="y" value="58" />
     <option name="width" value="1440" />
     <option name="height" value="817" />
   </component>
   <component name="ProjectView">
     <navigator currentView="ProjectPane" proportions="" version="1">
       <flattenPackages />
-      <showMembers />
+      <showMembers ProjectPane="false" />
       <showModules />
       <showLibraryContents />
       <hideEmptyPackages />
@@ -57,7 +65,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -69,6 +76,7 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
       <pane id="Scratches" />
     </panes>
   </component>
@@ -101,18 +109,19 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="145" y="126" width="1440" height="817" extended-state="0" />
+    <frame x="49" y="58" width="1440" height="817" extended-state="0" />
     <layout>
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.24964234" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.26037195" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.24973376" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -129,5 +138,23 @@
   <component name="XDebuggerManager">
     <breakpoint-manager />
     <watches-manager />
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/scripts/coverage_plot.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/coverage_plot.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
   </component>
 </project>
