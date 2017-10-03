@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="a435ee77-ec92-4932-9b42-e2bd86de0834" name="Default" comment="">
+      <change type="DELETED" beforePath="$PROJECT_DIR$/CirSeq/v5.2_power8/Create_cmd.pm" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/CirSeq/v5.2_power8/base_call_and_freqs.v5.1.pl" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/CirSeq/v5.2_power8/join_freqs_files.v5.1.pl" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/CirSeq/v5.2_power8/pbs-template.sh" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/CirSeq/v5.2_power8/pipeline_runner.v5.1.pl" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/CirSeq/v5.2_power8/toFastaAndSplit.o1533166" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/CirSeq/v5.2_power8/toFastaAndSplit_v5.1.1.pl" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/CirSeq/v5.2_power8/toFastaAndSplit_v5.1.pl" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/scripts/coverage.py" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Candida_Positive_Selection/create_gene_table.py" afterPath="$PROJECT_DIR$/Candida_Positive_Selection/create_gene_table.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Candida_Positive_Selection/create_genes_for_samples.py" afterPath="$PROJECT_DIR$/Candida_Positive_Selection/create_genes_for_samples.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Candida_Positive_Selection/main.py" afterPath="$PROJECT_DIR$/Candida_Positive_Selection/main.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Candida_Positive_Selection/utilities.py" afterPath="$PROJECT_DIR$/Candida_Positive_Selection/utilities.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/FITS/fitness_utilities.py" afterPath="$PROJECT_DIR$/FITS/fitness_utilities.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MS2_analysis/analayze_MS2_fitness.py" afterPath="$PROJECT_DIR$/MS2_analysis/analayze_MS2_fitness.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/NGS_analysis/dinucleotide_analysis.py" afterPath="$PROJECT_DIR$/NGS_analysis/dinucleotide_analysis.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/NGS_analysis/generate_mutation_trajectories.py" afterPath="$PROJECT_DIR$/NGS_analysis/generate_mutation_trajectories.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/NGS_analysis/mutation_rate_utils.py" afterPath="$PROJECT_DIR$/NGS_analysis/mutation_rate_utils.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/README.md" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/pipelineNGS/5.1_power7/base_call_and_freqs.v5.1.pl" afterPath="$PROJECT_DIR$/pipelineNGS/5.1_power7/base_call_and_freqs.v5.1.pl" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/scripts/pbs_script_runner.py" afterPath="$PROJECT_DIR$/scripts/pbs_script_runner.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/seqFileAnalyzer.py" afterPath="$PROJECT_DIR$/seqFileAnalyzer.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/seqTools.py" afterPath="$PROJECT_DIR$/seqTools.py" />
+    </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="TRACKING_ENABLED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectFrameBounds">
+    <option name="x" value="145" />
+    <option name="y" value="126" />
+    <option name="width" value="1440" />
+    <option name="height" value="817" />
+  </component>
+  <component name="ProjectView">
+    <navigator currentView="ProjectPane" proportions="" version="1">
+      <flattenPackages />
+      <showMembers />
+      <showModules />
+      <showLibraryContents />
+      <hideEmptyPackages />
+      <abbreviatePackageNames />
+      <autoscrollToSource />
+      <autoscrollFromSource />
+      <sortByType />
+      <manualOrder />
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="Scope" />
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="SternLab" type="b2602c69:ProjectViewProjectNode" />
+              <item name="SternLab" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+      <pane id="Scratches" />
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="ShelveChangesManager" show_recycled="false">
+    <option name="remove_strategy" value="false" />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="a435ee77-ec92-4932-9b42-e2bd86de0834" name="Default" comment="" />
+      <created>1502872527888</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1502872527888</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="145" y="126" width="1440" height="817" extended-state="0" />
+    <layout>
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.24964234" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+    </layout>
+  </component>
+  <component name="VcsContentAnnotationSettings">
+    <option name="myLimit" value="2678400000" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager />
+    <watches-manager />
+  </component>
+</project>
