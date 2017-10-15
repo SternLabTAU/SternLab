@@ -17,13 +17,13 @@ from Bio.Blast import NCBIWWW as ncbi
 
 def main():
     # for Cluster
-    # parser = OptionParser("usage: %prog [options]")
-    # parser.add_option("-t", "--tmp_dir", dest="tmp_dir", help="the path of the tmp directory")
-    # (options, args) = parser.parse_args()
-    # tmp = options.tmp_dir
+    parser = OptionParser("usage: %prog [options]")
+    parser.add_option("-t", "--tmp_dir", dest="tmp_dir", help="the path of the tmp directory")
+    (options, args) = parser.parse_args()
+    tmp = options.tmp_dir
 
     #for Local
-    tmp = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/CV/test/tmp/"
+    # tmp = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/CV/test/tmp/"
 
     analyze_reads(tmp)
 
@@ -67,27 +67,6 @@ def analyze_reads(tmp_cirseq_dir):
         blast_df['edge5'] = blast_df.apply(lambda x: extract_location(x["seq"], 0, x["sstart"]), axis=1)
         blast_df['edge3'] = blast_df.apply(lambda x: extract_location(x["seq"], x["send"], -1), axis=1)
         blast_df.to_csv(blast_file + ".edges.csv", sep=',', encoding='utf-8')
-
-        ####blast attempt
-
-        # result_handle = ncbi.qblast("blastn", "nt", "GTGTGGTTGAGGGCTGTTGAGTGTGTGGTTGAGGGCTGTTGAGTGT")
-        # with open("my_blast.txt", "w") as out_handle:
-        #     out_handle.write(result_handle.read())
-        # result_handle.close()
-
-                # c = blast_df.apply(lambda x: extract_location(x['edge5'], 0, -1), axis=1)
-                #
-                # print(c.to_string(index=False))
-        # blast_df.to_string(index=False)
-        # print(blast_df.head())
-        # print(blast_df["edge5"].to_string(index=False))
-        # blast_df["blast5"] = blast_df.apply(ncbi.qblast("blastn", "nt", blast_df["edge5"].to_string(index=False)))
-
-        # with open("my_blast.txt", "w") as out_handle:
-        #     out_handle.write(result_handle.read())
-        # result_handle.close()
-        # break
-
 
 
 if __name__ == "__main__":
