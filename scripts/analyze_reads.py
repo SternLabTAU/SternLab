@@ -13,6 +13,7 @@ import Bio.Seq as Seq
 from Bio import SeqIO
 from optparse import OptionParser
 from Bio.Blast import NCBIWWW as ncbi
+import matplotlib.pyplot as plt
 
 
 def main():
@@ -23,7 +24,7 @@ def main():
     tmp = options.tmp_dir
 
     #for Local
-    # tmp = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/CV/test/tmp/"
+    tmp = "/Volumes/STERNADILABTEMP$/volume1/sheri/CirRC_blastn_Q30_3repeats/RCseq_no_ss/tmp"
 
     analyze_reads(tmp)
 
@@ -67,7 +68,8 @@ def analyze_reads(tmp_cirseq_dir):
         blast_df['edge5'] = blast_df.apply(lambda x: extract_location(x["seq"], 0, x["sstart"]), axis=1)
         blast_df['edge3'] = blast_df.apply(lambda x: extract_location(x["seq"], x["send"], -1), axis=1)
         blast_df.to_csv(blast_file + ".edges.csv", sep=',', encoding='utf-8')
-
+        plt.hist(blast_df["send"], bins=50)
+        plt.savefig(tmp_cirseq_dir+ '/plot.png')
 
 if __name__ == "__main__":
     main()
