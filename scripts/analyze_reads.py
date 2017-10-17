@@ -12,8 +12,10 @@ import glob
 import Bio.Seq as Seq
 from Bio import SeqIO
 from optparse import OptionParser
-from Bio.Blast import NCBIWWW as ncbi
-import matplotlib.pyplot as plt
+from Bio.Blast import NCBIWWW
+from Bio.Blast import NCBIXML
+from pbs_runners import blast_runner
+import matplotlib as plt
 
 
 def main():
@@ -24,9 +26,16 @@ def main():
     tmp = options.tmp_dir
 
     #for Local
-    tmp = "/Volumes/STERNADILABTEMP$/volume1/sheri/CirRC_blastn_Q30_3repeats/RCseq_no_ss/tmp"
+    # tmp = "/Users/odedkushnir/Google Drive/Studies/PhD/Python Scripts/test/tmp/"
 
-    analyze_reads(tmp)
+    blast_df = analyze_reads(tmp)
+    print(blast_df)
+
+    # seq = "GGGTAACAGAAGTGCTTGGACTACCAACTAGCTCAATAGACTCTTCGCACCATGTCTGTATTAGAGCGTCCCATGGGTTTCCCCATGGGCAGGCCGC" \
+    #            "CAACGCAGCCACCGCCACGGTCGCCCGTGGGGAATGCGGTGACTCATCGACCTGATCTACACTGGTTTTTCGAAGTAGTTGGCCGGATAACGAACGCT"\
+    #            "TTCTCCTTCAACCGCGTGAGCAGTCTATTGATACTCAGTCCGGGGTAACAGAAGTGNG"
+    # title = blast_seq(seq)
+    # print(title)
 
 
 def extract_location(name, start, end):
@@ -45,8 +54,21 @@ def parse_fasta(file_name):
     return sequences
 
 
+def blast_seq(seq):
+    print("Blasting...")
+    # blast_handle = blast_runner(seq, hitlist_size=1)
+    blast_handle = NCBIWWW.qblast("blastn", "nt", seq, hitlist_size=1)
+    # with open("my_blast.xml", "w") as out_handle:
+    #     out_handle.write(blast_handle.read())
+    blast_record = NCBIXML.read(blast_handle)
+    for alignment in blast_record.alignments:
+        for hsp in alignment.hsps:
+            title = (str(alignment.title).split("|")[4])
+            return title
+
+
 def analyze_reads(tmp_cirseq_dir):
-    fasta_files = glob.glob(tmp_cirseq_dir + "/*.fasta")
+    fasta_files = glob.glob(tmp_cirseq_dir + "*.fasta")
     records = {}
     for file in fasta_files:
         records = parse_fasta(file)
@@ -67,9 +89,19 @@ def analyze_reads(tmp_cirseq_dir):
         blast_df = blast_df.join(fasta_df)
         blast_df['edge5'] = blast_df.apply(lambda x: extract_location(x["seq"], 0, x["sstart"]), axis=1)
         blast_df['edge3'] = blast_df.apply(lambda x: extract_location(x["seq"], x["send"], -1), axis=1)
+        blast_df['edge5_100'] = blast_df['edge5'].apply(lambda x: len(x) > 100)
+        blast_df['edge3_100'] = blast_df['edge3'].apply(lambda x: len(x) > 100)
+        blast_df = blast_df[blast_df.edge3_100 != False]
+        blast_df = blast_df[blast_df.edge5_100 != False]
+        del blast_df['edge3_100']
+        del blast_df['edge5_100']
+        blast_df["blast5"] = blast_df.apply(lambda row: blast_seq(row["edge5"]), axis=1)
+        blast_df["blast3"] = blast_df.apply(lambda row: blast_seq(row["edge3"]), axis=1)
         blast_df.to_csv(blast_file + ".edges.csv", sep=',', encoding='utf-8')
-        plt.hist(blast_df["send"], bins=50)
-        plt.savefig(tmp_cirseq_dir+ '/plot.png')
+        plt.hist(blast_df["edge3"], bins=50)
+        plt.hist(blast_df["edge5"], bins=50)
+        plt.savefig(tmp_cirseq_dir + 'plot.png')
+        return blast_df
 
 if __name__ == "__main__":
     main()
