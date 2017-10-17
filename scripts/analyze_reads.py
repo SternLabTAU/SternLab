@@ -54,17 +54,25 @@ def parse_fasta(file_name):
     return sequences
 
 
-def blast_seq(seq):
+def blast_seq(seq, tmp):
+    #Not working YET
     print("Blasting...")
-    # blast_handle = blast_runner(seq, hitlist_size=1)
-    blast_handle = NCBIWWW.qblast("blastn", "nt", seq, hitlist_size=1)
-    # with open("my_blast.xml", "w") as out_handle:
-    #     out_handle.write(blast_handle.read())
-    blast_record = NCBIXML.read(blast_handle)
-    for alignment in blast_record.alignments:
-        for hsp in alignment.hsps:
-            title = (str(alignment.title).split("|")[4])
-            return title
+    with open(tmp+"my_fasta.fasta", "w") as my_fasta:
+        my_fasta.write(">new seq\n"+seq)
+    #local blast
+    blast_handle = blast_runner(tmp+"my_fasta.fasta", outfile=tmp+"my_blast.txt", hitlist_size=1)
+    print(blast_handle)
+    # with open(tmp+"my_blast.txt", "r") as out_handle:
+    #     out = out_handle.read()
+    #     print(out)
+
+    #www blast
+    # blast_handle = NCBIWWW.qblast("blastn", "nt", seq, hitlist_size=1)
+    # blast_record = NCBIXML.read(blast_handle)
+    # for alignment in blast_record.alignments:
+    #     for hsp in alignment.hsps:
+    #         title = (str(alignment.title).split("|")[4])
+    #         return title
 
 
 def analyze_reads(tmp_cirseq_dir):
@@ -95,12 +103,12 @@ def analyze_reads(tmp_cirseq_dir):
         blast_df = blast_df[blast_df.edge5_100 != False]
         del blast_df['edge3_100']
         del blast_df['edge5_100']
-        blast_df["blast5"] = blast_df.apply(lambda row: blast_seq(row["edge5"]), axis=1)
-        blast_df["blast3"] = blast_df.apply(lambda row: blast_seq(row["edge3"]), axis=1)
+        blast_df["blast5"] = blast_df.apply(lambda row: blast_seq(row["edge5"], tmp_cirseq_dir), axis=1)
+        blast_df["blast3"] = blast_df.apply(lambda row: blast_seq(row["edge3"], tmp_cirseq_dir), axis=1)
         blast_df.to_csv(blast_file + ".edges.csv", sep=',', encoding='utf-8')
-        plt.hist(blast_df["edge3"], bins=50)
-        plt.hist(blast_df["edge5"], bins=50)
-        plt.savefig(tmp_cirseq_dir + 'plot.png')
+        # plt.hist(blast_df["edge3"], bins=50)
+        # plt.hist(blast_df["edge5"], bins=50)
+        # plt.savefig(tmp_cirseq_dir + 'plot.png')
         return blast_df
 
 if __name__ == "__main__":
