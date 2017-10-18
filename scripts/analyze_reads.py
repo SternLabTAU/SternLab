@@ -57,22 +57,22 @@ def parse_fasta(file_name):
 def blast_seq(seq, tmp):
     #Not working YET
     print("Blasting...")
-    with open(tmp+"my_fasta.fasta", "w") as my_fasta:
-        my_fasta.write(">new seq\n"+seq)
     #local blast
-    blast_handle = blast_runner(tmp+"my_fasta.fasta", outfile=tmp+"my_blast.txt", hitlist_size=1)
-    print(blast_handle)
+    # with open(tmp+"my_fasta.fasta", "w") as my_fasta:
+    #     my_fasta.write(">new seq\n"+seq)
+    # blast_handle = blast_runner(tmp+"my_fasta.fasta", outfile=tmp+"my_blast.txt", hitlist_size=1)
+    # print(blast_handle)
     # with open(tmp+"my_blast.txt", "r") as out_handle:
     #     out = out_handle.read()
     #     print(out)
 
     #www blast
-    # blast_handle = NCBIWWW.qblast("blastn", "nt", seq, hitlist_size=1)
-    # blast_record = NCBIXML.read(blast_handle)
-    # for alignment in blast_record.alignments:
-    #     for hsp in alignment.hsps:
-    #         title = (str(alignment.title).split("|")[4])
-    #         return title
+    blast_handle = NCBIWWW.qblast("blastn", "nt", seq, hitlist_size=1)
+    blast_record = NCBIXML.read(blast_handle)
+    for alignment in blast_record.alignments:
+        for hsp in alignment.hsps:
+            title = (str(alignment.title).split("|")[4])
+            return title
 
 
 def analyze_reads(tmp_cirseq_dir):
