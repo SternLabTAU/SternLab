@@ -364,7 +364,7 @@ def umerge_runner(forward_fastq, output, alias = "umerge"):
     return job_id
 
 
-def blast_runner(seqfile, dbfile = "/sternadi/home/volume1/shared/data/nt/nt", outfile = None, alias = "blast"):
+def blast_runner(seqfile, dbfile="/sternadi/home/volume1/shared/data/nt/nt", outfile=None, alias="blast", hitlist_size=50000):
     """
     run blast on cluster
     :param seqfile: sequence file path
@@ -380,7 +380,7 @@ def blast_runner(seqfile, dbfile = "/sternadi/home/volume1/shared/data/nt/nt", o
         outfile = path.split(seqfile)[0] + "/blast_results.txt"
     cmdfile = "blast_cmd"; tnum = 1; gmem = 2
     cmds = "/sternadi/home/volume1/shared/tools/ncbi-blast-2.2.30+/bin/blastn"\
-                + " -query %s -out %s -db %s -outfmt 5 -max_target_seqs 50000" % (seqfile, outfile, dbfile)
+                + " -query %s -out %s -db %s -outfmt 5 -max_target_seqs %i" % (seqfile, outfile, dbfile, hitlist_size)
     pbs_jobs.create_pbs_cmd(cmdfile, alias, tnum, gmem, cmds)
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
