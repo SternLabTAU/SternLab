@@ -225,9 +225,9 @@ def plot_dfe(df, alias=None):
     """
 
     sns.set(style="ticks")
-    bins = np.arange(0, 2, 0.054)
     grid = sns.FacetGrid(df, col="Degree", row="Replica", row_order=['A', 'B'], hue="Degree", palette="YlGnBu")  # palette="RdYlGn"
-    grid.map(plt.hist, "Fitness_median", bins=bins)
+    grid.map(plt.distplot, "Fitness_median", rug=True, hist=True, kde=True)
+    plt.ylim(0,2.5)
     if alias != None:
         grid.fig.suptitle("Distribution of Fitness Effects {}".format(alias), fontsize=18)
     else:
