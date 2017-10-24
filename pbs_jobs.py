@@ -5,7 +5,7 @@ import subprocess
 from time import sleep
 
 def create_pbs_cmd(cmdfile, alias, tnum, gmem, cmds, dir = "", load_python=True):
-    with open (cmdfile, 'w') as o:
+    with open(cmdfile, 'w') as o:
         o.write("#!/bin/bash\n#PBS -S /bin/bash\n#PBS -j oe\n#PBS -r y\n")
         o.write("#PBS -q adis\n")
         o.write("#PBS -v PBS_O_SHELL=bash,PBS_ENVIRONMENT=PBS_BATCH \n")
@@ -35,9 +35,9 @@ def submit(cmdfile):
 def check_pbs(job_id):
     """
     :param job_id: The PBS job id
-    :return: "Blasted!", when the job is done
+    :return: "Done!", when the job is done
     """
-    status = "Blasting..."
+    status = "Running..."
     try:
         process = subprocess.check_output("qstat | grep " + str(job_id), shell=True)
         while process != "":
@@ -46,5 +46,5 @@ def check_pbs(job_id):
     except (subprocess.CalledProcessError):
         process = ""
     if process == "":
-        status = "Blasted!"
+        status = "Done!"
     return status
