@@ -154,6 +154,5 @@ def analyze_reads(tmp_cirseq_dir, filter_by = 0):
     return blast_df
 
 
-
 if __name__ == "__main__":
     main()
