@@ -6,16 +6,13 @@
 """
 
 import pandas as pd
-import numpy as np
-import re
 import glob
-import Bio.Seq as Seq
-from Bio import SeqIO
 from optparse import OptionParser
-from Bio.Blast import NCBIWWW
 from Bio.Blast import NCBIXML
 from pbs_runners import blast_runner
+from pbs_jobs import check_pbs
 import matplotlib as plt
+
 
 
 def main():
@@ -27,13 +24,18 @@ def main():
 
     #for Local
     # tmp = "/Users/odedkushnir/Google Drive/Studies/PhD/Python Scripts/test/tmp/"
+    # tmp = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/CV/test/tmp/"
 
-    blast_df = analyze_reads(tmp)
-    print(blast_df)
+    blast_df = analyze_reads(tmp, 100)
 
-    # seq = "GGGTAACAGAAGTGCTTGGACTACCAACTAGCTCAATAGACTCTTCGCACCATGTCTGTATTAGAGCGTCCCATGGGTTTCCCCATGGGCAGGCCGC" \
-    #            "CAACGCAGCCACCGCCACGGTCGCCCGTGGGGAATGCGGTGACTCATCGACCTGATCTACACTGGTTTTTCGAAGTAGTTGGCCGGATAACGAACGCT"\
-    #            "TTCTCCTTCAACCGCGTGAGCAGTCTATTGATACTCAGTCCGGGGTAACAGAAGTGNG"
+    # seq = "GGGTGTGTGTGGCTTGAGGGTGTGTGTGGCTTGAGGGTGTGTGTGGCTTGAGGGTGTGTGTGGCTTGAGGGTGTGTGTGGCTTGAGGGTGTGTGTGGCTTGAGGG" \
+    #       "TGTGTGTGGCTTGAGGGTGTGTGTGGCTTGAGGGTGTGTGTGGCTGGAGGGTGTGTGTGGCTTGTGGGTGTGTGTGACTTGAGTGTGTGTGTGGGTTGGGGGTGT" \
+    #       "GTGTGGGGGTAGGTTGTGTGTGGGTTGTGGGTGTGTGGGGGNT" # NO Hits
+
+    # seq = "GGGTAACAGAAGTGCTTGGACTACCAACTAGCTCAATAGACTCTTCGCACCATGTCTGTATTAGAGCGTCCCATGGGTTTCCCCATGGGCAGGCCGCCAACGCAGCC" \
+    #       "ACCGCCACGGTCGCCCGTGGGGAATGCGGTGACTCATCGACCTGATCTACACTGGTTTTTCGAAGTAGTTGGCCGGATAACGAACGCTTTCTCCTTCAACCGCGTGA" \
+    #       "GCAGTCTATTGATACTCAGTCCGGGGTAACAGAAGTGNG" # Human coxsackievirus B3
+
     # title = blast_seq(seq)
     # print(title)
 
@@ -54,30 +56,60 @@ def parse_fasta(file_name):
     return sequences
 
 
-def blast_seq(seq, tmp):
-    #Not working YET
+def blast_seq(seq):
     print("Blasting...")
-    #local blast
-    # with open(tmp+"my_fasta.fasta", "w") as my_fasta:
-    #     my_fasta.write(">new seq\n"+seq)
-    # blast_handle = blast_runner(tmp+"my_fasta.fasta", outfile=tmp+"my_blast.txt", hitlist_size=1)
+    # local blast
+    with open("my_fas.fas", "w") as my_fasta:
+        my_fasta.write(">new seq\n"+seq)
+    job_id = blast_runner("my_fas.fas", outfile="my_blast.xml", hitlist_size=1) #pbs job id
+
+    # try:
+    #     process = subprocess.check_output("qstat | grep " + str(job_id), shell=True)
+    #     while process != "":
+    #         process = subprocess.check_output("qstat | grep " + str(job_id), shell=True)
+    #         sleep(0.05)
+    # except (subprocess.CalledProcessError):
+    #     process = ""
+    # if process == "":
+    #     print("Blasted!")
+
+    status = check_pbs(job_id)
+    print(status)
+    if status == "Done!":
+        xml_file = open("my_blast.xml", "r")
+        blast_record = NCBIXML.read(xml_file)
+        xml_file.close()
+        try:
+            for alignment in blast_record.alignments:
+                for hsp in alignment.hsps:
+                    title = (str(alignment.title).split("|")[4])
+                    return title
+        except (RuntimeError, TypeError, NameError, ValueError):
+            return None
+
+    # www blast
+    # blast_handle = NCBIWWW.qblast("blastn", "nt", seq, hitlist_size=1)
     # print(blast_handle)
-    # with open(tmp+"my_blast.txt", "r") as out_handle:
-    #     out = out_handle.read()
-    #     print(out)
-
-    #www blast
-    blast_handle = NCBIWWW.qblast("blastn", "nt", seq, hitlist_size=1)
-    blast_record = NCBIXML.read(blast_handle)
-    for alignment in blast_record.alignments:
-        for hsp in alignment.hsps:
-            title = (str(alignment.title).split("|")[4])
-            return title
+    # blast_record = NCBIXML.read(blast_handle)
+    # print(blast_record)
+    # for alignment in blast_record.alignments:
+    #     for hsp in alignment.hsps:
+    #         title = (str(alignment.title).split("|")[4])
+    #         print(title)
+            # return title
 
 
-def analyze_reads(tmp_cirseq_dir):
+def sum_total_edges(df, column):
+    df[column+"_len"] = df.apply(lambda x: len(x[column]), axis=1)
+    df[column+"_len_sum"] = df[column+"_len"].sum()
+    sum_of_sum = df[column+"_len_sum"][0]
+    return df, sum_of_sum
+
+def analyze_reads(tmp_cirseq_dir, filter_by = 0):
     fasta_files = glob.glob(tmp_cirseq_dir + "*.fasta")
     records = {}
+    sum_of_sum5 = 0
+    sum_of_sum3 = 0
     for file in fasta_files:
         records = parse_fasta(file)
         fasta_df = pd.DataFrame.from_dict(records, orient='index')
@@ -97,19 +129,31 @@ def analyze_reads(tmp_cirseq_dir):
         blast_df = blast_df.join(fasta_df)
         blast_df['edge5'] = blast_df.apply(lambda x: extract_location(x["seq"], 0, x["sstart"]), axis=1)
         blast_df['edge3'] = blast_df.apply(lambda x: extract_location(x["seq"], x["send"], -1), axis=1)
-        blast_df['edge5_100'] = blast_df['edge5'].apply(lambda x: len(x) > 100)
-        blast_df['edge3_100'] = blast_df['edge3'].apply(lambda x: len(x) > 100)
+        blast_df['edge5_100'] = blast_df['edge5'].apply(lambda x: len(x) > filter_by)
+        blast_df['edge3_100'] = blast_df['edge3'].apply(lambda x: len(x) > filter_by)
         blast_df = blast_df[blast_df.edge3_100 != False]
         blast_df = blast_df[blast_df.edge5_100 != False]
         del blast_df['edge3_100']
         del blast_df['edge5_100']
-        blast_df["blast5"] = blast_df.apply(lambda row: blast_seq(row["edge5"], tmp_cirseq_dir), axis=1)
-        blast_df["blast3"] = blast_df.apply(lambda row: blast_seq(row["edge3"], tmp_cirseq_dir), axis=1)
+        blast_df = sum_total_edges(blast_df, "edge5")[0]
+        blast_df = sum_total_edges(blast_df, "edge3")[0]
+        sum_of_sum5 += sum_total_edges(blast_df, "edge5")[1]
+        sum_of_sum3 += sum_total_edges(blast_df, "edge3")[1]
+
+        #blast
+        # blast_df["blast5"] = blast_df.apply(lambda row: blast_seq(row["edge5"]), axis=1)
+        # blast_df["blast3"] = blast_df.apply(lambda row: blast_seq(row["edge3"]), axis=1)
+
         blast_df.to_csv(blast_file + ".edges.csv", sep=',', encoding='utf-8')
         # plt.hist(blast_df["edge3"], bins=50)
         # plt.hist(blast_df["edge5"], bins=50)
         # plt.savefig(tmp_cirseq_dir + 'plot.png')
-        return blast_df
+    with open(tmp_cirseq_dir+"edges_sum.txt", "w") as edges_len_sum:
+        edges_len_sum.write("sum_of_sum5:%i \n" % sum_of_sum5)
+        edges_len_sum.write("sum_of_sum3:%i \n" % sum_of_sum3)
+    return blast_df
+
+
 
 if __name__ == "__main__":
     main()
