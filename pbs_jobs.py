@@ -1,6 +1,8 @@
 #! /usr/local/python_anaconda/bin/python3.4
 
 import os
+import subprocess
+from time import sleep
 
 def create_pbs_cmd(cmdfile, alias, tnum, gmem, cmds, dir = "", load_python=True):
     with open (cmdfile, 'w') as o:
@@ -28,3 +30,21 @@ def submit(cmdfile):
     cmd = "/opt/pbs/bin/qsub " + cmdfile
     result = os.popen(cmd).read()
     return result.split(".")[0]
+
+
+def check_pbs(job_id):
+    """
+    :param job_id: The PBS job id
+    :return: "Blasted!", when the job is done
+    """
+    status = "Blasting..."
+    try:
+        process = subprocess.check_output("qstat | grep " + str(job_id), shell=True)
+        while process != "":
+            process = subprocess.check_output("qstat | grep " + str(job_id), shell=True)
+            sleep(0.05)
+    except (subprocess.CalledProcessError):
+        process = ""
+    if process == "":
+        status = "Blasted!"
+    return status
