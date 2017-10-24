@@ -1,8 +1,5 @@
 
-"""
-@Author: daniellem1
 
-"""
 
 '''preprocess .freqs files in order to get for each genome position it's num of reads'''
 
@@ -16,14 +13,7 @@ from cirseq_utilities import *
 
 
 def main():
-#RV
-    # freqs_file_path = "Z:/volume1/okushnir/Cirseq/RV/20170322_output_all_23_qscore/RVB14p2.freqs"
-    # out_dir = "Z:/volume1/okushnir/Cirseq/RV/20170322_output_all_23_qscore/plots/"
-    # coverage_graph(freqs_file_path, out_dir)
-#PV
-    freqs_file_path = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/PV/Mahoney/P3/20170907_q23r2_blastn/PV-p3.1036617.freqs"
-    out_dir = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/PV/Mahoney/P3/20170907_q23r2_blastn/plots"
-    coverage_graph(freqs_file_path, out_dir)
+
 
 
 def coverage_graph(freqs, out_dir):

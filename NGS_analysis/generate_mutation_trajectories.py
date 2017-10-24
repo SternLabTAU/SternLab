@@ -12,7 +12,7 @@ coding_regions = list(range(130,1312)) + list(range(1335,3399))
 
 def main(args):
     df = pd.read_csv(args.in_file, sep='\t')
-    df = df[df["Pos"].isin(list(range(130,1312)))]
+    #df = df[df["Pos"].isin(list(range(130,1312)))]
     m_type = args.mutation_type
 
     if args.line != None:
