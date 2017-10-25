@@ -26,7 +26,7 @@ def main():
     # tmp = "/Users/odedkushnir/Google Drive/Studies/PhD/Python Scripts/test/tmp/"
     # tmp = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/CV/test/tmp/"
 
-    blast_df = analyze_reads(tmp, 100)
+    blast_df = analyze_reads(tmp)
 
     # seq = "GGGTGTGTGTGGCTTGAGGGTGTGTGTGGCTTGAGGGTGTGTGTGGCTTGAGGGTGTGTGTGGCTTGAGGGTGTGTGTGGCTTGAGGGTGTGTGTGGCTTGAGGG" \
     #       "TGTGTGTGGCTTGAGGGTGTGTGTGGCTTGAGGGTGTGTGTGGCTGGAGGGTGTGTGTGGCTTGTGGGTGTGTGTGACTTGAGTGTGTGTGTGGGTTGGGGGTGT" \
