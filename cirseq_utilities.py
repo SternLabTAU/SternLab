@@ -86,7 +86,7 @@ def find_mutation_type(freqs_file, ncbi_id):
     """
     start_time = time.time()
     file_name = freqs_file
-    data = pd.read_table(freqs_file)
+    data = freqs_to_dataframe(freqs_file)
     data.reset_index(drop=True, inplace=True)
     start_pos, end_pos = find_coding_region(ncbi_id)
     data = data.loc[data['Pos'] >= start_pos]
@@ -108,7 +108,8 @@ def find_mutation_type(freqs_file, ncbi_id):
         kmer_df['Mutation Type'] = kmer_df[['Ref_Protein', 'Potential_Protein']].apply(
             lambda protein: check_mutation_type(protein[0], protein[1]), axis=1)
     print("After a long for loop")
-    file_name += ".with.mutation.type.func2.freqs"
+    file_name = file_name[0:-5]
+    file_name += "with.mutation.type.freqs"
     data.to_csv(file_name, sep='\t', encoding='utf-8')
     print("The File is ready in the folder")
     print("--- %s sec ---" % (time.time() - start_time))
