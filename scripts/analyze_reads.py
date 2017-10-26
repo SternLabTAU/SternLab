@@ -154,5 +154,15 @@ def analyze_reads(tmp_cirseq_dir, filter_by = 0):
     return blast_df
 
 
+def tmp_fasta_to_df(tmp_cirseq_dir):
+    fasta_files = glob.glob(tmp_cirseq_dir + "*.fasta")
+    records = {}
+    for file in fasta_files:
+        records = parse_fasta(file)
+        df = pd.DataFrame.from_dict(records, orient='index')
+        df.index.name = 'id'
+        df.columns = ['seq']
+        return df
+
 if __name__ == "__main__":
     main()
