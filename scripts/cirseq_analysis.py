@@ -16,21 +16,21 @@ start_time = time.time()
 
 def main():
     # for Cluster
-    # parser = OptionParser("usage: %prog [options]")
-    # parser.add_option("-f", "--freqs_file_path", dest="freqs_file_path", help="path of the freqs file")
-    # parser.add_option("-v", "--virus", dest="virus", help="Virus name: CVB3 for CV; RVB14 for RV; PV for PV")
-    # (options, args) = parser.parse_args()
-    #
-    # freqs_file = options.freqs_file_path
-    # virus = options.virus
-    #
-    # freqs_file = check_filename(freqs_file)
+    parser = OptionParser("usage: %prog [options]")
+    parser.add_option("-f", "--freqs_file_path", dest="freqs_file_path", help="path of the freqs file")
+    parser.add_option("-v", "--virus", dest="virus", help="Virus name: CVB3 for CV; RVB14 for RV; PV for PV")
+    (options, args) = parser.parse_args()
+
+    freqs_file = options.freqs_file_path
+    virus = options.virus
+
+    freqs_file = check_filename(freqs_file)
 
     #for Local
 
-    suffix = "CVB3-p2.freqs"
-    freqs_file = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/CV/20170906_q20r3_blastn/" + suffix
-    virus = "CVB3"
+    # suffix = "CVB3-p2.freqs"
+    # freqs_file = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/CV/20170906_q20r3_blastn/" + suffix
+    # virus = "CVB3"
 
 
 
