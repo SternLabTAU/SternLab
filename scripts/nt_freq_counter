@@ -1,0 +1,51 @@
+import glob
+from optparse import OptionParser
+import re
+
+def main():
+    #for Cluster
+    parser = OptionParser("usage: %prog [options]")
+    parser.add_option("-i", "--tmp_dir", dest="tmp_dir", help="tmp dir")
+    (options, args) = parser.parse_args()
+
+    tmp_dir = options.tmp_dir
+    nt_freq_counter(tmp_dir)
+
+
+
+
+def nt_freq_counter(tmp_dir):
+    input_file1=glob.glob(tmp_dir +"/*.stats")
+    input_file2=glob.glob(tmp_dir +"/*.fasta")
+    lst_nt=[]
+    num_counter=0
+    for file in input_file1:
+
+        with open(file) as f:
+            for line in f:
+                m = re.search("(\d+)(\D+)=(\d+)", line)
+                if m is None:
+                    continue
+                else:
+                    repeat_num=int(m.group(1))
+                    nt_num=int(m.group(3))
+                    total_nt_repeat=repeat_num*nt_num
+                    lst_nt.append(total_nt_repeat)
+
+    for file2 in input_file2:
+        with open(file2) as f1:
+            for line in f1:
+                if line.startswith('>'):  # if header line
+                    continue
+                else:  # if sequence line
+                    seq = line.strip()
+                    num_counter+=len(seq)
+    print(sum(lst_nt),num_counter )
+
+
+
+
+
+if __name__ == "__main__":
+    main()
+

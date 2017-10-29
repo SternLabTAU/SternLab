@@ -1,5 +1,6 @@
 use strict;
 #use lib '/sternadi/home/volume1/shared/tools/pipeline';
+my $current_version_path = "/sternadi/home/volume1/daniellem1/SternLab/CirSeq/v5.2_power8"
 use lib '/sternadi/home/volume1/shared/tools/pipeline/v5.2_power8';
 use Create_cmd;
 
@@ -19,10 +20,14 @@ use Create_cmd;
 #  3) basecall quality_cutoff = 23; read quality taken from corresponding part's quality file; printing all contributing mutations
 # V5.1.1
 # added the option for % id for blast
+# V5.2.1
+# 
+#
+#
 #########################################################################
 
 
-die "usage pipeline_runner.pl  <input directory with fastq.gz files> <output dir> <reference genome seq (fasta)> <error output file (with path)> <start at step number> <end at step number> <type of input files, optional f if fastq and not zipped files> <refer to gaps? Y/N default Y> <% id for blast, default=85>\n
+die "usage pipeline_runner.pl  <input directory with fastq.gz files> <output dir> <reference genome seq (fasta)> <error output file (with path)> <start at step number> <end at step number> <type of input files, optional f if fastq and not zipped files> <refer to gaps? Y/N default Y> <% id for blast, default=85> <Q score (default Q=23)\n
 1. Convert fastq.gz to fasta & split all fasta files into N equally sized smaller fasta files (50K reads per file)\n
 2. Run formatdb on each of N files above, and blast against ref seq\n
 3. run base calling script on each blast file above (output-freq files)\n
@@ -64,11 +69,17 @@ my $pcID_blast = 85;
 if (defined $ARGV[8]) {
     $pcID_blast=$ARGV[8];
 }
+
+my $qscore = 23;
+
+if (defined $ARGV[9]) {
+    $qscore=$ARGV[9];
+}
 die "unexpected error, start stage $start_stage is larger than end stage $end_stage\n" if ($start_stage>$end_stage);
 
-my $scripts_dir="/sternadi/home/volume1/shared/tools/pipeline/v5.2_power8_oded";
-my $ascii_file = "/sternadi/home/volume1/shared/tools/pipelineNGS/ascii_table_processed.txt";
-my $blast_dir="/sternadi/home/volume1/shared/tools/ncbi-blast-2.2.30+/bin";
+my $scripts_dir = $current_version_path
+my $ascii_file = "/sternadi/home/volume1/daniellem1/SternLab/pipelineNGS/ascii_table_processed.txt";
+my $blast_dir ="/sternadi/home/volume1/shared/tools/ncbi-blast-2.2.30+/bin";
 
 my $number_of_reads_per_fasta_file=50000;
 my $list_files=$out_dir."list.fastq.txt";
@@ -106,19 +117,13 @@ sub splitFastq {
 	$cmd="ls -l $in_dir"."*.gz \| awk \'{print \$NF}\' \| awk -F \"/\" \'{print \$NF}\' \| perl -lane \'s/\.fastq\.gz//\;print;' >$list_files";
     }
     else {
-	print "checkpoint pipeline 1\n";
 	$cmd="ls -l $in_dir"."*.fastq \| awk \'{print \$NF}\' \| awk -F \"/\" \'{print \$NF}\' \| perl -lane \'s/\.fastq//\;print;' >$list_files";
     }
 
 	print "cmd is:\n\t$cmd";
 	system($cmd);
 
-	# debug tal 20170321
-	print "list of files: $list_files\n";
-
     my $num_files=&get_number_of_fasta_files_there_should_be($list_files);
-
-	 print "num of files: $num_files";
 
 	print OUT $list_files;
     my $alias="toFastaAndSplit";
@@ -126,9 +131,9 @@ sub splitFastq {
     my $cmd1="INFILE\=\$\(awk \"NR\=\=\$PBS_ARRAY_INDEX\" $list_files\)\n";
     my $cmd2="";
     if ($type_file eq "z") {
-		$cmd2="perl $scripts_dir/toFastaAndSplit_v5.1.1.pl $in_dir\$INFILE.fastq.gz $out_dir\$INFILE $number_of_reads_per_fasta_file\n";	
+		$cmd2="perl $scripts_dir/toFastaAndSplit_v5.2.1.pl $in_dir\$INFILE.fastq.gz $out_dir\$INFILE $number_of_reads_per_fasta_file\n";	
     } else {
-		$cmd2="perl $scripts_dir/toFastaAndSplit_v5.1.1.pl $in_dir\$INFILE.fastq $out_dir\$INFILE $number_of_reads_per_fasta_file f\n";
+		$cmd2="perl $scripts_dir/toFastaAndSplit_v5.2.1.pl $in_dir\$INFILE.fastq $out_dir\$INFILE $number_of_reads_per_fasta_file f\n";
 	}
     Create_cmd::create_cmd_file($cmd_file,$alias,$num_files,4,join(" ",$cmd1,$cmd2));
      $cmd="qsub $cmd_file";
@@ -141,6 +146,7 @@ sub splitFastq {
     my @fasta_files=glob($out_dir."*fasta");
    	
     if ($num_files != scalar(@fasta_files)) {
+	# TODO (bom) change to more informative error message
 	print ERR "error in toFastaAndSplit, number of available fasta files in directory $out_dir = ".scalar(@fasta_files).", should be $num_files\n ";
     }
     if (scalar(@fasta_files)==0) {
@@ -201,12 +207,12 @@ sub base_call {
     
     $cmd="wc $list_blast_results_files \| awk \'{print \$1}\'";
     my $num_files=`$cmd`;
-
+	
     my $alias="basecall";
     my $cmd_file=$out_dir."basecall.cmd";
     my $cmd1="INFILE\=\$\(awk \"NR\=\=\$PBS_ARRAY_INDEX\" $list_blast_results_files\)\n";
     my $cmd2="FASTQ\=\$\(awk \"NR\=\=\$PBS_ARRAY_INDEX\" $list_qual_files\)\n";  
-    my $cmd3="perl $scripts_dir/base_call_and_freqs.v5.1.pl \$INFILE \$FASTQ $ref_genome \$INFILE\.freqs $do_gaps 2 30 \n"; #change to 2 30 by Oded
+    my $cmd3="perl $scripts_dir/base_call_and_freqs.v5.2.1.pl \$INFILE \$FASTQ $ref_genome \$INFILE\.freqs $do_gaps 2 $qscore \n"; 
     my $mem_request = 8; #originally it was 8 
     Create_cmd::create_cmd_file($cmd_file,$alias,$num_files,$mem_request,join(" ",$cmd1,$cmd2,$cmd3));
     $cmd="qsub $cmd_file";

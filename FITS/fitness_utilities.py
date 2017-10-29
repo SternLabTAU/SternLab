@@ -217,7 +217,7 @@ def plot_heatmap(df, replica=None, degree=False):
     plt.show()
 
 
-def plot_dfe(df):
+def plot_dfe(df, alias=None):
     """
     This method plots an DFE - distribution of fitness effects. This method is suitable for MS2
     :param df: data frame containing fitness values
@@ -225,10 +225,13 @@ def plot_dfe(df):
     """
 
     sns.set(style="ticks")
-    bins = np.arange(0, 2, 0.054)
     grid = sns.FacetGrid(df, col="Degree", row="Replica", row_order=['A', 'B'], hue="Degree", palette="YlGnBu")  # palette="RdYlGn"
-    grid.map(plt.hist, "Fitness_median", bins=bins)
-    grid.fig.suptitle("Distribution of Fitness Effects", fontsize=18)
+    grid.map(plt.distplot, "Fitness_median", rug=True, hist=True, kde=True)
+    plt.ylim(0,2.5)
+    if alias != None:
+        grid.fig.suptitle("Distribution of Fitness Effects {}".format(alias), fontsize=18)
+    else:
+        grid.fig.suptitle("Distribution of Fitness Effects", fontsize=18)
     pylab.get_current_fig_manager().window.showMaximized()
     plt.show()
 
@@ -256,3 +259,32 @@ def filter_replicas_ambiguity(df):
     pos_2_remove = grouped[grouped["isAmbiguous"] == True]["Pos"].values
     df = df[~df["Pos"].isin(pos_2_remove)]
     return df
+
+def discretize_fitness_dfe(df, alias):
+    """
+    This method displays the fitness dfe according to defined bins
+    :param df: a data frame of fitness values
+    :param alias: an alias which will be added to the graph title
+    :return: plots a histogram of fitness values - binned
+    """
+
+    df37 = df[df.Degree == 37]
+    df41 = df[df.Degree == 41]
+    # define bins length
+    bins = [0.0, 0.2, 0.5, 0.8, 1.1, 2.0]
+    g1 = pd.cut(df41["Fitness_median"], bins)
+    count1 = g1.value_counts().reindex(g1.cat.categories)  # sort the bin in increasing prder
+    count1.plot(kind='bar', color='brown', alpha=0.5, label="41")
+
+    g2 = pd.cut(df37["Fitness_median"], bins)
+    count2 = g2.value_counts().reindex(g2.cat.categories)
+    count2.plot(kind='bar', color='blue', alpha=0.3, label="37")
+    plt.title("DFE discretization {}".format(alias))
+    plt.ylabel("Count")
+    plt.xlabel("Fitness value")
+    plt.legend()
+    plt.show()
+
+
+
+

@@ -274,6 +274,7 @@ sub read_quality {
     
 #grep -f ids.txt -F --mmap -A 3 seq.fq | grep -v '^--'
 	#my $cmd_line= "$grep_name -F -A3 --mmap -f $list_reads $fastq_file \| grep -v \'^--\' >$list_reads_q";
+	# TODO danielle:- "--" can be a quality symbol which starts with --- and then it will be filtered out - !!@##@@! 
 	my $cmd_line= "$grep_name -F -A1 -f $list_reads $fastq_file \| grep -v \'^--\' >$list_reads_q"; 
     my $res=`$cmd_line`;
     
