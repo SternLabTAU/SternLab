@@ -72,10 +72,10 @@ def main():
 
 
     """ 3. Adding mutation types to the freqs file"""
-    if not os.path.isfile(freqs_file + ".with.mutation.type.func2.freqs"):
+    if not os.path.isfile(freqs_file + "with.mutation.type.freqs"):
          append_mutation = find_mutation_type(freqs_file, ncbi_id)
 
-    freqs_file_mutations = freqs_file + ".with.mutation.type.func2.freqs"
+    freqs_file_mutations = freqs_file + "with.mutation.type.freqs"
 
 
 
