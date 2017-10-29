@@ -114,6 +114,53 @@ def stop_mutation_potential_in_coding_sequence(filename, in_format="fasta"):
     return df
 
 
+def get_major_and_minor_consensus(aln_file, in_format="fasta"):
+    """
+    calculates major and minor consensus and each position's probability
+    - major consensus - the most prominent base (including "-")
+    - minor consensus - the most prominent base (not including "-")
+    :param aln_file: alignment file path
+    :param in_format: input alignment format (default: fasta)
+    :return: major_consensus, major_freqs, minor_consensus, minor_freqs
+    """
+    aln_file = check_filename(aln_file)
+    aln = AlignIO.read(aln_file, in_format, alphabet=Alphabet.Gapped(IUPAC.unambiguous_dna))
+    len_aln = len(aln[0])
+    num_of_seq = len(aln)
+    major_consensus = ""
+    major_freqs = []
+    minor_consensus = ""
+    minor_freqs = []
+    for i in range(len_aln):
+        counter = collections.Counter(aln[:, i])
+        major_count = 0
+        minor_count = 0
+        major_char = ""
+        minor_char = ""
+        for j in counter:
+            if counter[j] > major_count:
+                major_count = counter[j]
+                major_char = j
+                if j != "-":
+                    minor_count = counter[j]
+                    minor_char = j
+            if counter[j] > minor_count and j != "-":
+                if j not in ["A", "C", "G", "T"]:
+                    minor_count = counter[j]
+                    minor_char = "N"
+                else:
+                    minor_count = counter[j]
+                    minor_char = j
+        gap_count = counter["-"]
+        major_consensus += major_char
+        major_freqs.append(round(major_count / (num_of_seq - gap_count), 2))
+
+        minor_consensus += minor_char
+        minor_freqs.append(round(minor_count / (num_of_seq - gap_count), 2))
+
+    return major_consensus, major_freqs, minor_consensus, minor_freqs
+
+
 def get_consensus_percentage(aln_file, in_format="fasta"):
     """
     gets alignment file and returns the consensus and
