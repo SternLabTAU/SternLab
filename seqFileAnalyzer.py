@@ -271,7 +271,7 @@ def get_codon_freqs_from_consensus(filename, in_format="fasta"):
 
 def get_amino_acid_freqs(filename, no_strange_aas = True):
     """
-    gets a fasta file of protein seqs and returns a dataframe of amino acid frequencies in each fasta entry
+    gets a fasta file of protein seqs and returns a dataframe of amino acid frequencies for each fasta entry
     id - ncbi id
     :param filename: file path of amino acid fasta file
     :param no_strange_aas: if to ignore strange aa letters
@@ -302,3 +302,41 @@ def get_amino_acid_freqs(filename, no_strange_aas = True):
         aa_data = aa_data.append(counter, ignore_index=True)
 
     return aa_data
+
+
+def get_codon_freqs(filename, no_strange_nucs = True):
+    """
+    gets a fasta file of nucleotide seqs and returns a dataframe of codon frequencies for each fasta entry
+    id - ncbi id
+    :param filename: file path of amino acid fasta file
+    :param no_strange_nucs: if to ignore strange nucleotide letters
+    :return: dataframe with codon frequecnies
+    """
+    filename = check_filename(filename)
+    gb = open(filename, "r").read()
+    items = gb.split(">")[1:]
+    codon_info = pd.DataFrame()
+
+    for k in (items):
+        result = {}
+        ncbi_id = k.split("|")[3]
+        seq = "".join(k.split("\n")[1:])
+        if len(seq) % 3 != 0:
+            continue
+        codons = textwrap.wrap(seq, 3)
+        for c in codons:
+            if no_strange_nucs:
+                if c[0] not in ["a", "c", "t", "g"]:
+                    codons.remove(c)
+                elif c[1] not in ["a", "c", "t", "g"]:
+                    codons.remove(c)
+                elif c[2] not in ["a", "c", "t", "g"]:
+                    codons.remove(c)
+        counter = dict(Counter(codons))
+        sum_co = sum(counter.values())
+        for codon in counter:
+            counter[codon] = counter[codon] / float(sum_co)
+        counter['ncbi_id'] = ncbi_id
+        codon_info = codon_info.append(counter, ignore_index=True)
+
+    return codon_info
