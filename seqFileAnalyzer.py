@@ -268,3 +268,37 @@ def get_codon_freqs_from_consensus(filename, in_format="fasta"):
     print(to_print)
 
     return codons, to_print
+
+def get_amino_acid_freqs(filename, no_strange_aas = True):
+    """
+    gets a fasta file of protein seqs and returns a dataframe of amino acid frequencies in each fasta entry
+    id - ncbi id
+    :param filename: file path of amino acid fasta file
+    :param no_strange_aas: if to ignore strange aa letters
+    :return: dataframe with aa frequecnies
+    """
+    filename = check_filename(filename)
+    aa = open(filename, "r").read()
+    aa = aa.split(">")[1:]
+    aa_data = pd.DataFrame()
+    for a in (aa):
+        ncbi_id = a.split("|")[3]
+        seq = "".join(a.split("\n")[1:])
+        length = len(seq)
+        if no_strange_aas:
+            # remove problematic AA's
+            if "X" in seq:
+                seq = "".join(seq.split("X"))
+            if "J" in seq:
+                seq = "".join(seq.split("J"))
+            if "Z" in seq:
+                seq = "".join(seq.split("Z"))
+            if "B" in seq:
+                seq = "".join(seq.split("B"))
+        counter = dict(Counter(seq))
+        for i in counter:
+            counter[i] = counter[i] / float(length)
+        counter["ncbi_id"] = ncbi_id
+        aa_data = aa_data.append(counter, ignore_index=True)
+
+    return aa_data
