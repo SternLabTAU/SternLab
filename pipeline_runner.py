@@ -53,12 +53,14 @@ def main(args):
 
     blast_id = args.blast
 
+    evalue = args.evalue
+
     path_to_save_pipeline_summary = output + "/pipeline_summary.txt"
     print(start, end, q_score, blast_id, NGS_or_Cirseq)
 
-    cmd = "perl {} {} {} {} {} {} {} {} {} {} {}".format(pipeline_path, input_dir, output, reference,
+    cmd = "perl {} {} {} {} {} {} {} {} {} {} {} {}".format(pipeline_path, input_dir, output, reference,
                                                             start, end, type_of_input_file, gaps, NGS_or_Cirseq,
-                                                            q_score, blast_id)
+                                                            q_score, blast_id, evalue)
 
     print("running this pipeline command:")
     print(cmd)
@@ -85,7 +87,8 @@ def main(args):
     with open(path_to_save_pipeline_summary, "w") as o:
         o.write("---- Pipeline running -----\n")
         o.write("{}\n\n".format(datetime.datetime.now()))
-        o.write("Pipeline command used: {}\n\n".format(cmd))
+        o.write("Pipeline command used:\n{}\n\n".format(cmd))
+        o.write("Blast parameters: %id for blast = {}, E value = {}\n".format(blast_id, evalue))
         o.write("Number of reads that were mapped only once: {}\n".format(int(only_once_reads)))
         o.write("Number of reads that are contributing to frequency count: {}\n".format(int(freq_contr)))
         o.write("Number of bases called: {}\n".format(int(num_based_called)))
@@ -120,8 +123,8 @@ if __name__ == "__main__":
     parser.add_argument("-o", "--output", type=str, help="a path to an output directory", required=True)
     parser.add_argument("-r", "--ref", type=str, help="a path to a genome reference seq file (fasta)",
                         required=True)
-    parser.add_argument("-s", "--start", type=int, help="start step number. default=1", default=1)
-    parser.add_argument("-e", "--end", type=int, help="end step number. default=4", default=4)
+    parser.add_argument("-s", "--start", type=int, help="start step number. default=1", default=1, required=False)
+    parser.add_argument("-e", "--end", type=int, help="end step number. default=4", default=4, required=False)
 
     parser.add_argument("-t", "--type_of_input_file", type=str, help="the type of the input file, default=fastq",
                         default='f', required=False)
@@ -132,6 +135,8 @@ if __name__ == "__main__":
     parser.add_argument("-q", "--q_score", type=int, help="Q-score cutoff, default =23 for cirseq and 30 for NGS")
     parser.add_argument("-b", "--blast", type=int, help="% blast id, default=85",
                         default=85)
+    parser.add_argument("-ev", "--evalue", type=float, help="E value for blast, default=1e-7", required=False,
+                        default=1e-7)
     args = parser.parse_args()
     if not vars(args):
         parser.print_help()
