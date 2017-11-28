@@ -27,7 +27,7 @@ use Create_cmd;
 
 
 
-die "usage pipeline_runner.pl  <input directory with fastq.gz files> <output dir> <reference genome seq (fasta)> <start at step number> <end at step number> <type of input files, optional f if fastq and not zipped files> <refer to gaps? Y/N default Y> <NGS/Cirseq? type 2 for Cirseq (num repeats=2) or 1 for NGS (min num repeats=1)> <Q-score cutoff, default =23 for CirSeq and 30 for NGS> <% id for blast, default=85>\n
+die "usage pipeline_runner.pl  <input directory with fastq.gz files> <output dir> <reference genome seq (fasta)> <start at step number> <end at step number> <type of input files, optional f if fastq and not zipped files> <refer to gaps? Y/N default Y> <NGS/Cirseq? type 2 for Cirseq (num repeats=2) or 1 for NGS (min num repeats=1)> <Q-score cutoff, default =23 for CirSeq and 30 for NGS> <% id for blast, default=85><E value for blast, default=1e-7>\n
 1. Convert fastq.gz to fasta & split all fasta files into N equally sized smaller fasta files (50K reads per file)\n
 2. Run formatdb on each of N files above, and blast against ref seq\n
 3. run base calling script on each blast file above (output-freq files)\n
@@ -104,6 +104,15 @@ my $pcID_blast = 85;
 if (defined $ARGV[9]) {
 
     $pcID_blast=$ARGV[9];
+
+}
+
+my $evalue = 1e-7;
+
+
+if (defined $ARGV[10]) {
+
+    $evalue=$ARGV[10];
 
 }
 
@@ -247,7 +256,9 @@ sub blast_fasta {
     print "blast: list_parts_fasta_files: $list_parts_fasta_files\n";
 
     my $cmd2="$blast_dir/makeblastdb -in $out_dir\$INFILE -dbtype nucl\n";
-	my $cmd3="$blast_dir/blastn -query $ref_genome -task blastn -db $out_dir\$INFILE -outfmt \"6 sseqid qstart qend qstrand sstart send sstrand length btop\" -num_alignments 1000000 -dust no -soft_masking F -perc_identity $pcID_blast -evalue 1e-7 -out $out_dir\$INFILE.blast";
+	my $cmd3="$blast_dir/blastn -query $ref_genome -task blastn -db $out_dir\$INFILE -outfmt \"6 sseqid qstart qend qstrand sstart send sstrand length btop\" -num_alignments 1000000 -dust no -soft_masking F -perc_identity $pcID_blast -evalue $evalue -out $out_dir\$INFILE.blast";
+
+    print "cmd3 blast: $cmd3\n";
 
     Create_cmd::create_cmd_file($cmd_file,$alias,$num_files,4,join(" ",$cmd1,$cmd2,$cmd3));
     $cmd="qsub $cmd_file";
