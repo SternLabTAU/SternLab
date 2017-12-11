@@ -6,6 +6,7 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import seaborn as sns
+import math
 
 
 GEN = 30     #number of generations
@@ -60,6 +61,7 @@ def update(n1, n2, k, pairs, N):
     # create a matrix of zeros to be filled with the probabilities
     P = np.zeros(shape=(k+1,k+1))
     W = np.zeros(shape=(k+1,k+1))
+    W_wt = np.zeros(shape=(k + 1, k + 1))
 
 
     for pair in pairs:
@@ -68,26 +70,21 @@ def update(n1, n2, k, pairs, N):
 
         # update poisson probabilities
         P[i,j] = get_probabilities(n1,n2,i,j)
-        if i == 0 and j == 0:    # this one is undefined, there is no fitness for no infection at all
+        if (i == 0 and j == 0) or (i == 0 and j != 0) or (i != 0 and j/i >= 1.5):    # this one is undefined, there is no fitness for no infection at all
             W[i, j] = 0 + EPS
-        elif i != 0 and j/i >= 2: # nuch more parasites, fitness 0
+        elif j == 0 and i != 0:
             W[i, j] = 0 + EPS
         else:
-            if i == 0:
-                W[i, j] = BASE_WT_P * (2 ** j)
-            else:
-                W[i,j] = BASE_WT_P*(2** (j/i))  # make a non linear function for decresing
+            W[i,j] = BASE_WT_P*(math.exp(j**1.4))
 
 
-    # normalize fitness
-    #W = (W -W.min())/(W.max() - W.min())
 
     # get n2 value
     i = 0
     j = 0
     new_n2 = 0
     for i in range(k+1):
-        for j in range(1, k+1):  # need Parasite to be != 0
+        for j in range(1,k+1):  # need Parasite to be != 0
             new_n2 += W[i,j]*P[i,j]
 
     return (new_n2 * N, P, W)
@@ -97,7 +94,7 @@ def update(n1, n2, k, pairs, N):
 def create_all_generations_data(n1,n2_init, N, k):
 
     # create the basic data frame
-    names = ['time', 'N', 'n1', 'n2'] + ['P{}{}'.format(i,j) for i in range(k+1) for j in range(k+1)]
+    names = ['time', 'N', 'n1', 'n2'] + ['P{}-{}'.format(i,j) for i in range(k+1) for j in range(k+1)]
     model = {k:[] for k in names}
     n2 = n2_init
 
@@ -114,15 +111,14 @@ def create_all_generations_data(n1,n2_init, N, k):
         P = result[1]
 
 
+
         for j in range(k+1):
-            for k in range(k+1):
-                model['P{}{}'.format(j,k)].append(P[j,k])
+            for q in range(k+1):
+                model['P{}-{}'.format(j,q)].append(P[j,q])
 
 
     # convert into a data frame
     print(model)
-    l = [key for key in model.keys()]
-    print([key for key in l if len(model[key])!=40])
     model_df = pd.DataFrame.from_dict(model)
     return model_df
 
