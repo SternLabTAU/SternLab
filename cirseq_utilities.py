@@ -9,6 +9,7 @@ import time
 from Bio.Seq import Seq
 from Bio import Entrez
 from Bio import SeqIO
+import collections
 
 
 
@@ -88,9 +89,14 @@ def find_mutation_type(freqs_file, ncbi_id):
     file_name = freqs_file
     data = freqs_to_dataframe(freqs_file)
     data.reset_index(drop=True, inplace=True)
+    # if ncbi_id != "NC_001490":
     start_pos, end_pos = find_coding_region(ncbi_id)
+    # else:
+    #     start_pos = 1
     data = data.loc[data['Pos'] >= start_pos]
-    check_12mer(data)
+    data = data.loc[data['Pos'] <= end_pos]
+    if check_12mer(data) != 1:
+        raise Exception("The data is not in 12 mer. arrange the data, start_pos=%i, end_pos=%i" % start_pos, end_pos)
     data['Codon'] = ""
     data['Ref_Protein'] = ""
     data['Potential_Protein'] = ""
@@ -113,6 +119,7 @@ def find_mutation_type(freqs_file, ncbi_id):
     data.to_csv(file_name, sep='\t', encoding='utf-8')
     print("The File is ready in the folder")
     print("--- %s sec ---" % (time.time() - start_time))
+    print("start_pos:%i   end_pos:%i" % start_pos, end_pos)
     return data
 
 
@@ -139,9 +146,13 @@ def find_coding_region(ncbi_id):
         handle = Entrez.efetch(db="nucleotide", rettype="gb", retmode="text", id=ncbi_id)
         ncbi_gb = SeqIO.read(handle, "gb")
         handle.close()
-        location = list(ncbi_gb.features[1].location)
-        start_pos = location[0]
-        end_pos = location[-4]
+        if ncbi_id == "V01149":
+            location = list(ncbi_gb.features[5].location)
+
+        else:
+            location = list(ncbi_gb.features[1].location)
+        start_pos = location[0] + 1
+        end_pos = location[-1] + 1
         return start_pos, end_pos
     except:
         print('Failed to fetch record.')
@@ -154,9 +165,12 @@ def check_12mer(data):
       """
     if (len(data)) % 12 != 0:
         print('The data is not in 12 mer. arrange the data')
+        flag = 0
     else:
         print('The data is in 12 mer. All OK.')
         print('The length of data is:', (len(data)))
+        flag = 1
+    return flag
 
 
 def find_codon(data):
