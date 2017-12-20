@@ -28,9 +28,9 @@ def main():
 
     #for Local
 
-    # suffix = "CVB3-p2.freqs"
-    # freqs_file = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/CV/20170906_q20r3_blastn/" + suffix
-    # virus = "CVB3"
+    # suffix = "RVB14p2.freqs"
+    # freqs_file = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/RV/20170322_output_all_23_qscore/" + suffix
+    # virus = "RVB14"
 
 
 
@@ -74,7 +74,6 @@ def main():
     """ 3. Adding mutation types to the freqs file"""
     if not os.path.isfile(freqs_file[0:-5] + "with.mutation.type.freqs"):
          append_mutation = find_mutation_type(freqs_file, ncbi_id)
-
     freqs_file_mutations = freqs_file[0:-5] + "with.mutation.type.freqs"
 
 
