@@ -12,21 +12,27 @@ from Bio.Blast import NCBIXML
 from pbs_runners import blast_runner
 from pbs_jobs import check_pbs
 import matplotlib as plt
-
+from nt_freq_counter import *
+import subprocess
+import os
+import re
 
 
 def main():
     # for Cluster
-    parser = OptionParser("usage: %prog [options]")
-    parser.add_option("-t", "--tmp_dir", dest="tmp_dir", help="the path of the tmp directory")
-    (options, args) = parser.parse_args()
-    tmp = options.tmp_dir
+    # parser = OptionParser("usage: %prog [options]")
+    # parser.add_option("-t", "--tmp_dir", dest="tmp_dir", help="the path of the tmp directory")
+    # (options, args) = parser.parse_args()
+    # tmp = options.tmp_dir
+    # print(title)
+    input_dir = "/sternadi/nobackup/volume1/okushnir/HeLaRVB14/pipeline/tmp/"
+    out_file = "/sternadi/nobackup/volume1/okushnir/HeLaRVB14/pipeline/"
 
     #for Local
     # tmp = "/Users/odedkushnir/Google Drive/Studies/PhD/Python Scripts/test/tmp/"
     # tmp = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/CV/test/tmp/"
 
-    blast_df = analyze_reads(tmp)
+    # blast_df = analyze_reads(tmp)
 
     # seq = "GGGTGTGTGTGGCTTGAGGGTGTGTGTGGCTTGAGGGTGTGTGTGGCTTGAGGGTGTGTGTGGCTTGAGGGTGTGTGTGGCTTGAGGGTGTGTGTGGCTTGAGGG" \
     #       "TGTGTGTGGCTTGAGGGTGTGTGTGGCTTGAGGGTGTGTGTGGCTGGAGGGTGTGTGTGGCTTGTGGGTGTGTGTGACTTGAGTGTGTGTGTGGGTTGGGGGTGT" \
@@ -38,7 +44,10 @@ def main():
 
     # title = blast_seq(seq)
     # print(title)
+    # input_dir = "/Volumes/STERNADILABTEMP$/volume1/okushnir/RCseq/CV/20171029_q23r2_evalue-1_newpipeline/tmp/"
+    # out_file = "/Volumes/STERNADILABTEMP$/volume1/okushnir/RCseq/CV/20171029_q23r2_evalue-1_newpipeline/table.csv"
 
+    make_table(input_dir, out_file, [0])
 
 def extract_location(name, start, end):
     return(name[start:end])
@@ -105,6 +114,7 @@ def sum_total_edges(df, column):
     sum_of_sum = df[column+"_len_sum"][0]
     return df, sum_of_sum
 
+
 def analyze_reads(tmp_cirseq_dir, filter_by = 0):
     fasta_files = glob.glob(tmp_cirseq_dir + "*.fasta")
     records = {}
@@ -151,7 +161,7 @@ def analyze_reads(tmp_cirseq_dir, filter_by = 0):
     with open(tmp_cirseq_dir+"edges_sum.txt", "w") as edges_len_sum:
         edges_len_sum.write("sum_of_sum5:%i \n" % sum_of_sum5)
         edges_len_sum.write("sum_of_sum3:%i \n" % sum_of_sum3)
-    return blast_df
+    return sum_of_sum5, sum_of_sum3, blast_df
 
 
 def tmp_fasta_to_df(tmp_cirseq_dir):
@@ -163,6 +173,47 @@ def tmp_fasta_to_df(tmp_cirseq_dir):
         df.index.name = 'id'
         df.columns = ['seq']
         return df
+
+def make_table(input_dir, out_file, idx):
+    """
+    :param input_dir: tmp dir of CirSeq pipeline
+    :param out_file:
+    :return:
+    """
+    total_reads = int(subprocess.check_output("cat {}toFastaAndSplit.*| awk -F 'is' '{{print $2}}'| awk -F ',' '{{sum+=$1}}END{{print sum}}'".format(input_dir), shell=True))
+    parts_num = int(subprocess.check_output("cat {}list_parts_fasta_files.txt | wc -l".format(input_dir), shell=True))
+    mapped_ref = int(subprocess.check_output("cat {}*blast | awk '{{print $1}}'|sort | uniq | wc -l".format(input_dir),
+                                         shell=True))
+    not_mapped_ref = int(total_reads) - mapped_ref
+    percent_mapped_ref = round(mapped_ref/int(total_reads)*100, 2)
+    mapped_once = int(subprocess.check_output("grep -P '^1\t' {}*stats -h | awk '{{sum+=$2}}END{{print sum}}'"
+                                          .format(input_dir), shell=True))
+    supposed_freqs = mapped_ref - mapped_once
+    actualy_contribute = int(subprocess.check_output("grep 'reads contributing to frequency counts' -h {}*stats | awk "
+                                                     "'{{sum+=$1}}END{{print sum}}'".format(input_dir), shell=True))
+    double_mapping = int(subprocess.check_output("grep 'mapped bases removed due to double mapping' {}*stats | awk -F "
+                                                 "':' '{{sum+=$2}}END{{print sum}}'".format(input_dir), shell=True))
+    bases_called = int(subprocess.check_output("grep 'num bases called' {}*stats | awk -F = "
+                                               "'{{sum+=$2}}END{{print sum}}'".format(input_dir), shell=True))
+    bases_used = nt_freq_counter(input_dir)[0]
+    total_bases = nt_freq_counter(input_dir)[1]
+    percent_used_bases = (bases_used/total_bases*100)
+    percent_used_bases = round(percent_used_bases, 2)
+    nuc_edge5 = analyze_reads(input_dir)[0]
+
+    nuc_edge3 = analyze_reads(input_dir)[1]
+
+
+    data = pd.DataFrame({'Total Reads': total_reads, 'Number of parts': parts_num, 'Mapped to reference': mapped_ref,
+                         "didnt map to reference": not_mapped_ref, "% mapped to reference": percent_mapped_ref,
+                         "Reads that were mapped once": mapped_once, "Reads that are supposed to contribute to freqs":
+                             supposed_freqs, "Reads that actualy contribute to freqs": actualy_contribute,
+                         "dbl bases removed": double_mapping, "Number of bases called": bases_called,
+                         "Number of bases used": bases_used, "Total number of bases": total_bases,
+                         "% used number of bases": percent_used_bases, "No of bases didnst map to ref in 5'": nuc_edge5,
+                         "No of bases didnt map to ref in 3'": nuc_edge3}, index=idx)
+    print(data)
+    data.to_csv(out_file + "cirseq_stas.csv", sep=',', encoding='utf-8')
 
 if __name__ == "__main__":
     main()

@@ -146,10 +146,10 @@ def find_coding_region(ncbi_id):
         Entrez.email = "A.N.Other@example.com"
         handle = Entrez.efetch(db="nucleotide", rettype="gb", retmode="text", id=ncbi_id)
         ncbi_gb = SeqIO.read(handle, "gb")
+
         handle.close()
         if ncbi_id == "V01149":
             location = list(ncbi_gb.features[5].location)
-
         else:
             location = list(ncbi_gb.features[1].location)
         start_pos = location[0] + 1

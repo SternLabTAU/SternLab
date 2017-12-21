@@ -76,6 +76,10 @@ def main():
          append_mutation = find_mutation_type(freqs_file, ncbi_id)
     freqs_file_mutations = freqs_file[0:-5] + "with.mutation.type.freqs"
 
+    #fetch ncbi data
+    # pos = find_coding_region(ncbi_id)
+    # print(pos)
+
 
 
     """4. Run bowtie2 for human rRNA, mRNA and the virus"""
