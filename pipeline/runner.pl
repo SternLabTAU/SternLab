@@ -27,7 +27,7 @@ use Create_cmd;
 
 
 
-die "usage pipeline_runner.pl  <input directory with fastq.gz files> <output dir> <reference genome seq (fasta)> <start at step number> <end at step number> <type of input files, optional f if fastq and not zipped files> <refer to gaps? Y/N default Y> <NGS/Cirseq? type 2 for Cirseq (num repeats=2) or 1 for NGS (min num repeats=1)> <Q-score cutoff, default =23 for CirSeq and 30 for NGS> <% id for blast, default=85><E value for blast, default=1e-7>\n
+die "usage pipeline_runner.pl  <input directory with fastq.gz files> <output dir> <reference genome seq (fasta)> <start at step number> <end at step number> <type of input files, optional f if fastq and not zipped files> <refer to gaps? Y/N default Y> <NGS/Cirseq? type 2 for Cirseq (num repeats=2) or 1 for NGS (min num repeats=1)> <Q-score cutoff, default =23 for CirSeq and 30 for NGS> <% id for blast, default=85><E value for blast, default=1e-7> <min number of repeats, default=2>\n
 1. Convert fastq.gz to fasta & split all fasta files into N equally sized smaller fasta files (50K reads per file)\n
 2. Run formatdb on each of N files above, and blast against ref seq\n
 3. run base calling script on each blast file above (output-freq files)\n
@@ -113,6 +113,15 @@ my $evalue = 1e-7;
 if (defined $ARGV[10]) {
 
     $evalue=$ARGV[10];
+
+}
+
+my $repeats = 1;
+
+
+if (defined $ARGV[11]) {
+
+    $repeats=$ARGV[11];
 
 }
 
@@ -312,7 +321,7 @@ sub base_call {
      	$cmd2="FASTQ\=\$\(awk \"NR\=\=\$PBS_ARRAY_INDEX\" $list_qual_files\)\n";
     }
 
-    my $cmd3="perl $scripts_dir/base_call_and_freqs_v5.3.pl \$INFILE \$FASTQ $ref_genome \$INFILE\.freqs $do_gaps $min_num_repeats $q_cutoff\n";
+    my $cmd3="perl $scripts_dir/base_call_and_freqs_v5.3.pl \$INFILE \$FASTQ $ref_genome \$INFILE\.freqs $do_gaps $repeats $q_cutoff\n";
     print "cmd3 basecall: $cmd3\n";
     my $mem_request = 8; 
     Create_cmd::create_cmd_file($cmd_file,$alias,$num_files,$mem_request,join(" ",$cmd1,$cmd2,$cmd3));
