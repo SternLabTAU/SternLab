@@ -119,7 +119,8 @@ def find_mutation_type(freqs_file, ncbi_id):
     data.to_csv(file_name, sep='\t', encoding='utf-8')
     print("The File is ready in the folder")
     print("--- %s sec ---" % (time.time() - start_time))
-    print("start_pos:%i   end_pos:%i" % start_pos, end_pos)
+    print("start_pos:%i" % start_pos)
+    print("end_pos:%i" % end_pos)
     return data
 
 
