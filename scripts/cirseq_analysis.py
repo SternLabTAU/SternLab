@@ -211,6 +211,7 @@ def read_repeat_graph(repeat_summery, ax):
     ax.set_xlabel("Number of Repeats")
     ax.set_ylabel("Number of Reads")
     ax.set_xlim(min(keys)-0.5, max(keys)+0.5)
+    ax.set_xticks(keys)
     ax.yaxis.get_major_formatter().set_powerlimits((0, 1))
     sns.set_style("darkgrid")
     return ax
