@@ -1,6 +1,9 @@
+#! /usr/local/python_anaconda/bin/python3.4
+
 from optparse import OptionParser
-from SternLab.Candida_Positive_Selection import create_gene_table
-from SternLab.Candida_Positive_Selection import create_genes_for_samples
+from Candida_Positive_Selection import create_gene_table
+from Candida_Positive_Selection import create_genes_for_samples
+
 
 def main():
     parser = OptionParser("usage: %prog[options]")
@@ -10,7 +13,7 @@ def main():
     parser.add_option("-n", "--new_path", dest="PATH_PREFIX", help="The prefix for the gene separated fasta files")
     parser.add_option("-e", "--error_file", dest="ERRORS", help="The path to the errors file")
 
-    (options,args) = parser.parse_args()
+    (options, args) = parser.parse_args()
 
     FASTA_FILE_PATH = options.FASTA_FILE_PATH
     GENE_TABLE_PATH = options.GENE_TABLE_PATH
@@ -18,7 +21,7 @@ def main():
     PATH_PREFIX = options.PATH_PREFIX
     ERRORS = options.ERRORS
 
-    #create_gene_table.create_gene_table(FASTA_FILE_PATH, GENE_TABLE_PATH)
+    create_gene_table.create_gene_table(FASTA_FILE_PATH, GENE_TABLE_PATH)
     create_genes_for_samples.create_gene_files(FASTA_FILE_PATH, GENE_TABLE_PATH, PATIENT1,PATH_PREFIX, ERRORS)
 
 
