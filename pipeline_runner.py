@@ -146,7 +146,7 @@ if __name__ == "__main__":
                         default=85)
     parser.add_argument("-ev", "--evalue", type=float, help="E value for blast, default=1e-7", required=False,
                         default=1e-7)
-    parser.add_argument("-rep", "--reapets", type=int, help="number of reapets, change for CirSeq to be bigger then 1, default=1", required=False,
+    parser.add_argument("-rep", "--repeats", type=int, help="number of reapets, change for CirSeq to be bigger then 1, default=1", required=False,
                         default=1)
     args = parser.parse_args()
     if not vars(args):
