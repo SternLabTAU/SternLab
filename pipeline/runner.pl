@@ -27,7 +27,7 @@ use Create_cmd;
 
 
 
-die "usage pipeline_runner.pl  <input directory with fastq.gz files> <output dir> <reference genome seq (fasta)> <start at step number> <end at step number> <type of input files, optional f if fastq and not zipped files> <refer to gaps? Y/N default Y> <NGS/Cirseq? type 2 for Cirseq (num repeats=2) or 1 for NGS (min num repeats=1)> <Q-score cutoff, default =23 for CirSeq and 30 for NGS> <% id for blast, default=85><E value for blast, default=1e-7> <min number of repeats, default=2>\n
+die "usage pipeline_runner.pl  <input directory with fastq.gz files> <output dir> <reference genome seq (fasta)> <start at step number> <end at step number> <type of input files, optional f if fastq and not zipped files> <refer to gaps? Y/N default Y> <NGS/Cirseq?  type 1 for NGS (min num repeats=1) and >1 for CirSeq> <Q-score cutoff, default =23 for CirSeq and 30 for NGS> <% id for blast, default=85><E value for blast, default=1e-7><freq file prefix>\n
 1. Convert fastq.gz to fasta & split all fasta files into N equally sized smaller fasta files (50K reads per file)\n
 2. Run formatdb on each of N files above, and blast against ref seq\n
 3. run base calling script on each blast file above (output-freq files)\n
@@ -76,12 +76,12 @@ my $min_num_repeats=$ARGV[7];
 if ($min_num_repeats==1) {
     print "Running NGS mapping\n";
 }
-elsif ($min_num_repeats==2) {
+elsif ($min_num_repeats>1) {
     print "Running CirSeq mapping\n";
 
 }
 else {
-    die "min number of repeats should be either 1 or 2, it is now $min_num_repeats\n";
+    die "min number of repeats should be either 1 or bigger, it is now $min_num_repeats\n";
 }
 
 
@@ -116,14 +116,15 @@ if (defined $ARGV[10]) {
 
 }
 
-my $repeats = 1;
+my $freq_prefix = '';
 
 
 if (defined $ARGV[11]) {
 
-    $repeats=$ARGV[11];
+    $freq_prefix=$ARGV[11];
 
 }
+
 
 die "unexpected error, start stage $start_stage is larger than end stage $end_stage\n" if ($start_stage>$end_stage);
 
@@ -321,7 +322,7 @@ sub base_call {
      	$cmd2="FASTQ\=\$\(awk \"NR\=\=\$PBS_ARRAY_INDEX\" $list_qual_files\)\n";
     }
 
-    my $cmd3="perl $scripts_dir/base_call_and_freqs_v5.3.pl \$INFILE \$FASTQ $ref_genome \$INFILE\.freqs $do_gaps $repeats $q_cutoff\n";
+    my $cmd3="perl $scripts_dir/base_call_and_freqs_v5.3.pl \$INFILE \$FASTQ $ref_genome \$INFILE\.freqs $do_gaps $min_num_repeats $q_cutoff\n";
     print "cmd3 basecall: $cmd3\n";
     my $mem_request = 8; 
     Create_cmd::create_cmd_file($cmd_file,$alias,$num_files,$mem_request,join(" ",$cmd1,$cmd2,$cmd3));
@@ -362,6 +363,10 @@ sub join_files {
     $prefix =~ s/\.gz.*//;
     $prefix =~ s/^\.\///;
     $prefix =~ s/\_.+//;
+
+    if($freq_prefix != ''){
+    	$prefix = $freq_prefix
+    }
 
     my $alias="join";
     my $cmd_file=$out_dir."join.cmd";
