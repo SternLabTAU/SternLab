@@ -63,12 +63,14 @@ def main(args):
     if repeats == 1 and NGS_or_Cirseq == 2:
         print("WARNING:: running CirSeq mapping with 1 repeat")
 
+    prefix = args.prefix
+
     path_to_save_pipeline_summary = output + "/pipeline_summary.txt"
     print(start, end, q_score, blast_id, NGS_or_Cirseq)
 
-    cmd = "perl {} {} {} {} {} {} {} {} {} {} {} {} {}".format(pipeline_path, input_dir, output, reference,
+    cmd = "perl {} {} {} {} {} {} {} {} {} {} {} {} {} {}".format(pipeline_path, input_dir, output, reference,
                                                             start, end, type_of_input_file, gaps, NGS_or_Cirseq,
-                                                            q_score, blast_id, evalue, repeats)
+                                                            q_score, blast_id, evalue, repeats, prefix)
 
     print("running this pipeline command:")
     print(cmd)
@@ -148,6 +150,7 @@ if __name__ == "__main__":
                         default=1e-7)
     parser.add_argument("-rep", "--repeats", type=int, help="number of reapets, change for CirSeq to be bigger then 1, default=1", required=False,
                         default=1)
+    parser.add_argument("-pre", "--prefix", type=str, help="optional freq file prefix , default=name of the fastq file", required=False, default='')
     args = parser.parse_args()
     if not vars(args):
         parser.print_help()
