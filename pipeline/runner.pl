@@ -27,7 +27,7 @@ use Create_cmd;
 
 
 
-die "usage pipeline_runner.pl  <input directory with fastq.gz files> <output dir> <reference genome seq (fasta)> <start at step number> <end at step number> <type of input files, optional f if fastq and not zipped files> <refer to gaps? Y/N default Y> <NGS/Cirseq?  type 1 for NGS (min num repeats=1) and >1 for CirSeq> <Q-score cutoff, default =23 for CirSeq and 30 for NGS> <% id for blast, default=85><E value for blast, default=1e-7>\n
+die "usage pipeline_runner.pl  <input directory with fastq.gz files> <output dir> <reference genome seq (fasta)> <start at step number> <end at step number> <type of input files, optional f if fastq and not zipped files> <refer to gaps? Y/N default Y> <NGS/Cirseq?  type 1 for NGS (min num repeats=1) and >1 for CirSeq> <Q-score cutoff, default =23 for CirSeq and 30 for NGS> <% id for blast, default=85><E value for blast, default=1e-7><freq file prefix, default = filename>\n
 1. Convert fastq.gz to fasta & split all fasta files into N equally sized smaller fasta files (50K reads per file)\n
 2. Run formatdb on each of N files above, and blast against ref seq\n
 3. run base calling script on each blast file above (output-freq files)\n
@@ -116,7 +116,14 @@ if (defined $ARGV[10]) {
 
 }
 
+my $freq_prefix = '';
 
+
+if (defined $ARGV[11]) {
+
+    $freq_prefix=$ARGV[11];
+
+}
 
 die "unexpected error, start stage $start_stage is larger than end stage $end_stage\n" if ($start_stage>$end_stage);
 
@@ -348,6 +355,7 @@ sub join_files {
 
 	# list all output blast files with file size > 0
     my $cmd="ls -l $list_freqs_files \| awk \'{print \$NF}\' \| awk -F \"/\" \'{print \$NF}\' \| head -1 \| awk -F \"\.\" \'{print \$1}\'";
+
     my $prefix=`$cmd`;
     chomp $prefix;
 
@@ -355,6 +363,10 @@ sub join_files {
     $prefix =~ s/\.gz.*//;
     $prefix =~ s/^\.\///;
     $prefix =~ s/\_.+//;
+
+    if ($freq_prefix != ''){
+        $prefix = $freq_prefix
+    }
 
 
     my $alias="join";
