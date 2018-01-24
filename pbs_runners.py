@@ -149,7 +149,7 @@ def prank_runner(sequence, alignment=None, alias = "prank"):
     sequence = check_filename(sequence)
     alignment = check_filename(alignment, Truefile=False)
     cmds = "/powerapps/share/bin/prank -d=%s -o=%s -F" % (sequence, alignment)
-    cmdfile = "prank_alignment"; tnum=1; gmem=5
+    cmdfile = "prank_alignment"; tnum=1; gmem=7
     pbs_jobs.create_pbs_cmd(cmdfile, alias, tnum, gmem, cmds)
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
@@ -408,7 +408,24 @@ def blast_output6_runner(seqfile, dbfile, outfile, alias = "blast"):
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
 
-
+def blastx_output6_runner(seqfile, outfile, dbfile="/sternadi/home/volume1/shared/data/nr/nr", alias = "blast"):
+    """
+    run blast on cluster - output as pipeline - format 6
+    :param seqfile: sequence file path
+    :param dbfile: db file
+    :param outfile: output file path
+    :param alias: job name (blast)
+    :return: job id
+    """
+    seqfile = check_filename(seqfile)
+    if outfile != None:
+        outfile = check_filename(outfile, Truefile=False)
+    cmdfile = "blast_cmd"; tnum = 1; gmem = 2
+    cmds = "/sternadi/home/volume1/shared/tools/ncbi-blast-2.2.30+/bin/blastx"\
+                + " -query %s -out %s -db %s -outfmt 6" % (seqfile, outfile, dbfile)
+    pbs_jobs.create_pbs_cmd(cmdfile, alias, tnum, gmem, cmds)
+    job_id = pbs_jobs.submit(cmdfile)
+    return job_id
 
 def bowtie2_runner(bowtie_index_path, fastq_file, sam_output, alias="bowtie2"):
     """
