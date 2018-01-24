@@ -55,12 +55,22 @@ def main(args):
 
     evalue = args.evalue
 
+    repeats = args.repeats
+    if repeats <= 0:
+        raise Exception("Number of repeats sholud be a positive integer, entered a non-positive value")
+    if repeats > 1 and NGS_or_Cirseq == 1:
+        print("WARNING:: running NGS mapping with more then 1 repeat")
+    if repeats == 1 and NGS_or_Cirseq == 2:
+        print("WARNING:: running CirSeq mapping with 1 repeat")
+
+    prefix = args.prefix
+
     path_to_save_pipeline_summary = output + "/pipeline_summary.txt"
     print(start, end, q_score, blast_id, NGS_or_Cirseq)
 
-    cmd = "perl {} {} {} {} {} {} {} {} {} {} {} {}".format(pipeline_path, input_dir, output, reference,
+    cmd = "perl {} {} {} {} {} {} {} {} {} {} {} {} {} {}".format(pipeline_path, input_dir, output, reference,
                                                             start, end, type_of_input_file, gaps, NGS_or_Cirseq,
-                                                            q_score, blast_id, evalue)
+                                                            q_score, blast_id, evalue, repeats, prefix)
 
     print("running this pipeline command:")
     print(cmd)
@@ -89,6 +99,7 @@ def main(args):
         o.write("{}\n\n".format(datetime.datetime.now()))
         o.write("Pipeline command used:\n{}\n\n".format(cmd))
         o.write("Blast parameters: %id for blast = {}, E value = {}\n".format(blast_id, evalue))
+        o.write("Number of repeats used: {}\n".format(repeats))
         o.write("Number of reads that were mapped only once: {}\n".format(int(only_once_reads)))
         o.write("Number of reads that are contributing to frequency count: {}\n".format(int(freq_contr)))
         o.write("Number of bases called: {}\n".format(int(num_based_called)))
@@ -137,6 +148,9 @@ if __name__ == "__main__":
                         default=85)
     parser.add_argument("-ev", "--evalue", type=float, help="E value for blast, default=1e-7", required=False,
                         default=1e-7)
+    parser.add_argument("-rep", "--repeats", type=int, help="number of reapets, change for CirSeq to be bigger then 1, default=1", required=False,
+                        default=1)
+    parser.add_argument("-pre", "--prefix", type=str, help="optional freq file prefix , default=name of the fastq file", required=False, default='')
     args = parser.parse_args()
     if not vars(args):
         parser.print_help()

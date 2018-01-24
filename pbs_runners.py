@@ -525,4 +525,26 @@ def r4s_runner(tree_file, seq_file, outfile, dirname, tree_outfile=None, unormel
     return job_id
 
 
+def codeml_united_runner(clt1, clt2, rst1_name, rst2_name, alias ="cml"):
+    """
+    run codeml program from PAML on cluster - (runs both alternative and null model in one job).
+    :param ctl1: ctl file path for null model
+    :param ctl2: ctl file path for alternative model
+    :param rst1_name: result file name for null model
+    :param rst2_name: result file alternative for null model
+    :param alias: job name (default: bml)
+    :return: job id
+    """
 
+    clt1 = file_utilities.check_filename(clt1)
+    clt2 = file_utilities.check_filename(clt2)
+    base = os.path.split(clt1)[0]
+    cmdfile = "codeml.txt"; tnum = 1; gmem = 2
+    cmds = "cd %s\n" \
+           "/sternadi/home/volume1/taliakustin/software/paml4.8/bin/codeml %s\n" \
+           "mv rst %s\n" \
+           "/sternadi/home/volume1/taliakustin/software/paml4.8/bin/codeml %s\n" \
+           "mv rst %s\n" % (base, clt1, rst1_name, clt2, rst2_name)
+    pbs_jobs.create_pbs_cmd(cmdfile, alias, tnum, gmem, cmds)
+    job_id = pbs_jobs.submit(cmdfile)
+    return job_id

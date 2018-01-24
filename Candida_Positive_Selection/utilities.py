@@ -59,3 +59,11 @@ def confirm_gene_names():
         if gene not in genes:
             unmatched.append(gene)
     return unmatched
+
+
+def mark_files(folder):
+    to_mark = ["Ca21chr3-orf19.6008","Ca21chr4-ERG26","Ca21chr2-orf19.1768","Ca21chrR-orf19.6382","Ca21chr4-RAM1","Ca21chr2-orf19.813","Ca21chr2-orf19.894"]
+    for f in os.listdir(folder):
+        if f in to_mark:
+            print(f)
+            os.rename(folder +f , folder +f +"-mark")

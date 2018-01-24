@@ -27,7 +27,7 @@ use Create_cmd;
 
 
 
-die "usage pipeline_runner.pl  <input directory with fastq.gz files> <output dir> <reference genome seq (fasta)> <start at step number> <end at step number> <type of input files, optional f if fastq and not zipped files> <refer to gaps? Y/N default Y> <NGS/Cirseq? type 2 for Cirseq (num repeats=2) or 1 for NGS (min num repeats=1)> <Q-score cutoff, default =23 for CirSeq and 30 for NGS> <% id for blast, default=85><E value for blast, default=1e-7>\n
+die "usage pipeline_runner.pl  <input directory with fastq.gz files> <output dir> <reference genome seq (fasta)> <start at step number> <end at step number> <type of input files, optional f if fastq and not zipped files> <refer to gaps? Y/N default Y> <NGS/Cirseq?  type 1 for NGS (min num repeats=1) and >1 for CirSeq> <Q-score cutoff, default =23 for CirSeq and 30 for NGS> <% id for blast, default=85><E value for blast, default=1e-7><freq file prefix, default = filename>\n
 1. Convert fastq.gz to fasta & split all fasta files into N equally sized smaller fasta files (50K reads per file)\n
 2. Run formatdb on each of N files above, and blast against ref seq\n
 3. run base calling script on each blast file above (output-freq files)\n
@@ -76,12 +76,12 @@ my $min_num_repeats=$ARGV[7];
 if ($min_num_repeats==1) {
     print "Running NGS mapping\n";
 }
-elsif ($min_num_repeats==2) {
+elsif ($min_num_repeats>1) {
     print "Running CirSeq mapping\n";
 
 }
 else {
-    die "min number of repeats should be either 1 or 2, it is now $min_num_repeats\n";
+    die "min number of repeats should be either 1 or bigger, it is now $min_num_repeats\n";
 }
 
 
@@ -113,6 +113,15 @@ my $evalue = 1e-7;
 if (defined $ARGV[10]) {
 
     $evalue=$ARGV[10];
+
+}
+
+my $freq_prefix = '';
+
+
+if (defined $ARGV[11]) {
+
+    $freq_prefix=$ARGV[11];
 
 }
 
@@ -346,6 +355,7 @@ sub join_files {
 
 	# list all output blast files with file size > 0
     my $cmd="ls -l $list_freqs_files \| awk \'{print \$NF}\' \| awk -F \"/\" \'{print \$NF}\' \| head -1 \| awk -F \"\.\" \'{print \$1}\'";
+
     my $prefix=`$cmd`;
     chomp $prefix;
 
@@ -353,6 +363,11 @@ sub join_files {
     $prefix =~ s/\.gz.*//;
     $prefix =~ s/^\.\///;
     $prefix =~ s/\_.+//;
+
+    if ($freq_prefix != ''){
+        $prefix = $freq_prefix
+    }
+
 
     my $alias="join";
     my $cmd_file=$out_dir."join.cmd";

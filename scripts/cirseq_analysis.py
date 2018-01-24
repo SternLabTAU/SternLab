@@ -28,9 +28,9 @@ def main():
 
     #for Local
 
-    # suffix = "CVB3-p2.freqs"
-    # freqs_file = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/CV/20170906_q20r3_blastn/" + suffix
-    # virus = "CVB3"
+    # suffix = "RVB14p2.freqs"
+    # freqs_file = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/RV/20170322_output_all_23_qscore/" + suffix
+    # virus = "RVB14"
 
 
 
@@ -74,8 +74,11 @@ def main():
     """ 3. Adding mutation types to the freqs file"""
     if not os.path.isfile(freqs_file[0:-5] + "with.mutation.type.freqs"):
          append_mutation = find_mutation_type(freqs_file, ncbi_id)
-
     freqs_file_mutations = freqs_file[0:-5] + "with.mutation.type.freqs"
+
+    #fetch ncbi data
+    # pos = find_coding_region(ncbi_id)
+    # print(pos)
 
 
 
@@ -85,6 +88,8 @@ def main():
         values = (19.32, 40.52, 45.17)
     if virus == "CVB3":
         values = (96.09, 1.66, 1.18)
+    if virus == "PV":
+        values = (0, 0, 0)
 
     #   5. Subplots all relevant graph in subplots
     #      5.1. Distribution graph (=bowtie2 results)
@@ -206,6 +211,7 @@ def read_repeat_graph(repeat_summery, ax):
     ax.set_xlabel("Number of Repeats")
     ax.set_ylabel("Number of Reads")
     ax.set_xlim(min(keys)-0.5, max(keys)+0.5)
+    ax.set_xticks(keys)
     ax.yaxis.get_major_formatter().set_powerlimits((0, 1))
     sns.set_style("darkgrid")
     return ax
