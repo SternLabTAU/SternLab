@@ -63,14 +63,14 @@ def main(args):
     if repeats == 1 and NGS_or_Cirseq == 2:
         print("WARNING:: running CirSeq mapping with 1 repeat")
 
-    prefix = args.prefix
+    #prefix = args.prefix
 
     path_to_save_pipeline_summary = output + "/pipeline_summary.txt"
     print(start, end, q_score, blast_id, NGS_or_Cirseq)
 
-    cmd = "perl {} {} {} {} {} {} {} {} {} {} {} {} {} {}".format(pipeline_path, input_dir, output, reference,
+    cmd = "perl {} {} {} {} {} {} {} {} {} {} {} {} {}".format(pipeline_path, input_dir, output, reference,
                                                             start, end, type_of_input_file, gaps, NGS_or_Cirseq,
-                                                            q_score, blast_id, evalue, repeats, prefix)
+                                                            q_score, blast_id, evalue, repeats)
 
     print("running this pipeline command:")
     print(cmd)
