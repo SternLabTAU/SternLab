@@ -273,7 +273,7 @@ sub read_quality {
 	chomp $line;
 	if ($line =~ m/\@(\S+)/) { 
 	    my $read=$1;
-	    my $q_line = chomp $lines[$i+1];
+	    my $q_line = $lines[$i+1];
 	    $read2qual{$read}=$q_line;
 	}
 	else {
