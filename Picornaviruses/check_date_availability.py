@@ -4,21 +4,6 @@ from optparse import OptionParser
 from Bio import Entrez
 
 
-def main():
-    parser = OptionParser("usage: %prog[options]")
-    parser.add_option("-g", "--gene_hits", dest="gene_hits", help="gene hits file")
-    parser.add_option("-o", "--output", dest="output", default="same as input", help="Output path. When left empty rewrited input")
-
-    (options, args) = parser.parse_args()
-
-    gene_hits = options.gene_hits
-    if options.output == "same as input":
-        output = gene_hits
-    else:
-        output = options.output
-
-    add_collection_date(gene_hits, output)
-
 
 def add_collection_date(gene_hits, output):
     '''
@@ -26,9 +11,12 @@ def add_collection_date(gene_hits, output):
     :param gene_hits: the gene hits file
     :param output: output file
     '''
+    cnt = 0
     table = pd.read_csv(gene_hits)
     table["date"] = ""
     for id_line in list(table.id):
+        print(cnt)
+        cnt += 1
         id = id_line.split("|")[3]
         handle = Entrez.efetch(db="nucleotide", id=id, rettype="gb", retmode="text")
         record = handle.read()

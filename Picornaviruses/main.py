@@ -9,42 +9,42 @@ import pbs_runners
 
 def main():
 
-    ### sum up blast results - create a table that sums up how many hits came up for every gene
-
-    parser = OptionParser("usage: %prog[options]")
-    parser.add_option("-b", "--blast", dest="blast_path", help="blast result file")
-    parser.add_option("-o", "--output", dest="output", help="Output path")
-    parser.add_option("-v", "--virus", dest="virus", help="virus type")
-
-    (options, args) = parser.parse_args()
-
-    blast_path = options.blast_path
-    output = options.output
-    virus = options.virus
-
-    if virus == "rhino":
-        gene_info = blast.return_rhino_genes()
-    elif virus == "HevC":
-        gene_info = blast.return_HevC_genes()
-    blast.hits_per_gene(blast_path, gene_info, output)
-    print("done")
-
-#    ### check date availability for records in the blast sum up file
+#    ### sum up blast results - create a table that sums up how many hits came up for every gene
 #
 #    parser = OptionParser("usage: %prog[options]")
-#    parser.add_option("-g", "--gene_hits", dest="gene_hits", help="gene hits file")
-#    parser.add_option("-o", "--output", dest="output", default="same as input", help="Output path. When left empty rewrited input")
+#    parser.add_option("-b", "--blast", dest="blast_path", help="blast result file")
+#    parser.add_option("-o", "--output", dest="output", help="Output path")
+#    parser.add_option("-v", "--virus", dest="virus", help="virus type")
 #
 #    (options, args) = parser.parse_args()
 #
-#    gene_hits = options.gene_hits
-#    if options.output == "same as input":
-#        output = gene_hits
-#    else:
-#        output = options.output
+#    blast_path = options.blast_path
+#    output = options.output
+#    virus = options.virus
 #
-#    date.add_collection_date(gene_hits, output)
-#
+#    if virus == "rhino":
+#        gene_info = blast.return_rhino_genes()
+#    elif virus == "HevC":
+#        gene_info = blast.return_HevC_genes()
+#    blast.hits_per_gene(blast_path, gene_info, output, virus)
+
+
+    ### check date availability for records in the blast sum up file
+
+    parser = OptionParser("usage: %prog[options]")
+    parser.add_option("-g", "--gene_hits", dest="gene_hits", help="gene hits file")
+    parser.add_option("-o", "--output", dest="output", default="same as input", help="Output path. When left empty rewrited input")
+
+    (options, args) = parser.parse_args()
+
+    gene_hits = options.gene_hits
+    if options.output == "same as input":
+        output = gene_hits
+    else:
+        output = options.output
+
+    date.add_collection_date(gene_hits, output)
+
 #    ### download sequences by id and create united fasta file
 #
 #    parser = OptionParser("usage: %prog[options]")
@@ -73,3 +73,7 @@ def main():
 #    alignment = options.alignment
 #
 #    pbs_runners.phyml_runner(alignment)
+
+
+if __name__ == "__main__":
+    main()
