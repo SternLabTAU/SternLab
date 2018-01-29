@@ -2,20 +2,6 @@ import pandas as pd
 import xml.etree.ElementTree as ET
 from optparse import OptionParser
 
-
-def main():
-    parser = OptionParser("usage: %prog[options]")
-    parser.add_option("-b", "--blast", dest="blast_path", help="blast result file")
-    parser.add_option("-o", "--output", dest="output", help="Output path")
-
-    (options, args) = parser.parse_args()
-
-    blast_path = options.blast_path
-    output = options.output
-
-    gene_info = return_rhino_genes()
-    hits_per_gene(blast_path, gene_info, output)
-
 # blast_path = '/sternadi/home/volume2/ella/Picornaviruses/samples/rhinovirus/blast analysis/blast_results.txt'
 # output = '/sternadi/home/volume2/ella/Picornaviruses/samples/rhinovirus/blast analysis/'
 
@@ -103,6 +89,15 @@ def return_rhino_genes():
         "3D": (5786, 7165),
     }
     return genes
+
+
+def return_HevC_genes():
+    genes = {
+        "VP1" : (2485, 3402),
+        "3D" : (6004, 7386)
+    }
+    return genes
+
 
 def is_rhino(description):
     '''
