@@ -2,30 +2,17 @@ import pandas as pd
 import xml.etree.ElementTree as ET
 from optparse import OptionParser
 
-
-def main():
-    parser = OptionParser("usage: %prog[options]")
-    parser.add_option("-b", "--blast", dest="blast_path", help="blast result file")
-    parser.add_option("-o", "--output", dest="output", help="Output path")
-
-    (options, args) = parser.parse_args()
-
-    blast_path = options.blast_path
-    output = options.output
-
-    gene_info = return_rhino_genes()
-    hits_per_gene(blast_path, gene_info, output)
-
 # blast_path = '/sternadi/home/volume2/ella/Picornaviruses/samples/rhinovirus/blast analysis/blast_results.txt'
 # output = '/sternadi/home/volume2/ella/Picornaviruses/samples/rhinovirus/blast analysis/'
 
 
-def hits_per_gene(blast_path, gene_info, output_path):
+def hits_per_gene(blast_path, gene_info, output_path, virus):
     '''
     Reads through the blast output file and sums how many hits came up for every gene
     :param blast_path: blast result file
     :param gene_info: dictionary of all gene positions
     :param output_path: common path for all result files
+    :param virus: virus name - rhino, HevC, HevB
     '''
 
     # create data sets for all genes and counters for how many hits every gene had
@@ -39,9 +26,11 @@ def hits_per_gene(blast_path, gene_info, output_path):
     root = xml.getroot()
     for hit in root[8][0][4]:
 
-        # confirm the hit is a rhinoB hit
+        # confirm the hit is a of the right virus
         hit_description = hit[2].text.lower()
-        if not is_rhino(hit_description):
+        if virus == "rhino" and not is_rhino(hit_description):
+            continue
+        elif virus == "HevC" and not is_HevC(hit_description):
             continue
 
         hit_start = int(hit[5][0][4].text)
@@ -104,6 +93,15 @@ def return_rhino_genes():
     }
     return genes
 
+
+def return_HevC_genes():
+    genes = {
+        "VP1" : (2485, 3402),
+        "3D" : (6004, 7386)
+    }
+    return genes
+
+
 def is_rhino(description):
     '''
     Checks if a result is a rhino B result according to the hit's description line
@@ -129,5 +127,24 @@ def is_rhino(description):
             return True
     return False
 
-if __name__ == "__main__":
-    main()
+
+def is_HevC(description):
+    '''
+    Check if the hit belongs to a relevant HevC virus
+    :param description: hit description line from blast result
+    :return: True \ False
+    '''
+    irrelevant_phrases = ["utr", "untranslated"]
+    HevC_numbers = [1, 11, 13, 17, 19, 20, 21, 22, 24]
+    polio = ["human poliovirus 1", "human poliovirus 2", "human poliovirus 3"]
+    for irrelevant_phrase in irrelevant_phrases:
+        if irrelevant_phrase in description:
+            return False
+    for phrase in polio:
+        if phrase in description:
+            return True
+    Hev_starters = ["human coxsackievirus a", "cv-a"]
+    for n in HevC_numbers:
+        for start in Hev_starters:
+            if start + str(n) + " " in description:
+                return True

@@ -2,6 +2,8 @@ from optparse import OptionParser
 from Bio import Entrez
 from Bio import SeqIO
 import pandas as pd
+import os
+from os import path
 
 
 def main():
@@ -27,13 +29,31 @@ def download_seqs(gene_hits, output_prefix):
     # ignore id's that do not have a collection date
     table = table[table['date'] == "Yes"]
     for id_line in list(table.id):
-        print("hi")
         id = id_line.split("|")[3]
         output = output_prefix + id + ".fasta"
         handle = Entrez.efetch(db="nucleotide", id=id, rettype="gb", retmode="fasta")
         record = SeqIO.read(handle, "gb")
         SeqIO.write(record, output, "fasta")
         handle.close()
+
+
+def unite_seqs_to_file(folder, united_path):
+    '''
+    After downloading all sequences to seperate files, this function unites them into a single fasta file that will be
+    accepted by Prank
+    :param folder: the folder that contains all downloaded seqs
+    :param united_path: output file path
+    '''
+    with open(united_path, "w") as united_handle:
+        for file in os.listdir(folder):
+            try:
+                seq = SeqIO.read(folder + "/" + file, "fasta")
+                SeqIO.write(seq, united_handle, "fasta")
+            except ValueError:
+                print("more than one record in "+ file)
+    united_handle.close()
+
+
 
 if __name__ == "__main__":
     main()
