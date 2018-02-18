@@ -100,7 +100,7 @@ def fastml_runner(alignment, tree, alias = "fastml", outdir = None):
     if outdir == None:
         outdir = os.path.dirname(alignment)
     else:
-        out_dir = check_dirname(outdir)
+        outdir = check_dirname(outdir)
     basename = os.path.basename(alignment).split(".")[0].split("_aln")[0]
     newick_tree = outdir + "/" + basename + ".tree.newick.txt"
     ancestor_tree = outdir + "/" + basename + ".tree.ancestor.txt"
@@ -108,11 +108,11 @@ def fastml_runner(alignment, tree, alias = "fastml", outdir = None):
     marginal_seqs = outdir + "/" + basename + ".seq.marginal.txt"
     joint_prob = outdir + "/" + basename + ".prob.joint.txt"
     marginal_prob = outdir + "/" + basename + ".prob.marginal.txt"
-    cmdfile = "fastml"; tnum = 1; gmem = 1
+    cmdfile = "fastml.txt"; tnum = 1; gmem = 1
     cmds = "/sternadi/home/volume1/shared/tools/phylogenyCode/programs/fastml/fastml -s %s -t %s -mn -x %s " \
            "-y %s -j %s -k %s -d %s -e %s -qf" % (alignment, tree, newick_tree, ancestor_tree, joint_seqs,
                                                  marginal_seqs, joint_prob, marginal_prob)
-    pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
+    pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, tnum=tnum, gmem=gmem, cmds=cmds)
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
 
@@ -157,44 +157,28 @@ def prank_runner(sequence, alignment=None, alias = "prank"):
 
 
 
-def prank_codon_runner(sequence, alignment=None, alias = "prank"):
+def prank_codon_runner(sequence, alignment=None, alias = "prank", tree=None):
     """
     run prank codon on cluster
     :param sequence: sequence file path (fasta format)
     :param alignment: alignment output file (default: None)
     :param alias: job name (default: prank)
+    :param tree: an option to add a tree
     :return: job id
     """
     if alignment == None:
         alignment = sequence.split(".fasta")[0] + ".codon_aln"
     sequence = check_filename(sequence)
     alignment = check_filename(alignment, Truefile=False)
-    cmds = "/powerapps/share/bin/prank -d=%s -o=%s -F -codon" % (sequence, alignment)
+    if tree == None:
+        cmds = "/powerapps/share/bin/prank -d=%s -o=%s -F -codon" % (sequence, alignment)
+    else:
+        tree = check_filename(tree)
+        cmds = "/powerapps/share/bin/prank -d=%s -t=%s -o=%s -F -codon" % (sequence, tree, alignment)
     cmdfile = "prank_alignment"; tnum=1; gmem=5
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
-
-
-def prank_codon_runner(sequence, alignment=None, alias = "prank"):
-    """
-    run phyml on cluster
-    :param sequence: sequence file path (fasta format)
-    :param alignment: alignment output file (default: None)
-    :param alias: job name (default: prank)
-    :return: job id
-    """
-    if alignment == None:
-        alignment = sequence.split(".fasta")[0] + ".aln"
-    sequence = check_filename(sequence)
-    alignment = check_filename(alignment, Truefile=False)
-    cmds = "/powerapps/share/bin/prank -d=%s -o=%s -F -codon" % (sequence, alignment)
-    cmdfile = "prank_alignment"; tnum=1; gmem=5
-    pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
-    job_id = pbs_jobs.submit(cmdfile)
-    return job_id
-
-
 
 def prank_runner_with_tree(sequence, tree, alignment=None, alias = "prank"):
     """
@@ -238,22 +222,26 @@ def njTree_runner(alignment, tree=None, alias = "njTree"):
     return job_id
 
 
-def sampling_runner(alignment, amount, sampled_file=None, alias = "sampling"):
+def sampling_runner(alignment, amount, sampled_file=None, alias = "sampling", alphabet="an"):
     """
     run sampling on cluster (doesn't sample random seqs)
     :param alignment: alignment file path
     :param amount: amount of sequences to sample
     :param sampled_file: output file (default: None)
     :param alias: job name (default: sampling)
+    :param alphabet: type of alphabet to use - an - nucleutides, aa - amino acid, ac  codon
     :return: job id
     """
     alignment = check_filename(alignment)
     if sampled_file == None:
         sampled_file = alignment.split(".")[0] + "_sampled.aln"
+    if alphabet not in ["an", "aa", "ac"]:
+        alphabet = "an"
+        print("alphabet type is wrong - changed to default - nucleotides - an")
     output_file = check_filename(sampled_file, Truefile=False)
     cmdfile = "njTree"; tnum=1; gmem=2
-    cmds = "/sternadi/home/volume1/shared/tools/phylogenyCode/programs/sampling/sampling -i %s -n %s -o %s"\
-           % (alignment, amount, sampled_file)
+    cmds = "/sternadi/home/volume1/shared/tools/phylogenyCode/programs/sampling/sampling -i %s -n %s -o %s -%s"\
+           % (alignment, amount, sampled_file, alphabet)
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
