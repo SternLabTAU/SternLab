@@ -501,3 +501,74 @@ def candida_write_ctl_codeml_clade_model(ctl, seq, tree, out, is_null):
 
     ctl_file.close()
     return ctl
+
+
+def write_ctl_codeml_deleterious_load_file(ctl, seq, tree, out, model):
+    """
+    writes a ctl file for codeml PAML
+    :param ctl: ctl file output path
+    :param seq: sequence file path (phylip)
+    :param tree: tree file path
+    :param out: output file path
+    :param model: model to run - 0 for 1 rate, 2 for branch specific rate
+    :param fix_alpha: fix_alpha value
+    :param alpha: alpha value
+    :return: ctl file path
+    """
+    ctl = check_filename(ctl, Truefile=False)
+    seq = check_filename(seq)
+    tree = check_filename(tree)
+    out =check_filename(out, Truefile=False)
+
+
+    ctl_file = open(ctl, "w")
+
+    noisy = "3"
+    verbose = "1"
+    runmode = "0"
+    seqtype = "1"
+    CodonFreq = "2"
+    clock = "0"
+    aaDist = "0"
+    NSsites = "0"
+    icode = "0"
+    Mgene = "0"
+    fix_kappa = "0"
+    kappa = "0.3"
+    fix_omega = "0"
+    omega = "1.3"
+    fix_alpha = "1"
+    alpha = "0"
+    ncatG = "3"
+    getSE = "0"
+    Small_Diff = ".5e-6"
+    method = "0"
+
+    ctl_file.write("\tseqfile = %s\n" % seq)
+    ctl_file.write("\ttreefile = %s\n" % tree)
+    ctl_file.write("\toutfile = %s\n\n" % out)
+    ctl_file.write("\tnoisy = %s\n" % noisy)
+    ctl_file.write("\tverbose = %s\n" % verbose)
+    ctl_file.write("\trunmode = %s\n" % runmode)
+    ctl_file.write("\tseqtype = %s\n" % seqtype)
+    ctl_file.write("\tCodonFreq = %s\n" % CodonFreq)
+    ctl_file.write("\tclock = %s\n" % clock)
+    ctl_file.write("\taaDist = %s\n" % aaDist)
+    ctl_file.write("\tmodel = %s\n" % model)
+    ctl_file.write("\tNSsites = %s\n" % NSsites)
+    ctl_file.write("\ticode = %s\n" % icode)
+    ctl_file.write("\tMgene = %s\n" % Mgene)
+    ctl_file.write("\tfix_kappa = %s\n" % fix_kappa)
+    ctl_file.write("\tkappa = %s\n" % kappa)
+    ctl_file.write("\tfix_omega = %s\n" % fix_omega)
+    ctl_file.write("\tomega = %s\n" % omega)
+    ctl_file.write("\tfix_alpha = %s\n" % fix_alpha)
+    ctl_file.write("\talpha = %s\n" % alpha)
+    ctl_file.write("\tncatG = %s\n" % ncatG)
+    ctl_file.write("\tgetSE = %s\n" % getSE)
+    ctl_file.write("\tSmall_Diff = %s\n" % Small_Diff)
+    ctl_file.write("\tmethod = %s\n" % method)
+
+
+    ctl_file.close()
+    return ctl
