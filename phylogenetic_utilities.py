@@ -91,7 +91,7 @@ def maximum_branch_length(tree_file):
             maximum = clade.branch_length
     return maximum
 
-def branch_over_threshold(tree_file, threshold):
+def branch_over_threshold(tree_file, threshold=0.5):
     """
     returns True if there is a branch over the threshold in a given tree
     :param tree_file: input tree path
@@ -102,6 +102,8 @@ def branch_over_threshold(tree_file, threshold):
     tree = Phylo.read(tree_file, "newick")
     clades = list(tree.find_clades())
     for clade in clades:
+        if clade.branch_length  == None:
+            continue
         if clade.branch_length >= threshold:
             return True
     return False
