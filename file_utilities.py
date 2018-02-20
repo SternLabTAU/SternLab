@@ -42,3 +42,14 @@ def make_dir(dir):
     """
     if not os.path.isdir(dir):
         os.mkdir(dir)
+
+
+def change_filename(infile, outfile):
+    """
+    change filename from infile to outfile
+    :param infile: input file path
+    :param outfile: out file path
+    """
+    infile = check_filename(infile)
+    outfile = check_filename(outfile, Truefile=False)
+    os.system("mv %s %s" % (infile, outfile))

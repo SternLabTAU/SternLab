@@ -4,7 +4,11 @@ import os
 import subprocess
 from time import sleep
 
+<<<<<<< HEAD
 def create_pbs_cmd(cmdfile, alias, jnum, gmem, cmds, dir = "", load_python=True):
+=======
+def create_pbs_cmd(cmdfile, alias, tnum=None, gmem, cmds, dir = "", load_python=True):
+>>>>>>> a48c2cdf1c4ba161635b7ccda60f5ed02e786a47
     with open(cmdfile, 'w') as o:
         o.write("#!/bin/bash\n#PBS -S /bin/bash\n#PBS -j oe\n#PBS -r y\n")
         o.write("#PBS -q adis\n")

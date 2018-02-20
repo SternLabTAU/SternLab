@@ -364,3 +364,24 @@ def sam_to_fasta(input, output=None):
     out = open(output, "w")
     out.write(out_fasta)
     out.close()
+
+
+def change_ambiguity_characters_to_N(input, output = None, additional_characers=""):
+    input = check_filename(input)
+    if output == None:
+        output = input
+    else:
+        output = check_filename(output, Truefile=False)
+    fasta = list(SeqIO.parse(input, "fasta"))
+    new_fasta = []
+    ambiguity_chars = ["M", "R", "W", "S", "Y", "K", "V", "H", "D", "B", "X"]
+    if additional_characers != "":
+        for i in additional_characers.split(","):
+            ambiguity_chars.append(i)
+    for f in fasta:
+        seq = str(f.seq)
+        for i in ambiguity_chars:
+            seq = seq.replace(i, "N")
+        f.seq = Seq(seq)
+        new_fasta.append(f)
+    SeqIO.write(new_fasta, output, "fasta")
