@@ -572,3 +572,75 @@ def write_ctl_codeml_deleterious_load_file(ctl, seq, tree, out, model):
 
     ctl_file.close()
     return ctl
+
+
+def retrive_codeml_delitirious_restults(files, output="./codeml_1-2ratio_results.csv"):
+    """
+
+    :param files: list of fasta / phy files.
+        the mlc files are in 1 and 2 ratio directories in directory as the fasta/phy files
+    :param output: output file. default ./codeml_1-2ratio_results.csv
+    :return: dataframe with results
+    """
+    files = [check_filename(f) for f in files]
+    output = check_filename(output, Truefile=False)
+    dir = os.path.dirname(files[0])
+    # regex patterns for retrieving results
+    omega_1ratio_pattern = re.compile("omega.*")
+    dN_length_pattern = re.compile("tree length for dN:.*")
+    dS_length_pattern = re.compile("tree length for dS:.*")
+    omega_branches_2ratio_pattern = re.compile(".*for branches:.*")
+    lnL_pattern = re.compile("lnL.*")
+
+    codeml_results = pd.DataFrame()
+    # go over files
+    for f in files:
+        if "unaligned" in f:
+            continue
+        basename = f.split("/")[-1].split(".fasta")[0].split(".phy")[0]
+        print("%s/1ratio/%s*.mlc" % (dir, basename))
+        print("%s/2ratio/%s*.mlc" % (dir, basename))
+        mlc_1ratio = glob.glob("%s/1ratio/%s*.mlc" % (dir, basename))[0]
+        mlc_2ratio = glob.glob("%s/2ratio/%s*.mlc" % (dir, basename))[0]
+        omega = None
+        dN_length_1ratio = None
+        dS_length_1ratio = None
+        number_of_seqs = None
+        length_of_seqs_codons = None
+        dN_length_2ratio = None
+        dS_length_2ratio = None
+        external_branchs = None
+        internal_branchs = None
+        lnL_1ratio = None
+        lnL_2ratio = None
+
+        # get information from 1 ratio result file
+        res_1ratio = open(mlc_1ratio, "r").read()
+        if "Time" in res_1ratio:
+            pattern = re.compile("omega.*")
+            omega = float(omega_1ratio_pattern.findall(res_1ratio)[0].split("=")[-1].strip())
+            dN_length_1ratio = float(dN_length_pattern.findall(res_1ratio)[0].split(":")[-1].strip())
+            dS_length_1ratio = float(dS_length_pattern.findall(res_1ratio)[0].split(":")[-1].strip())
+            sequence_info = [i for i in res_1ratio.split("\n")[0].split(" ") if i != ""]
+            number_of_seqs = float(sequence_info[0])
+            length_of_seqs_codons = float(sequence_info[1]) / 3
+            lnL_1ratio = float(lnL_pattern.findall(res_1ratio)[0].split("):")[-1].strip().split(" ")[0])
+
+        res_2ratio = open(mlc_2ratio, "r").read()
+        if "Time" in res_2ratio:
+            dN_length_2ratio = float(dN_length_pattern.findall(res_2ratio)[0].split(":")[-1].strip())
+            dS_length_2ratio = float(dS_length_pattern.findall(res_2ratio)[0].split(":")[-1].strip())
+            omega_branches_2ratio = omega_branches_2ratio_pattern.findall(res_2ratio)[0].split(" ")[-2:]
+            external_branchs = float(omega_branches_2ratio[0])
+            internal_branchs = float(omega_branches_2ratio[1])
+            lnL_2ratio = float(lnL_pattern.findall(res_2ratio)[0].split("):")[-1].strip().split(" ")[0])
+        #write results to dataframe
+        codeml_results = codeml_results.append(
+            {"filename": basename, "num_of_seqs": number_of_seqs, "seg_len_codon": length_of_seqs_codons,
+             "lnL_1ratio": lnL_1ratio, "lnL_2ratio": lnL_2ratio,
+             "w": omega, "wi": internal_branchs, "we": external_branchs,
+             "dN_length_1ratio": dN_length_1ratio, "dS_length_1ratio": dS_length_1ratio,
+             "dN_length_2ratio": dN_length_2ratio, "dS_length_2ratio": dS_length_2ratio}, ignore_index=True)
+
+    codeml_results.to_csv(output)
+    return codeml_results
