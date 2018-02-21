@@ -3,6 +3,7 @@ import subprocess
 import numpy as np
 import os
 import argparse
+from tqdm import tqdm
 
 
 def main(args):
@@ -18,14 +19,14 @@ def main(args):
     median_cov = []
     reads = []
 
-    for f in fastq_files:
+    for f in tqdm(fastq_files):
         total_reads = get_num_reads(f)
         reads.append(total_reads)
         s = os.path.basename(f).split('.')[0]
         sample_reads.append(s)
 
-    for f in freq_files:
-        coverage = get_median_coverage()
+    for f in tqdm(freq_files):
+        coverage = get_median_coverage(f)
         median_cov.append(coverage)
         s = os.path.basename(f).split('.')[0]
         sample_coverage.append(s)
