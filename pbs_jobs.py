@@ -3,8 +3,7 @@
 import os
 import subprocess
 from time import sleep
-
-def create_pbs_cmd(cmdfile, alias, gmem, cmds, dir = "", load_python=True):
+def create_pbs_cmd(cmdfile, alias, tnum=None, gmem, cmds, dir = "", load_python=True):
     with open(cmdfile, 'w') as o:
         o.write("#!/bin/bash\n#PBS -S /bin/bash\n#PBS -j oe\n#PBS -r y\n")
         o.write("#PBS -q adis\n")
@@ -13,8 +12,9 @@ def create_pbs_cmd(cmdfile, alias, gmem, cmds, dir = "", load_python=True):
         if (gmem):
             mem=gmem*1000
             o.write("#PBS -l mem="+str(mem)+"mb\n")
-       # if jnum != 1:
-       #     o.write("#PBS -J 1-"+str(jnum)+"\n\n")
+        if jnum:
+           if jnum != 1:
+               o.write("#PBS -J 1-"+str(jnum)+"\n\n")
        # #o.write("#PBS -J 3-4 \n")
         if dir != "":
             o.write("ls -land %s\n" % dir)
