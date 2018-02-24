@@ -385,3 +385,20 @@ def change_ambiguity_characters_to_N(input, output = None, additional_characers=
         f.seq = Seq(seq)
         new_fasta.append(f)
     SeqIO.write(new_fasta, output, "fasta")
+
+def change_X_characters_to_gap(input, output=None):
+    input = check_filename(input)
+    if output == None:
+        output = input
+    else:
+        output = check_filename(output, Truefile=False)
+    fasta = list(SeqIO.parse(input, "fasta"))
+    new_fasta = []
+    ambiguity_chars = ["X"]
+    for f in fasta:
+        seq = str(f.seq)
+        for i in ambiguity_chars:
+            seq = seq.replace(i, "-")
+        f.seq = Seq(seq)
+        new_fasta.append(f)
+    SeqIO.write(new_fasta, output, "fasta")
