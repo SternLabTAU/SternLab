@@ -402,3 +402,22 @@ def change_X_characters_to_gap(input, output=None):
         f.seq = Seq(seq)
         new_fasta.append(f)
     SeqIO.write(new_fasta, output, "fasta")
+
+def get_longest_sequence_name_in_fasta(aln_file, in_format="fasta"):
+    """
+    returns the longest sequence name in the alignment
+    :param aln_file: input alignment file path
+    :param in_format: input format (default = fasta)
+    :return: name of the longest sequence in the alignment
+    """
+    aln = AlignIO.read(aln_file, in_format, alphabet=Alphabet.Gapped(IUPAC.unambiguous_dna))
+    longest = 0
+    longest_name = ""
+    for i in aln:
+        seq = str(i.seq)
+        seq = seq.replace("-", "")
+        l = len(seq)
+        if l > longest:
+            longest = l
+            longest_name = i.name
+    return longest_name
