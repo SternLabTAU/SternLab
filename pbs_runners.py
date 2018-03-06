@@ -1,11 +1,10 @@
 #! /usr/local/python_anaconda/bin/python3.4
-#! /usr/local/python_anaconda/bin/python3.4
 
 import pbs_jobs
 import os
 from os import path
-from file_utilities import check_filename, check_dirname
-from seqFileTools import convert_fasta_to_phylip
+from seqFileTools import convert_fasta_to_phylip, get_longest_sequence_name_in_fasta
+from file_utilities import set_filenames_for_pbs_runs, check_filename, check_dirname
 
 def baseml_runner(ctl, alias = "bml"):
     """
@@ -37,7 +36,7 @@ def codeml_runner(ctl, alias = "cml"):
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
 
-def script_runner(cmds, alias = "script"):
+def script_runner(cmds, alias = "script", load_python=False):
     """
     run script on cluster
     :param cmds: script running line
@@ -46,7 +45,7 @@ def script_runner(cmds, alias = "script"):
     """
     cmdfile = "script"; tnum=1; gmem=1
     print(cmdfile, alias, tnum, gmem, cmds)
-    pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
+    pbs_jobs.create_pbs_cmd(cmdfile, alias=alias, gmem=gmem, cmds=cmds, load_python=load_python)
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
 
@@ -112,7 +111,7 @@ def fastml_runner(alignment, tree, alias = "fastml", outdir = None):
     cmds = "/sternadi/home/volume1/shared/tools/phylogenyCode/programs/fastml/fastml -s %s -t %s -mn -x %s " \
            "-y %s -j %s -k %s -d %s -e %s -qf" % (alignment, tree, newick_tree, ancestor_tree, joint_seqs,
                                                  marginal_seqs, joint_prob, marginal_prob)
-    pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, tnum=tnum, gmem=gmem, cmds=cmds)
+    pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, gmem=gmem, cmds=cmds)
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
 
@@ -222,7 +221,7 @@ def njTree_runner(alignment, tree=None, alias = "njTree"):
     return job_id
 
 
-def sampling_runner(alignment, amount, sampled_file=None, alias = "sampling", alphabet="an"):
+def sampling_runner(alignment, amount, sampled_file=None, alias = "sampling", alphabet="an", random=False):
     """
     run sampling on cluster (doesn't sample random seqs)
     :param alignment: alignment file path
@@ -234,13 +233,17 @@ def sampling_runner(alignment, amount, sampled_file=None, alias = "sampling", al
     """
     alignment = check_filename(alignment)
     if sampled_file == None:
-        sampled_file = alignment.split(".")[0] + "_sampled.aln"
+        sampled_file = alignment.split(".")[0] + "_sampled_%s.aln" % str(amount)
     if alphabet not in ["an", "aa", "ac"]:
         alphabet = "an"
         print("alphabet type is wrong - changed to default - nucleotides - an")
     output_file = check_filename(sampled_file, Truefile=False)
-    cmdfile = "njTree"; tnum=1; gmem=2
-    cmds = "/sternadi/home/volume1/shared/tools/phylogenyCode/programs/sampling/sampling -i %s -n %s -o %s -%s"\
+    cmdfile = "njTree"; tnum=1; gmem=5
+    if random:
+        cmds = "/sternadi/home/volume1/shared/tools/phylogenyCode/programs/sampling/sampling -i %s -n %s -o %s -%s -r" \
+               % (alignment, amount, sampled_file, alphabet)
+    else:
+        cmds = "/sternadi/home/volume1/shared/tools/phylogenyCode/programs/sampling/sampling -i %s -n %s -o %s -%s"\
            % (alignment, amount, sampled_file, alphabet)
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
     job_id = pbs_jobs.submit(cmdfile)
@@ -435,6 +438,26 @@ def bowtie2_runner(bowtie_index_path, fastq_file, sam_output, alias="bowtie2"):
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
 
+
+def bowtie2_build_runner(input_file, output_db_name=None, alias="bowtie2-build  "):
+    """
+
+    :param input_file:
+    :param output_db_name:
+    :param alias:
+    :return:
+    """
+    input_file = check_filename(input_file, Truefile=False)
+    if output_db_name == "None":
+        output_db_name = input_file.split(".fasta")[0].split(".fna")[0]
+    else:
+        output_db_name = check_filename(output_db_name, Truefile=False)
+    cmdfile = "bowtie2-build"; tnum = 1; gmem = 2
+    cmds = "/usr/local/bin/bowtie2-build %s %s" % (input_file, output_db_name)
+    pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
+    job_id = pbs_jobs.submit(cmdfile)
+    return job_id
+
 def tophat2_runner(output_dir, bowtie_reference, fastq, alias="tophat2"):
     """
     tophat2 runner
@@ -537,3 +560,37 @@ def codeml_united_runner(clt1, clt2, rst1_name, rst2_name, alias ="cml"):
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
+
+
+def selecton_runner(codon_aln, tree=None, log=None, rate=None, output=None,
+                    color=None, out_tree=None, query_seq = None, model="M8", alias="selecton"):
+    codon_aln = check_filename(codon_aln)
+    base = codon_aln.split(".")[0] + "_selecton"
+    log = set_filenames_for_pbs_runs(log, base, "log.txt")
+    rate = set_filenames_for_pbs_runs(rate, base, "kaks.txt")
+    output = set_filenames_for_pbs_runs(output, base, "output.txt")
+    color = set_filenames_for_pbs_runs(color, base, "color.txt")
+    out_tree = set_filenames_for_pbs_runs(out_tree, base, "output_tree.txt")
+
+    if query_seq == None:
+        query_seq = get_longest_sequence_name_in_fasta(codon_aln)
+
+    if model == "M8":
+        model = ""
+    elif model == "M8a":
+        model = "-w1 -Fw"
+    elif model == "M7":
+        model = "-p1 -Fp"
+
+    if tree != None:
+        tree = check_filename(tree)
+        cmds = "selecton -i %s -u %s -l %s -r %s -o %s -c %s -t %s %s" \
+               % (codon_aln, tree, log, rate, output, color, out_tree, model)
+    else:
+        cmds = "selecton -i %s -l %s -r %s -o %s -c %s -t %s %s" \
+               % (codon_aln, log, rate, output, color, out_tree, model)
+    cmdfile = "selecton.txt"; tnum = 1; gmem = 2
+    pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
+    job_id = pbs_jobs.submit(cmdfile)
+    return job_id
+
