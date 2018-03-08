@@ -594,3 +594,26 @@ def selecton_runner(codon_aln, tree=None, log=None, rate=None, output=None,
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
 
+def pipeline_runner(input_dir, output_dir, ref_file, NGS_or_Cirseq, TYPE_OF_INPUT_FILE=None, start=None, end=None, gaps=None,
+                    qscore=None, blast=None):
+    input_dir = check_dirname(input_dir)
+    output_dir = check_dirname(output_dir)
+    ref_file = check_filename(ref_file)
+    if NGS_or_Cirseq not in [1, 2]:
+        raise Exception("NGS_or_Cirseq has to be 1 or 2")
+    cmds = "/sternadi/home/volume1/shared/SternLab/pipeline_runner.py -i %s -o %s -r %s -NGS_or_Cirseq %i" \
+           % (input_dir, output_dir, ref_file, NGS_or_Cirseq)
+    if TYPE_OF_INPUT_FILE != None:
+        cmds += " -t %s" % TYPE_OF_INPUT_FILE
+    if start != None:
+        cmds += " -s %i" % start
+    if end != None:
+        cmds += " -e %i" % end
+    if gaps != None:
+        cmds += " -g %s" % gaps
+    if qscore != None:
+        cmds += " -q %i" % qscore
+    if blast != None:
+        cmds += " -b %i" % blast
+
+    print(cmds)
