@@ -12,7 +12,7 @@ def hits_per_gene(blast_path, gene_info, output_path, virus):
     :param blast_path: blast result file
     :param gene_info: dictionary of all gene positions
     :param output_path: common path for all result files
-    :param virus: virus name - rhino, HevC, HevB
+    :param virus: virus name - rhino, HevC, HevB, RVA-minor
     '''
 
     # create data sets for all genes and counters for how many hits every gene had
@@ -31,6 +31,12 @@ def hits_per_gene(blast_path, gene_info, output_path, virus):
         if virus == "rhino" and not is_rhino(hit_description):
             continue
         elif virus == "HevC" and not is_HevC(hit_description):
+            continue
+        elif virus == "HevB" and not is_HevB(hit_description):
+            continue
+        elif virus == "RVA-minor" and not is_rva_minor(hit_description):
+            continue
+        elif virus == "RVA-major" and not is_rva_major(hit_description):
             continue
 
         hit_start = int(hit[5][0][4].text)
@@ -102,6 +108,57 @@ def return_HevC_genes():
     return genes
 
 
+def return_HevB_genes():
+    genes = {
+        "VP1" : (2452,3303),
+        "3D" : (5911,7296)
+    }
+    return genes
+
+
+def return_rva_minor_genes():
+    genes = {"VP1" : (2233, 3081)}
+    return genes
+
+def return_rva_major_genes():
+    genes = {"VP1" : (2017, 2904)}
+    return genes
+
+def is_rva_minor(description):
+    irrelevant_phrases = ["utr", "rhinovirus c", "rhinovirus b", "untranslated"]
+    minor_numbers = [23, 30, 2, 49, 31, 47, 25, 62, 29, 44, "1A", "1B"]
+    rhinoA_phrases = {"human rhinovirus a", "hrv-a", "hrva"}
+    for irrelevant_phrase in irrelevant_phrases:
+        if irrelevant_phrase in description:
+            return False
+    for rhinoA_phrase in rhinoA_phrases:
+        if rhinoA_phrase in description:
+            for minor_phrase in minor_numbers:
+                if "a" + str(minor_phrase) in description:
+                    return True
+    return False
+
+
+def is_rva_major(description):
+    irrelevant_phrases = ["utr", "rhinovirus c", "rhinovirus b", "untranslated"]
+    majors = ["a1", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a15", "a16", "a18",
+              "a19", "a20", "a21", "a22", "a24", "a28", "a32",
+              "a33", "a34", "a36", "a38", "a39", "a40", "a41", "a43", "a45", "a46",
+              "a50", "a51", "a53", "a54", "a55", "a56", "a57", "a58", "a59", "a60", "a61",
+              "a63", "a64", "a65", "a66", "a67", "a68", "a71", "a73", "a74", "a75", "a76", "a77",
+              "a78", "a80", "a81", "a82", "a85", "a88", "a89", "a90", "a94", "a96", "a100", "a101",
+              "a102", "a103", "a104", "a105", "a106", "a107", "a108", "a109"]
+    rhinoA_phrases = {"human rhinovirus a", "hrv-a", "hrva"}
+    for irrelevant_phrase in irrelevant_phrases:
+        if irrelevant_phrase in description:
+            return False
+    for rhinoA_phrase in rhinoA_phrases:
+        if rhinoA_phrase in description:
+            for major in majors:
+                if major in description:
+                    return True
+    return False
+
 def is_rhino(description):
     '''
     Checks if a result is a rhino B result according to the hit's description line
@@ -148,3 +205,26 @@ def is_HevC(description):
         for start in Hev_starters:
             if start + str(n) + " " in description:
                 return True
+
+
+def is_HevB(description):
+    '''
+    Check if the hit belongs to a relevant HevB virus
+    :param description: hit description line from blast result
+    :return: True \ False
+    '''
+    irrelevant_phrases = ["utr", "untranslated"]
+    HevB_numbers = [1,2,3,4,5,6]
+    for irrelevant_phrase in irrelevant_phrases:
+        if irrelevant_phrase in description:
+            return False
+    HevB_starters = ["human coxsackievirus b", "cv-b"]
+    for n in HevB_numbers:
+        for start in HevB_starters:
+            if start + str(n) + " " in description:
+                return True
+    if "cv-a9" in description or "human coxsackievirus a9" in description:
+        return True
+
+
+

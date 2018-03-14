@@ -26,6 +26,8 @@ def main():
 #        gene_info = blast.return_rhino_genes()
 #    elif virus == "HevC":
 #        gene_info = blast.return_HevC_genes()
+#    elif virus == "HevB":
+#        gene_info = blast.return_HevB_genes()
 #    blast.hits_per_gene(blast_path, gene_info, output, virus)
 
 
@@ -60,7 +62,7 @@ def main():
 #    download.download_seqs(gene_hits, output)
 #    download.unite_seqs_to_file(output, united)
 #
-#    ### run prank on united file
+#    ### align using mafft
 #
 #    pbs_runners.prank_codon_runner(united)
 #
@@ -77,3 +79,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
