@@ -340,6 +340,32 @@ def remove_gapped_positions(aln_file, output = None, in_format = "fasta"):
 
     AlignIO.write(new_aln, output, "fasta")
 
+def remove_gapped_positions_codon(aln_file, output = None, in_format = "fasta"):
+    """
+    removes positions in an alignment which are all gapped
+    if output == None - rewrites on the input file
+    :param aln_file: input alignment file path
+    :param output: output file path (default: None)
+    :param in_format: input format (default: fatsa)
+    :return: ouptut file path
+    """
+    aln_file = check_filename(aln_file)
+    if output == None:
+        output = aln_file
+    else:
+        output = check_filename(output, Truefile=False)
+    aln = AlignIO.read(aln_file, in_format, alphabet=Alphabet.Gapped(IUPAC.unambiguous_dna))
+    new_aln = None
+    for i in range(0, len(aln[0]), 3):
+        position = aln[:, i:i+3]
+        if "".join(set(position[0])) != "-" or "".join(set(position[2])) != "-" or "".join(set(position[2])) != "-":
+            if new_aln == None:
+                new_aln = aln[:, i:i+3]
+            else:
+                new_aln = new_aln + aln[:, i:i+3]
+
+    AlignIO.write(new_aln, output, "fasta")
+
 
 def sam_to_fasta(input, output=None):
     """
