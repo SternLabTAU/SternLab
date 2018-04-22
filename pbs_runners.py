@@ -562,10 +562,14 @@ def codeml_united_runner(clt1, clt2, rst1_name, rst2_name, alias ="cml"):
     return job_id
 
 
-def selecton_runner(codon_aln, tree=None, log=None, rate=None, output=None,
+def selecton_runner(codon_aln, output_dir=None, tree=None, log=None, rate=None, output=None,
                     color=None, out_tree=None, query_seq = None, model="M8", alias="selecton"):
     codon_aln = check_filename(codon_aln)
-    base = codon_aln.split(".")[0] + "_selecton"
+    if output_dir == None:
+        base = codon_aln.split(".")[0] + "_selecton"
+    else:
+        base = check_dirname(output_dir)
+        base = base + codon_aln.split("/")[-1].split(".")[0] + "_selecton"
     log = set_filenames_for_pbs_runs(log, base, "log.txt")
     rate = set_filenames_for_pbs_runs(rate, base, "kaks.txt")
     output = set_filenames_for_pbs_runs(output, base, "output.txt")
@@ -584,11 +588,11 @@ def selecton_runner(codon_aln, tree=None, log=None, rate=None, output=None,
 
     if tree != None:
         tree = check_filename(tree)
-        cmds = "selecton -i %s -u %s -l %s -r %s -o %s -c %s -t %s %s" \
-               % (codon_aln, tree, log, rate, output, color, out_tree, model)
+        cmds = "selecton -i %s -u %s -l %s -r %s -o %s -c %s -t %s %s -q %s" \
+               % (codon_aln, tree, log, rate, output, color, out_tree, model, query_seq)
     else:
-        cmds = "selecton -i %s -l %s -r %s -o %s -c %s -t %s %s" \
-               % (codon_aln, log, rate, output, color, out_tree, model)
+        cmds = "selecton -i %s -l %s -r %s -o %s -c %s -t %s %s -q %s" \
+               % (codon_aln, log, rate, output, color, out_tree, model, query_seq)
     cmdfile = "selecton.txt"; tnum = 1; gmem = 2
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
     job_id = pbs_jobs.submit(cmdfile)
