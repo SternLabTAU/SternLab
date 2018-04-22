@@ -563,7 +563,7 @@ def codeml_united_runner(clt1, clt2, rst1_name, rst2_name, alias ="cml"):
 
 
 def selecton_runner(codon_aln, output_dir=None, tree=None, log=None, rate=None, output=None,
-                    color=None, out_tree=None, query_seq = None, model="M8", alias="selecton"):
+                    color=None, out_tree=None, query_seq = None, model="M8", alias="selecton", use_query_seq=False):
     codon_aln = check_filename(codon_aln)
     if output_dir == None:
         base = codon_aln.split(".")[0] + "_selecton"
@@ -588,11 +588,19 @@ def selecton_runner(codon_aln, output_dir=None, tree=None, log=None, rate=None, 
 
     if tree != None:
         tree = check_filename(tree)
-        cmds = "selecton -i %s -u %s -l %s -r %s -o %s -c %s -t %s %s -q %s" \
-               % (codon_aln, tree, log, rate, output, color, out_tree, model, query_seq)
+        if use_query_seq == False:
+            cmds = "selecton -i %s -u %s -l %s -r %s -o %s -c %s -t %s %s" \
+                   % (codon_aln, tree, log, rate, output, color, out_tree, model)
+        else:
+            cmds = "selecton -i %s -u %s -l %s -r %s -o %s -c %s -t %s %s -q %s" \
+                   % (codon_aln, tree, log, rate, output, color, out_tree, model, query_seq)
     else:
-        cmds = "selecton -i %s -l %s -r %s -o %s -c %s -t %s %s -q %s" \
-               % (codon_aln, log, rate, output, color, out_tree, model, query_seq)
+        if use_query_seq == False:
+            cmds = "selecton -i %s -l %s -r %s -o %s -c %s -t %s %s" \
+                   % (codon_aln, log, rate, output, color, out_tree, model)
+        else:
+            cmds = "selecton -i %s -l %s -r %s -o %s -c %s -t %s %s -q %s" \
+                   % (codon_aln, log, rate, output, color, out_tree, model, query_seq)
     cmdfile = "selecton.txt"; tnum = 1; gmem = 2
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
     job_id = pbs_jobs.submit(cmdfile)
