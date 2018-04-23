@@ -480,8 +480,8 @@ def tophat2_runner(output_dir, bowtie_reference, fastq, alias="tophat2"):
 
 
 
-def r4s_runner(tree_file, seq_file, outfile, dirname, tree_outfile=None, unormelized_outfile=None, log_outfile=None,\
-               alias = "r4s"):
+def r4s_runner(tree_file, seq_file, outfile, dirname, tree_outfile=None, unormelized_outfile=None, log_outfile=None, \
+               ref_seq = None, n_categories = 4, alias = "r4s"):
     """
     run r4site on cluster
     :param tree_file: input tree file path
@@ -522,7 +522,7 @@ def r4s_runner(tree_file, seq_file, outfile, dirname, tree_outfile=None, unormel
                                                             + " -y " + unormelized_outfile\
                                                             + " -V 10"\
                                                             + " -l " + log_outfile\
-                                                            + " -Mh -k 4"
+                                                            + " -Mh -k " + n_categories
     else:
         cmds = "/sternadi/home/volume1/shared/tools/rate4site"\
                                                             + " -s " + seq_file\
@@ -531,7 +531,9 @@ def r4s_runner(tree_file, seq_file, outfile, dirname, tree_outfile=None, unormel
                                                             + " -y " + unormelized_outfile\
                                                             + " -V 10"\
                                                             + " -l " + log_outfile\
-                                                            + " -Mh -k 4"
+                                                            + " -Mh -k " + n_categories
+    if ref_seq is not None:
+        cmds += "-a " + ref_seq
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
