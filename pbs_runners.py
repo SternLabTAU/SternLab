@@ -513,11 +513,13 @@ def r4s_runner(tree_file, seq_file, outfile, dirname, tree_outfile=None, unormel
 
 
     cmdfile = "r4s_cmd.txt"; tnum = 1; gmem = 2
+    ref_seq_parameter = "-a " + ref_seq if ref_seq is not None else ""
     if tree_file !=None:
         cmds = "/sternadi/home/volume1/shared/tools/rate4site"\
                                                             + " -t " + tree_file\
                                                             + " -s " + seq_file\
                                                             + " -o " + outfile\
+                                                            + ref_seq_parameter \
                                                             + " -x " + tree_outfile\
                                                             + " -y " + unormelized_outfile\
                                                             + " -V 10"\
@@ -526,14 +528,14 @@ def r4s_runner(tree_file, seq_file, outfile, dirname, tree_outfile=None, unormel
     else:
         cmds = "/sternadi/home/volume1/shared/tools/rate4site"\
                                                             + " -s " + seq_file\
-                                                            + " -o " + outfile\
+                                                            + " -o " + outfile \
+                                                            + ref_seq_parameter\
                                                             + " -x " + tree_outfile\
                                                             + " -y " + unormelized_outfile\
                                                             + " -V 10"\
                                                             + " -l " + log_outfile\
                                                             + " -Mh -k " + n_categories
-    if ref_seq is not None:
-        cmds += "-a " + ref_seq
+
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
