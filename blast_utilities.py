@@ -3,12 +3,6 @@
 import pandas as pd
 import re
 
-mutation_pattern = re.compile('[ACGT]{2}')
-insertion_pattern = re.compile('-[ACGT]')
-deletion_pattern = re.compile('[ACGT]-')
-number_pattern = re.compile('\d+')
-pattern = re.compile('[ACGT-]{2}|\d+')
-
 
 
 def blast_to_mutations_list(blast_path, out_csv_path):
@@ -45,6 +39,12 @@ def parse_btop(row):
     Gets a pandas dataframe row from a blast file and parses the btop field.
     Used in get_mutations_from_blast function.
     '''
+    mutation_pattern = re.compile('[ACGT]{2}')
+    insertion_pattern = re.compile('-[ACGT]')
+    deletion_pattern = re.compile('[ACGT]-')
+    number_pattern = re.compile('\d+')
+    pattern = re.compile('[ACGT-]{2}|\d+')
+
     insertions = []
     deletions = []
     mutations = []
