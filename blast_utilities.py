@@ -3,7 +3,15 @@
 import pandas as pd
 import re
 
-
+def blast_to_df(blast_path):
+    '''
+    Creates pandas dataframe from blast file
+    :param blast_path: input file path, needs to be blast output
+    :returns: pandas dataframe
+    '''
+    blast_df = pd.read_csv(blast_path, sep='\t', header = None)
+    blast_df.columns = ("read", "start_ref", "end_ref", "start_read", "end_read", "strand", "length", "btop")
+    return blast_df
 
 def blast_to_mutations_list(blast_path, out_csv_path):
     '''
@@ -12,8 +20,7 @@ def blast_to_mutations_list(blast_path, out_csv_path):
     :param blast_path: input file path, needs to be blast output
     :param out_csv_path: output file path
     '''
-    blast = pd.read_csv(blast_path, sep="\t", header=None)
-    blast.columns = ["read", "start_ref", "end_ref", "start_read", "end_read", "strand", "length", "btop"]
+    blast = blast_to_df(blast_path)
     blast['parsed_btop'] = blast.apply(parse_btop, axis=1)
     reads = []
     positions = []
@@ -37,13 +44,13 @@ def blast_to_mutations_list(blast_path, out_csv_path):
 def parse_btop(row):
     '''
     Gets a pandas dataframe row from a blast file and parses the btop field.
-    Used in get_mutations_from_blast function.
+    Used in blast_to_mutations_list function.
     '''
-    mutation_pattern = re.compile('[ACGT]{2}')
-    insertion_pattern = re.compile('-[ACGT]')
-    deletion_pattern = re.compile('[ACGT]-')
+    mutation_pattern = re.compile('[ACGTN]{2}')
+    insertion_pattern = re.compile('-[ACGTN]')
+    deletion_pattern = re.compile('[ACGTN]-')
     number_pattern = re.compile('\d+')
-    pattern = re.compile('[ACGT-]{2}|\d+')
+    pattern = re.compile('[ACGTN-]{2}|\d+')
 
     insertions = []
     deletions = []
