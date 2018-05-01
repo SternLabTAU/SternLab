@@ -30,6 +30,15 @@ def find_gene_range(gene, id_file):
                         end = int(feature.location.end)
                         table.loc[table['id'] == seq_id, "start" + str(gene)] = start
                         table.loc[table['id'] == seq_id, "end" + str(gene)] = end
+                try:
+                    for description in feature.qualifiers['note']:
+                        if gene in description or gene.lower() in description:
+                            start = int(feature.location.start)
+                            end = int(feature.location.end)
+                            table.loc[table['id'] == seq_id, "start" + str(gene)] = start
+                            table.loc[table['id'] == seq_id, "end" + str(gene)] = end
+                except KeyError:
+                    print(" - no note for this gene \n")
     table.to_excel(id_file)
 
 
@@ -42,9 +51,9 @@ def add_cut_seq_to_file(id_file, seqs_file):
     f = open(seqs_file, "w")
     for line in table.iterrows():
         print(line[1].id)
-        seq_id = line[1].id + "|" + str(line[1].year)
-        start = line[1].startVP1
-        end = line[1].endVP1
+        seq_id = line[1].id # + "|" + str(line[1].year)
+        start = int(line[1].startVP1)
+        end = int(line[1].endVP1)
         handle = Entrez.efetch(db="nucleotide", id=line[1].id, rettype="gb", retmode="fasta")
         record = SeqIO.read(handle, "genbank")
         handle.close()
@@ -53,6 +62,7 @@ def add_cut_seq_to_file(id_file, seqs_file):
         f.write(seq_id + "\n")
         f.write(str(seq) + "\n")
     f.close()
+
 
 
 

@@ -340,6 +340,34 @@ def remove_gapped_positions(aln_file, output = None, in_format = "fasta"):
 
     AlignIO.write(new_aln, output, "fasta")
 
+def remove_gapped_positions_codon(aln_file, output = None, in_format = "fasta"):
+    """
+    removes positions in an alignment which are all gapped
+    if output == None - rewrites on the input file
+    :param aln_file: input alignment file path
+    :param output: output file path (default: None)
+    :param in_format: input format (default: fatsa)
+    :return: ouptut file path
+    """
+    aln_file = check_filename(aln_file)
+    if output == None:
+        output = aln_file
+    else:
+        output = check_filename(output, Truefile=False)
+    aln = AlignIO.read(aln_file, in_format, alphabet=Alphabet.Gapped(IUPAC.unambiguous_dna))
+    new_aln = None
+    for i in range(0, len(aln[0]), 3):
+        position = aln[:, i:i+3]
+        if "".join(set(position[0])) != "-" or "".join(set(position[2])) != "-" or "".join(set(position[2])) != "-":
+            if new_aln == None:
+                new_aln = aln[:, i:i+3]
+            else:
+                new_aln = new_aln + aln[:, i:i+3]
+
+    AlignIO.write(new_aln, output, "fasta")
+
+
+
 
 def sam_to_fasta(input, output=None):
     """
@@ -410,6 +438,7 @@ def get_longest_sequence_name_in_fasta(aln_file, in_format="fasta"):
     :param in_format: input format (default = fasta)
     :return: name of the longest sequence in the alignment
     """
+    aln = check_filename(aln)
     aln = AlignIO.read(aln_file, in_format, alphabet=Alphabet.Gapped(IUPAC.unambiguous_dna))
     longest = 0
     longest_name = ""
@@ -421,3 +450,30 @@ def get_longest_sequence_name_in_fasta(aln_file, in_format="fasta"):
             longest = l
             longest_name = i.name
     return longest_name
+
+def replace_stop_codons_with_gapps(aln_file, in_format="fasta", output=None):
+    aln_file = check_filename(aln_file)
+    if output == None:
+        output = aln_file
+    else:
+        output = check_filename(output, Truefile=False)
+    aln = AlignIO.read(aln_file, in_format, alphabet=Alphabet.Gapped(IUPAC.unambiguous_dna))
+    stop_codon_count = 0
+    for seq in aln:
+        new_seq = ""
+        for i in range(0, len(seq.seq), 3):
+            codon = seq.seq[i:i + 3]
+            if "-" in codon:
+                new_seq += codon
+
+            elif codon in ["TAA", "TAG", "TGA"]:
+                if len(seq.seq) - i == 3:  # the final stop codon
+                    new_seq += "---"
+                else:
+                    new_seq += "---"
+                    stop_codon_count += 1
+            else:
+                new_seq += codon
+        seq.seq = new_seq
+    SeqIO.write(aln, output, "fasta")
+    print("%i replacments of stop codons to ---" % stop_codon_count)
