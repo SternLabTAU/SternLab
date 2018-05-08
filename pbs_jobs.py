@@ -3,7 +3,7 @@
 import os
 import subprocess
 from time import sleep
-def create_pbs_cmd(cmdfile, alias, jnum, gmem, cmds, dir = "", load_python=True):
+def create_pbs_cmd(cmdfile, alias, gmem=2, cmds="", dir = "", load_python=True, jnum=False):
     with open(cmdfile, 'w') as o:
         o.write("#!/bin/bash\n#PBS -S /bin/bash\n#PBS -j oe\n#PBS -r y\n")
         o.write("#PBS -q adis\n")
@@ -44,8 +44,10 @@ def check_pbs(job_id):
         while process != "":
             process = subprocess.check_output("qstat | grep " + str(job_id), shell=True)
             sleep(0.05)
+        print("")
     except (subprocess.CalledProcessError):
         process = ""
     if process == "":
-        status = "Done!"
+        status = "Done"
     return status
+
