@@ -42,3 +42,30 @@ def make_dir(dir):
     """
     if not os.path.isdir(dir):
         os.mkdir(dir)
+
+
+def change_filename(infile, outfile):
+    """
+    change filename from infile to outfile
+    :param infile: input file path
+    :param outfile: out file path
+    """
+    infile = check_filename(infile)
+    outfile = check_filename(outfile, Truefile=False)
+    os.system("mv %s %s" % (infile, outfile))
+
+
+def set_filenames_for_pbs_runs(filename, base, prefix):
+    """
+    if filename is not None - checks it
+    if filename is None - makes an output filename from base and prefix
+    :param filename: input filename - may be None
+    :param base: base filename
+    :param perfix: prefix filename
+    :return: filename
+    """
+    if filename != None:
+        filename = check_filename(filename, Truefile=False)
+    else:
+        filename = base + "." + prefix
+    return filename
