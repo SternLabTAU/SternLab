@@ -19,6 +19,19 @@ def merge_dfs(files, output, separator=","):
     merged.to_csv(output, index=False)
 
 
+def add_column_to_csv(input_df_file, new_column_name, new_column_value, output_df_file=None, sep=None):
+    input_df_file = check_filename(input_df_file)
+    if output_df_file != None:
+        output_df_file = check_filename(output_df_file, Truefile=False)
+    else:
+        output_df_file = input_df_file
+    if sep != None:
+        df = pd.read_csv(input_df_file, sep=sep)
+    else:
+        df = pd.read_csv(input_df_file)
+    df[new_column_name] = new_column_value
+    df.to_csv(output_df_file)
+
 
 if __name__ == "__main__":
     main()
