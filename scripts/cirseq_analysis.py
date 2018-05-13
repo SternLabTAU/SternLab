@@ -49,11 +49,6 @@ def main():
         ncbi_id = "NC_001490"
     if virus == "PV":
         ncbi_id ="V01149"
-    # file_name = freqs_file.split('/')[-1]
-    # virus_name = file_name.split('-')[0]
-    # virus_name += file_name.split(sep='-')[1].split(sep='.')[0]
-
-
 
     """2. Analyze those file and directory to get the number of tandem repeats of the cirseq,
     repeats length and the amount of reads per repeat"""
@@ -76,7 +71,7 @@ def main():
          append_mutation = find_mutation_type(freqs_file, ncbi_id)
     freqs_file_mutations = freqs_file[0:-5] + "with.mutation.type.freqs"
 
-    #fetch ncbi data
+    # fetch ncbi data
     # pos = find_coding_region(ncbi_id)
     # print(pos)
 
