@@ -112,10 +112,13 @@ def mlbs_to_df(output, mlbs = [], dirname = None):
         print(mlb_file_name)
         family = mlb_file_name.split("/")[-2]
         filename = mlb_file_name.split("/")[-1]
+        if "_gtr" in filename or "_unrest" in filename:
+            filename = filename.split("_gtr")[0]
+            filename = filename.split("_unrest")[0]
         model = mlb_file_name.split(".mlb")[0].split("_")[-1]
         
 
-        mlb = open(mlb_file_name, "rb").read()
+        mlb = open(mlb_file_name, "r").read()
         L = lnL_1.findall(mlb)
         if len(L) != 1:
             L = None
