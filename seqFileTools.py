@@ -111,6 +111,21 @@ def translate_file(filename, outfile = None, in_format="fasta"):
     return outfile
 
 
+def translate_file_print_seq(filename, in_format="fasta"):
+    """
+    translates nucleotide seq file to amino acid seq file
+    :param filename: input nucleotide sequence filename
+    :param outfile: output file (default: None)
+    :param in_format: input format (default: fasta)
+    :return: out file path of amino acid seq
+    """
+    filename = check_filename(filename)
+    dataset = list(SeqIO.parse(filename, in_format))
+    for seq in dataset:
+        print (">" + seq.description)
+        print(seq.seq.translate(stop_symbol="*"))
+
+
 def get_first_seq_file(filename, outfile=None, in_format="fasta"):
     """
     saves the first sequence of the input file in the output file

@@ -68,7 +68,7 @@ def add_mutation_to_freq_file(output, freqs_file = None, freqs = None):
         print(type(freqs))
         raise Exception("Need to specify or freqs file path OR a freqs pandas object - only one!")
     elif freqs_file != None:
-        freqs = pd.read_csv(freqs_file)
+        freqs = pd.read_csv(freqs_file, sep="\t")
     freqs = freqs[freqs.Pos % 1 == 0] #removes insertions
     freqs = freqs[freqs.Base != "-"] #removes deletions
     freqs.reset_index(drop=True, inplace=True)

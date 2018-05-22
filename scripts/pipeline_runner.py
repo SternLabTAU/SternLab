@@ -12,7 +12,7 @@ def main():
     parser.add_option("-i", "--input_dir", dest="input_dir", help="input directory with fastq.gz files")
     parser.add_option("-o", "--o", dest="output", help="output directory")
     parser.add_option("-r", "--reference", dest="reference", help="reference genome seq (fasta)")
-    parser.add_option("-e", "--e", dest="error", default = None, help="error output file (with path)")
+    #parser.add_option("-e", "--e", dest="error", default = None, help="error output file (with path)")
     parser.add_option("-s", "--start", dest="start", default=1, type="int", help="start at step number. default: 1")
     parser.add_option("--end", dest="end", default=4, type="int", help="end at step number, default: 4")
     parser.add_option("--type_of_input_file", dest="type_of_input_file", default="f", help="type of input files, optional f if fastq and not zipped files")
@@ -56,9 +56,9 @@ def main():
     output = check_dirname(output, Truedir=False)
     reference = options.reference
     reference = check_filename(reference)
-    error = options.error
-    if error == None:
-        error = output + "/error.txt"
+    #error = options.error
+    #if error == None:
+    #    error = output + "/error.txt"
 
     start = options.start
     end = options.end
@@ -78,11 +78,11 @@ def main():
     path_to_save_pipeline_command = output + "/pipeline_command.txt"
     print(start, end, q_score, blast_id, min_repeat, NGS_or_Cirseq)
     if pipeline_type == 1: #NGS
-        cmd = "perl %s %s %s %s %s %i %i %s %s %i %i %i" % (pipeline_path, input_dir, output, reference, error,
+        cmd = "perl %s %s %s %s %i %i %s %s %i %i %i" % (pipeline_path, input_dir, output, reference,
                                                            start, end, type_of_input_file, gaps, pipeline_type,
                                                            q_score,blast_id)
     elif pipeline_type == 2: #cirseq
-        cmd = "perl %s %s %s %s %s %i %i %s %s %i %i %i" % (pipeline_path, input_dir, output, reference, error,
+        cmd = "perl %s %s %s %s %i %i %s %s %i %i %i" % (pipeline_path, input_dir, output, reference,
                                                            start, end, type_of_input_file, gaps,
                                                             blast_id, q_score, min_repeat)
     print("running this pipeline command:")
