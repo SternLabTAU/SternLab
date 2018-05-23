@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
-import statsmodels.api as sm
+from scipy import stats
 import os
 import pickle
 from datetime import datetime
@@ -36,7 +36,7 @@ def get_interquartile_range(df):
 
 
 
-def filter_freqs_2_regression(df, pos_2_remove=None, pos_2_keep=None, threshold=0.0):
+def filter_freqs_2_regression(df, pos_2_remove=None, pos_2_keep=None, threshold=0.0, limit=3):
     """
     This method filters a mutation data frame to be used as the input of the linear regression
     :param df: mutation data frame. should be in the mutation files format
@@ -47,14 +47,17 @@ def filter_freqs_2_regression(df, pos_2_remove=None, pos_2_keep=None, threshold=
     """
 
     # filter data
-    df = df[(df['Pos'].isin(pos_2_keep)) & (~df['Pos'].isin(pos_2_remove)) & (df['Type'] == 'synonymous') & (df['Freq'] >= threshold)]
+    if pos_2_keep != None and pos_2_remove != None:
+        df = df[(df['Pos'].isin(pos_2_keep)) & (~df['Pos'].isin(pos_2_remove)) & (df['Type'] == 'synonymous') & (df['Freq'] >= threshold)]
+
+    df = df[(df['Type'] == 'synonymous') & (df['Freq'] >= threshold)]
+
 
     # take mutations in 25% - 75% interval
     df = get_interquartile_range(df)
-
     # add a unique ID to filter positions which appear less then X times
     df['ID'] = df['Pos'].astype(str) + '_' + df['Mutation']
-    filtered = df.groupby('ID').filter(lambda x: len(x) >= 3)
+    filtered = df.groupby('ID').filter(lambda x: len(x) >= limit)
 
     return filtered
 
@@ -68,7 +71,7 @@ def fit_regression(x,y, points=2):
     :return: a tuple (slope, P value)
     """
 
-    assert((len(x) == len(y)) and len(x) > points)
+    assert((len(x) == len(y)) and len(x) >= points)
     slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
 
     return (slope, p_value)
@@ -117,12 +120,10 @@ def calculate_regression_slopes(df, slopes, p_values, mutation_type=None, limit=
 
         assert (len(x) == len(y))
 
-        reg_result = fit_regression(x,y)
-        slope = reg_result[0]
-        p_value = reg_result[1]
-
-        slopes[current_mutation_type].append(slope)
-        p_vals[current_mutation_type].append(p_value)
+        slope, p_value = fit_regression(x,y)
+        if p_value <= 0.05 and slope >= 0:
+            slopes[current_mutation_type].append(slope)
+            p_values[current_mutation_type].append(p_value)
 
 
 def get_median_slope(slopes, mutation_type=None):
@@ -134,6 +135,7 @@ def get_median_slope(slopes, mutation_type=None):
     """
     if mutation_type != None:
         return np.median(slopes[mutation_type])
+    
     return np.median(np.asarrsy(slopes.values()))
 
 

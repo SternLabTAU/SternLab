@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 import os.path
-import statsmodels.api as sm
 from mutation_rate_utils import *
 import argparse
 
@@ -17,17 +16,17 @@ transversions = [mut for mut in all_mutations if mut not in transitions]
 
 limit = 2
 
-THRESHOLD = 0.00001
+THRESHOLD = 0.0003
 #######################################################################
 
 def main(args):
 
 	df = pd.read_csv(args.in_file)
-	lr_df = filter_freqs_2_regression(df)
+	lr_df = filter_freqs_2_regression(df, threshold= 0.0003, limit=limit)
 
 	# init a vector to contain all slopes
 	slopes = {}
-	pvals = {}
+	p_values = {}
 
 	mutations = args.type
 	if mutations == 1:
@@ -36,10 +35,16 @@ def main(args):
 		mutations = transversions
 	else:
 		mutations = all_mutations
-	
+
+	# init the disctionaries
+	for mut in mutations:
+		slopes[mut] = []
+		p_values[mut] = []
 	# for each mutations type fit a linear regression model for each position in the genome and save the data to a file
-	calculate_regression_slopes(df, slopes, p_values, mutation_type=mutations, limit=limit)
-	all_slopes = pd.DataFrame.from_dict(slopes)
+	calculate_regression_slopes(lr_df, slopes, p_values, mutation_type=mutations, limit=limit)
+	print(np.median([item for values in slopes.values() for item in values]))
+	print(np.mean([item for values in slopes.values() for item in values]))
+
 
 	# save the median vector to a file.
 	if args.out_dir:
