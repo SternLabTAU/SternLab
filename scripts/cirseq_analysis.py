@@ -16,21 +16,22 @@ start_time = time.time()
 
 def main():
     # for Cluster
-    parser = OptionParser("usage: %prog [options]")
-    parser.add_option("-f", "--freqs_file_path", dest="freqs_file_path", help="path of the freqs file")
-    parser.add_option("-v", "--virus", dest="virus", help="Virus name: CVB3 for CV; RVB14 for RV; PV for PV")
-    (options, args) = parser.parse_args()
-
-    freqs_file = options.freqs_file_path
-    virus = options.virus
-
-    freqs_file = check_filename(freqs_file)
+    # parser = OptionParser("usage: %prog [options]")
+    # parser.add_option("-f", "--freqs_file_path", dest="freqs_file_path", help="path of the freqs file")
+    # parser.add_option("-v", "--virus", dest="virus", help="Virus name: CVB3 for CV; RVB14 for RV; PV for PV")
+    # (options, args) = parser.parse_args()
+    #
+    # freqs_file = options.freqs_file_path
+    # virus = options.virus
+    #
+    # freqs_file = check_filename(freqs_file)
 
     #for Local
 
-    # suffix = "RVB14p2.freqs"
-    # freqs_file = "/Volumes/STERNADILABTEMP$/volume1/okushnir/Cirseq/RV/20170322_output_all_23_qscore/" + suffix
-    # virus = "RVB14"
+    suffix = "RV-p11.freqs"
+    freqs_file = "/Volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/180503_OST_FINAL_03052018/merged/RV-p11/q30_3UTR/" + suffix
+    virus = "RVB14"
+    seq_meth = "AccuNGS"
 
 
 
@@ -79,8 +80,12 @@ def main():
 
     """4. Run bowtie2 for human rRNA, mRNA and the virus"""
 
+
     if virus == "RVB14":
-        values = (19.32, 40.52, 45.17)
+        if seq_meth == "CirSeq":
+            values = (19.32, 40.52, 45.17)
+        elif seq_meth == "AccuNGS":
+            values = (97, 0, 0)
     if virus == "CVB3":
         values = (96.09, 1.66, 1.18)
     if virus == "PV":
@@ -103,10 +108,10 @@ def main():
     ax3 = plt.subplot(gs[1, 0])
     ax4 = plt.subplot(gs[1, 1:])
     ax5 = plt.subplot(gs[2:, :])
-    # gs.tight_layout(fig)
+    gs.tight_layout(fig)
     fig.subplots_adjust(hspace=0.3, wspace=0.21, top=0.93, bottom=0.05, right=0.96, left=0.05)
 
-    fig.suptitle(virus + ' Analysis', fontsize=20)
+    fig.suptitle(suffix.split(sep='.')[0] + ' Analysis', fontsize=20)
     distribution_graph(values, ax0, virus)
     # ax0.set_title('Reads Distribution')
 
@@ -122,11 +127,11 @@ def main():
     coverage_graph(freqs_file, ax4)
     # ax4.set_title('Coverage')
 
-    make_boxplot_mutation(freqs_file_mutations, ax5)
+    make_boxplot_transition_mutation(freqs_file_mutations, ax5)
     # ax5.set_title(virus_name + ' Mutation Rates')
 
     # plt.show()
-    plt.savefig(out_plots_dir + 'CirSeq_Report.png', dpi=300)
+    plt.savefig(out_plots_dir + suffix.split(sep='.')[0] + '_Report.png', dpi=300)
     plt.close("all")
     print("The Plot is ready in the folder")
 
@@ -271,6 +276,45 @@ def make_boxplot_mutation(freqs_file, ax):
     g1.set_ylim(10 ** -6, 1)
     g1.tick_params(labelsize=7)
 
+def make_boxplot_transition_mutation(freqs_file, ax):
+    """
+    Plots the mutation frequencies boxplot
+    :param freqs_file: pandas DataFrame after find_mutation_type function
+    :param ax: ax location
+    :return:
+    """
+    data = pd.read_table(freqs_file)
+    data.reset_index(drop=True, inplace=True)
+    flag = '-' in data.Base.values
+    if flag is True:
+        data = data[data.Ref != '-']
+        data = data[data.Base != '-']
+        data.reset_index(drop=True, inplace=True)
+        # data['abs_counts'] = data['Freq'] * data["Read_count"]  # .apply(lambda x: abs(math.log(x,10))/3.45)
+        # data['Frequency'] = data['abs_counts'].apply(lambda x: 1 if x == 0 else x) / data["Read_count"]
+        # raise Exception("This script does not support freqs file with deletions, for support please contact Maoz ;)"
+    data['Base'].replace('T', 'U', inplace=True)
+    data['Ref'].replace('T', 'U', inplace=True)
+    min_read_count = 100000
+    data = data[data['Pos'] == np.round(data['Pos'])]  # remove insertions
+    data['Pos'] = data[['Pos']].apply(pd.to_numeric)
+    data = data[data['Read_count'] > min_read_count]
+    data['mutation_type'] = data['Ref'] + data['Base']
+    data = data[data['Ref'] != data['Base']]
+    data = data[data["Base"] != "-"]
+    data['abs_counts'] = data['Freq'] * data["Read_count"]  # .apply(lambda x: abs(math.log(x,10))/3.45)
+    data['Frequency'] = data['abs_counts'].apply(lambda x: 1 if x == 0 else x) / data["Read_count"]
+    data["Mutation"] = data["Ref"] + "->" + data["Base"]
+    sns.set_palette(sns.color_palette("Paired", 12))
+
+    g1 = sns.factorplot(x="Mutation Type", y="Frequency", data=data, col="Mutation",
+                     col_order=["C->U", "U->C", "G->A", "A->G"], kind="box")
+    g1.set_xticklabels(["Synonymous", "Non-Synonymous", "Premature Stop Codon"], fontsize=7)
+    g1.set(yscale="log")
+
+    # plt.legend(bbox_to_anchor=(1.0, 1), loc=2, borderaxespad=0., fontsize=6)
+    # g1.set_ylim(10 ** -6, 1)
+    # g1.tick_params(labelsize=7)
 
 if __name__ == "__main__":
     main()
