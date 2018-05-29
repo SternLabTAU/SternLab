@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
-import statsmodels.api as sm
+from scipy import stats
 import os
 import pickle
 from datetime import datetime
@@ -36,7 +36,7 @@ def get_interquartile_range(df):
 
 
 
-def filter_freqs_2_regression(df, pos_2_remove=None, pos_2_keep=None, threshold=0.0):
+def filter_freqs_2_regression(df, pos_2_remove=None, pos_2_keep=None, threshold=0.0, limit=3):
     """
     This method filters a mutation data frame to be used as the input of the linear regression
     :param df: mutation data frame. should be in the mutation files format
@@ -47,36 +47,34 @@ def filter_freqs_2_regression(df, pos_2_remove=None, pos_2_keep=None, threshold=
     """
 
     # filter data
-    df = df[(df['Pos'].isin(pos_2_keep)) & (~df['Pos'].isin(pos_2_remove)) & (df['Type'] == 'synonymous') & (df['Freq'] >= threshold)]
+    if pos_2_keep != None and pos_2_remove != None:
+        df = df[(df['Pos'].isin(pos_2_keep)) & (~df['Pos'].isin(pos_2_remove)) & (df['Type'] == 'synonymous') & (df['Freq'] >= threshold)]
+
+    df = df[(df['Type'] == 'synonymous') & (df['Freq'] >= threshold)]
+
 
     # take mutations in 25% - 75% interval
     df = get_interquartile_range(df)
-
     # add a unique ID to filter positions which appear less then X times
     df['ID'] = df['Pos'].astype(str) + '_' + df['Mutation']
-    filtered = df.groupby('ID').filter(lambda x: len(x) >= 3)
+    filtered = df.groupby('ID').filter(lambda x: len(x) >= limit)
 
     return filtered
 
 
-def fit_regression(x,y):
+def fit_regression(x,y, points=2):
     """
     Fit a linear regression model
     :param x: passages
     :param y: correspond frequencies
-    :return: a tuple (slope, R squar)
+    :param points: minimum number of points for regression calculation 
+    :return: a tuple (slope, P value)
     """
 
-    assert((len(x) == len(y)) and len(x) > 2)
-    X = sm.add_constant(x)
-    model = sm.OLS(y, X)
-    reg_result = model.fit()
+    assert((len(x) == len(y)) and len(x) >= points)
+    slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
 
-    _, slope = reg_result.params
-    r_sqr = reg_result.rsquared
-    # p_val = reg_result.pvalues[0]	# there are 2 p values, find out which one to take, pvals[0] randomly picked.
-
-    return (slope, r_sqr, _)
+    return (slope, p_value)
 
 def add_zero_time_point(x,y, rate):
     """
@@ -91,24 +89,30 @@ def add_zero_time_point(x,y, rate):
     return (x,y)
 
 
-def calculate_regression_slopes(df, mutation_type, slopes, r_sqrds):
+def calculate_regression_slopes(df, slopes, p_values, mutation_type=None, limit=3):
     """
-    This method calculates the regression slopes for a given mutation type
-    :param df: containing more then one time point for each mutation. including only one type of mutations
-    :param mutation_type: the data frame mutation type
+    This method calculates the regression slopes for all mutations or a given mutation type
+    :param df: containing more then one time point for each mutation.
+    :param mutation_type: a list of The mutation identity e,g 'AG'. for calculating mutation rate of specific mutation type. 
+                        for example - calculating only transitions mutation rate
     :param slopes: a dictionary to contain all slopes
-    :param r_sqrds: a dictionary to contain all R squares
+    :param p_values: a dictionary to contain all P values
     :return: void - updated dictionaries
     """
+
+    if mutation_type != None:
+        df = df[df['Mutation'].isin(mutation_type)]
     # for each position get x any y vectors and fit regression
     for pos in np.unique(df.Pos.values):
         pos_df = df[df['Pos'] == pos]
 
-        if pos_df.shape[0] < 3:
+        if pos_df.shape[0] < limit:
             raise Exception('Not enough time points for position {}'.format(pos))
 
-        x = pos_df.Time.values
-        y = pos_df.Freq.values
+        x = pos_df['Time'].values
+        y = pos_df['Freq'].values
+
+        current_mutation_type = pos_df['Mutation'].values[0]
 
         #with_zero_pnt = add_zero_time_point(x,y, TIME_0_RATE)
         #x = with_zero_pnt[0]
@@ -116,37 +120,23 @@ def calculate_regression_slopes(df, mutation_type, slopes, r_sqrds):
 
         assert (len(x) == len(y))
 
-        reg_result = fit_regression(x,y)
-        slope = reg_result[0]
-        r_sqrd = reg_result[1]
-        intercept = reg_result[2]
-
-        slopes[mutation_type].append(slope)
-        r_sqrds[mutation_type].append(r_sqrd)
-
-        # plot regression lines
-
-        #plt.scatter(x,y)
-        #f = lambda x: x*slope + intercept
-        #xx = np.array([1,15])
-        #plt.plot(x, x*slope +intercept)
-        #plt.plot(xx, f(xx))
-        #plt.yscale("log")
-
-    #plt.title('mutation type {} 41B'.format(mutation_type))
-    #plt.xticks(list(range(0,21,2)))
-    #plt.show()
+        slope, p_value = fit_regression(x,y)
+        if p_value <= 0.05 and slope >= 0:
+            slopes[current_mutation_type].append(slope)
+            p_values[current_mutation_type].append(p_value)
 
 
-def get_median_slope(slopes, mutation_type):
+def get_median_slope(slopes, mutation_type=None):
     """
     calculate median slope values
     :param slopes: a dictionary
     :param mutation_type: mutation type to calculate according to
     :return: median slope value
     """
-
-    return np.median(slopes[mutation_type])
+    if mutation_type != None:
+        return np.median(slopes[mutation_type])
+    
+    return np.median(np.asarrsy(slopes.values()))
 
 
 def plot_regression(x,y,slope,intercept):
