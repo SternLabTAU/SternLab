@@ -108,7 +108,7 @@ def main():
     ax3 = plt.subplot(gs[1, 0])
     ax4 = plt.subplot(gs[1, 1:])
     ax5 = plt.subplot(gs[2:, :])
-    gs.tight_layout(fig)
+    # gs.tight_layout(fig)
     fig.subplots_adjust(hspace=0.3, wspace=0.21, top=0.93, bottom=0.05, right=0.96, left=0.05)
 
     fig.suptitle(suffix.split(sep='.')[0] + ' Analysis', fontsize=20)
@@ -127,13 +127,20 @@ def main():
     coverage_graph(freqs_file, ax4)
     # ax4.set_title('Coverage')
 
-    make_boxplot_transition_mutation(freqs_file_mutations, ax5)
+    make_boxplot_mutation(freqs_file_mutations, ax5)
     # ax5.set_title(virus_name + ' Mutation Rates')
 
     # plt.show()
     plt.savefig(out_plots_dir + suffix.split(sep='.')[0] + '_Report.png', dpi=300)
     plt.close("all")
     print("The Plot is ready in the folder")
+
+    fig2 = plt.figure(figsize=(16, 9))
+    ax = plt.subplot()
+    make_boxplot_transition_mutation(freqs_file_mutations, ax)
+    plt.savefig(out_plots_dir + suffix.split(sep='.')[0] + 'Transitions_Report.png', dpi=300)
+    plt.close("all")
+    print("The Transition Plot is ready in the folder")
 
 """Graphs"""
 #1.Distribution graph (=bowtie2 results)
@@ -312,9 +319,6 @@ def make_boxplot_transition_mutation(freqs_file, ax):
     g1.set_xticklabels(["Synonymous", "Non-Synonymous", "Premature Stop Codon"], fontsize=7)
     g1.set(yscale="log")
 
-    # plt.legend(bbox_to_anchor=(1.0, 1), loc=2, borderaxespad=0., fontsize=6)
-    # g1.set_ylim(10 ** -6, 1)
-    # g1.tick_params(labelsize=7)
 
 if __name__ == "__main__":
     main()
