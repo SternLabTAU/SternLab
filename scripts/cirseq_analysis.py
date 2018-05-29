@@ -138,7 +138,7 @@ def main():
     fig2 = plt.figure(figsize=(16, 9))
     ax = plt.subplot()
     make_boxplot_transition_mutation(freqs_file_mutations, ax)
-    plt.savefig(out_plots_dir + suffix.split(sep='.')[0] + 'Transitions_Report.png', dpi=300)
+    plt.savefig(out_plots_dir + suffix.split(sep='.')[0] + '_Transitions_Report.png', dpi=300)
     plt.close("all")
     print("The Transition Plot is ready in the folder")
 
