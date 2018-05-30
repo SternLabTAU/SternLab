@@ -14,7 +14,7 @@ def baseml_runner(ctl, alias = "bml"):
     :return: job id
     """
     ctl = check_filename(ctl)
-    cmdfile = "baseml_cmd.txt"; tnum = 1; gmem = 2
+    cmdfile = pbs_jobs.get_cmdfile_dir("baseml_cmd.txt", alias); tnum = 1; gmem = 2
     cmds = "echo %s \n/sternadi/home/volume1/taliakustin/software/paml4.8/bin/baseml %s" %(ctl, ctl)
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
     job_id = pbs_jobs.submit(cmdfile)
@@ -30,7 +30,7 @@ def codeml_runner(ctl, alias = "cml"):
     """
     ctl = check_filename(ctl)
     base = os.path.split(ctl)[0]
-    cmdfile = "codeml.txt"; tnum = 1; gmem = 2
+    cmdfile = pbs_jobs.get_cmdfile_dir("codeml.txt", alias); tnum = 1; gmem = 2
     cmds = "cd %s\necho %s \n/sternadi/home/volume1/taliakustin/software/paml4.8/bin/codeml %s" %(base, ctl, ctl)
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
     job_id = pbs_jobs.submit(cmdfile)
@@ -43,7 +43,7 @@ def script_runner(cmds, alias = "script", load_python=False):
     :param alias: job name (default: script)
     :return: job id
     """
-    cmdfile = "script"; tnum=1; gmem=1
+    cmdfile = pbs_jobs.get_cmdfile_dir("script", alias); tnum=1; gmem=1
     print(cmdfile, alias, tnum, gmem, cmds)
     pbs_jobs.create_pbs_cmd(cmdfile, alias=alias, gmem=gmem, cmds=cmds, load_python=load_python)
     job_id = pbs_jobs.submit(cmdfile)
@@ -60,7 +60,7 @@ def phyml_runner(alignment, alias = "phyml", phylip=True):
     alignment = check_filename(alignment)
     if phylip == False:
         alignment = convert_fasta_to_phylip(alignment)
-    cmdfile = "phyml"; tnum = 1; gmem = 2
+    cmdfile = pbs_jobs.get_cmdfile_dir("phyml", alias); tnum = 1; gmem = 2
     cmds = "/sternadi/home/volume1/shared/tools/PhyML/PhyML_3.0_linux64 -i %s -b 0 -o n" % alignment
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
     job_id = pbs_jobs.submit(cmdfile)
@@ -78,7 +78,7 @@ def phyml_aa_runner(alignment, alias = "phyml", phylip=True):
     alignment = check_filename(alignment)
     if phylip == False:
         alignment = convert_fasta_to_phylip(alignment)
-    cmdfile = "phyml"; tnum = 1; gmem = 2
+    cmdfile = pbs_jobs.get_cmdfile_dir("phyml", alias); tnum = 1; gmem = 2
     cmds = "/sternadi/home/volume1/shared/tools/PhyML/PhyML_3.0_linux64 -i %s -d aa -q -b 0" % alignment
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
     job_id = pbs_jobs.submit(cmdfile)
@@ -107,7 +107,7 @@ def fastml_runner(alignment, tree, alias = "fastml", outdir = None):
     marginal_seqs = outdir + "/" + basename + ".seq.marginal.txt"
     joint_prob = outdir + "/" + basename + ".prob.joint.txt"
     marginal_prob = outdir + "/" + basename + ".prob.marginal.txt"
-    cmdfile = "fastml.txt"; tnum = 1; gmem = 1
+    cmdfile = pbs_jobs.get_cmdfile_dir("fastml.txt", alias); tnum = 1; gmem = 1
     cmds = "/sternadi/home/volume1/shared/tools/phylogenyCode/programs/fastml/fastml -s %s -t %s -mn -x %s " \
            "-y %s -j %s -k %s -d %s -e %s -qf" % (alignment, tree, newick_tree, ancestor_tree, joint_seqs,
                                                  marginal_seqs, joint_prob, marginal_prob)
@@ -130,7 +130,7 @@ def mafft_runner(sequence, alignment = None, alias = "mafft"):
     alignment = check_filename(alignment, Truefile=False)
     cmds = "/sternadi/home/volume1/taliakustin/software/mafft-7.300-with-extensions/scripts/mafft %s > %s"\
            % (sequence, alignment)
-    cmdfile = "mafft"; tnum = 1; gmem = 1
+    cmdfile = pbs_jobs.get_cmdfile_dir("mafft", alias); tnum = 1; gmem = 1
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
@@ -149,7 +149,7 @@ def prank_runner(sequence, alignment=None, alias = "prank"):
     sequence = check_filename(sequence)
     alignment = check_filename(alignment, Truefile=False)
     cmds = "/powerapps/share/bin/prank -d=%s -o=%s -F" % (sequence, alignment)
-    cmdfile = "prank_alignment"; tnum=1; gmem=7
+    cmdfile = pbs_jobs.get_cmdfile_dir("prank_alignment", alias); tnum=1; gmem=7
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
@@ -174,7 +174,7 @@ def prank_codon_runner(sequence, alignment=None, alias = "prank", tree=None):
     else:
         tree = check_filename(tree)
         cmds = "/powerapps/share/bin/prank -d=%s -t=%s -o=%s -F -codon" % (sequence, tree, alignment)
-    cmdfile = "prank_alignment"; tnum=1; gmem=5
+    cmdfile = pbs_jobs.get_cmdfile_dir("prank_alignment", alias); tnum=1; gmem=5
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
@@ -194,7 +194,7 @@ def prank_runner_with_tree(sequence, tree, alignment=None, alias = "prank"):
     tree = check_filename(tree)
     alignment = check_filename(alignment, Truefile=False)
     cmds = "/powerapps/share/bin/prank -d=%s -t=%s -o=%s -F" % (sequence, tree, alignment)
-    cmdfile = "prank_alignment_with_tree"; tnum=1; gmem=5
+    cmdfile = pbs_jobs.get_cmdfile_dir("prank_alignment_with_tree", alias); tnum=1; gmem=5
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
@@ -212,7 +212,7 @@ def njTree_runner(alignment, tree=None, alias = "njTree"):
         tree = alignment.split(".")[0] + ".tree"
     alignment = check_filename(alignment)
     tree = check_filename(tree, Truefile=False)
-    cmdfile = "njTree"; tnum=1; gmem=2
+    cmdfile = pbs_jobs.get_cmdfile_dir("njTree", alias); tnum=1; gmem=2
     cmds = "/sternadi/home/volume1/shared/tools/phylogenyCode/programs/treeUtil/njTreeJCdist -i %s -o %s -an"\
            % (alignment, tree)
     dir = "/sternadi/home/volume1/shared/tools/phylogenyCode/programs/treeUtil/"
@@ -238,7 +238,7 @@ def sampling_runner(alignment, amount, sampled_file=None, alias = "sampling", al
         alphabet = "an"
         print("alphabet type is wrong - changed to default - nucleotides - an")
     output_file = check_filename(sampled_file, Truefile=False)
-    cmdfile = "njTree"; tnum=1; gmem=5
+    cmdfile = pbs_jobs.get_cmdfile_dir("njTree", alias); tnum=1; gmem=5
     if random:
         cmds = "/sternadi/home/volume1/shared/tools/phylogenyCode/programs/sampling/sampling -i %s -n %s -o %s -%s -r" \
                % (alignment, amount, sampled_file, alphabet)
@@ -258,7 +258,7 @@ def gzip_runner(file, alias = "gzip"):
     :return: job id
     """
     file = check_filename(file)
-    cmdfile = "gzip"; tnum=1; gmem=2
+    cmdfile = pbs_jobs.get_cmdfile_dir("gzip", alias); tnum=1; gmem=2
     cmds = "gzip %s" % file
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
     job_id = pbs_jobs.submit(cmdfile)
@@ -276,7 +276,7 @@ def cp_runner(file, dest_file, alias = "cp"):
     if not "*" in file:
         file = check_filename(file)
         dest_file = check_filename(dest_file, Truefile=False)
-    cmdfile = "cp"; tnum=1; gmem=2
+    cmdfile = pbs_jobs.get_cmdfile_dir("cp", alias); tnum=1; gmem=2
     cmds = "cp %s %s" % (file, dest_file)
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
     job_id = pbs_jobs.submit(cmdfile)
@@ -291,7 +291,7 @@ def baliphy_runner(sequence, alias = "baliphy"):
     :return: job id
     """
     sequence = check_filename(sequence)
-    cmdfile = "baliphy_M8_cmd.txt"; tnum = 1; gmem = 2
+    cmdfile = pbs_jobs.get_cmdfile_dir("baliphy_M8_cmd.txt", alias); tnum = 1; gmem = 2
     cmds = "/sternadi/home/volume1/taliakustin/software/bali-phy-2.3.7/bin/bali-phy"\
                                                             + " " + sequence\
                                                             + " -V "
@@ -313,7 +313,7 @@ def pear_runner(forward, reverse, output, alias = "pear"):
     forward = check_filename(forward)
     reverse = check_filename(reverse)
     output = check_filename(output, Truefile=False)
-    cmdfile = "pear"; tnum = 1; gmem = 2
+    cmdfile = pbs_jobs.get_cmdfile_dir("pear", alias); tnum = 1; gmem = 2
     cmds = "/usr/local/bin/pear -f %s -r %s -o %s" % (forward, reverse, output)
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
     job_id = pbs_jobs.submit(cmdfile)
@@ -330,7 +330,7 @@ def ufilter_runner(fastq, output, alias = "ufilter"):
     """
     fastq = check_filename(fastq)
     output = check_filename(output, Truefile=False)
-    cmdfile = "ufilter"; tnum = 1; gmem = 2
+    cmdfile = pbs_jobs.get_cmdfile_dir("ufilter", alias); tnum = 1; gmem = 2
     cmds = "/usr/local/bin/usearch -fastq_stripleft 5 -fastq_filter %s -fastqout %s" % (fastq, output)
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
     job_id = pbs_jobs.submit(cmdfile)
@@ -347,7 +347,7 @@ def umerge_runner(forward_fastq, output, alias = "umerge"):
     """
     forward_fastq = check_filename(forward_fastq)
     output = check_filename(output, Truefile=False)
-    cmdfile = "umerge"; tnum = 1; gmem = 2
+    cmdfile = pbs_jobs.get_cmdfile_dir("umerge", alias); tnum = 1; gmem = 2
     cmds = "/usr/local/bin/usearch" \
            " -fastq_qmaxout 80 -fastq_qmax 80 -fastq_mergepairs %s -fastqout %s -report %s.report"\
            % (forward_fastq, output, output)
@@ -370,7 +370,7 @@ def blast_runner(seqfile, dbfile="/sternadi/home/volume1/shared/data/nt/nt", out
         outfile = check_filename(outfile, Truefile=False)
     else:
         outfile = path.split(seqfile)[0] + "/blast_results.txt"
-    cmdfile = "blast_cmd"; tnum = 1; gmem = 2
+    cmdfile = pbs_jobs.get_cmdfile_dir("blast_cmd", alias); tnum = 1; gmem = 2
     cmds = "/sternadi/home/volume1/shared/tools/ncbi-blast-2.2.30+/bin/blastn"\
                 + " -query %s -out %s -db %s -outfmt 5 -max_target_seqs %i" % (seqfile, outfile, dbfile, hitlist_size)
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
@@ -390,7 +390,7 @@ def blast_output6_runner(seqfile, dbfile, outfile, alias = "blast"):
     seqfile = check_filename(seqfile)
     if outfile != None:
         outfile = check_filename(outfile, Truefile=False)
-    cmdfile = "blast_cmd"; tnum = 1; gmem = 2
+    cmdfile = pbs_jobs.get_cmdfile_dir("blast_cmd", alias); tnum = 1; gmem = 2
     cmds = "/sternadi/home/volume1/shared/tools/ncbi-blast-2.2.30+/bin/blastn"\
                 + " -query %s -task megablast -out %s -db %s -outfmt '6 sseqid qseqid qstart qend qstrand sstart send sstrand length btop' " \
                   "-num_alignments 100 -dust no -soft_masking F -perc_identity 85 -evalue 1e-7"\
@@ -412,7 +412,7 @@ def blastx_output6_runner(seqfile, outfile, dbfile="/sternadi/home/volume1/share
     seqfile = check_filename(seqfile)
     if outfile != None:
         outfile = check_filename(outfile, Truefile=False)
-    cmdfile = "blast_cmd"; tnum = 1; gmem = 2
+    cmdfile = pbs_jobs.get_cmdfile_dir("blast_cmd", alias); tnum = 1; gmem = 2
     cmds = "/sternadi/home/volume1/shared/tools/ncbi-blast-2.2.30+/bin/blastx"\
                 + " -query %s -out %s -db %s -outfmt 6" % (seqfile, outfile, dbfile)
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
@@ -431,7 +431,7 @@ def bowtie2_runner(bowtie_index_path, fastq_file, sam_output, alias="bowtie2"):
     bowtie_index_path = check_filename(bowtie_index_path, Truefile=False)
     fastq_file = check_filename(fastq_file)
     sam_output = check_filename(sam_output, Truefile=False)
-    cmdfile = "bowtie2"; tnum = 1; gmem = 2
+    cmdfile = pbs_jobs.get_cmdfile_dir("bowtie2", alias); tnum = 1; gmem = 2
     cmds = "/usr/local/bin/bowtie2"\
            + " --very-fast-local -x  %s %s -S %s" % (bowtie_index_path, fastq_file, sam_output)
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
@@ -452,7 +452,7 @@ def bowtie2_build_runner(input_file, output_db_name=None, alias="bowtie2-build  
         output_db_name = input_file.split(".fasta")[0].split(".fna")[0]
     else:
         output_db_name = check_filename(output_db_name, Truefile=False)
-    cmdfile = "bowtie2-build"; tnum = 1; gmem = 2
+    cmdfile = pbs_jobs.get_cmdfile_dir("bowtie2-build", alias); tnum = 1; gmem = 2
     cmds = "/usr/local/bin/bowtie2-build %s %s" % (input_file, output_db_name)
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
     job_id = pbs_jobs.submit(cmdfile)
@@ -471,7 +471,7 @@ def tophat2_runner(output_dir, bowtie_reference, fastq, alias="tophat2"):
     bowtie_reference = check_filename(bowtie_reference, Truefile=False)
     fastq = check_filename(fastq)
 
-    cmdfile = "tophat2"; tnum = 1; gmem = 2
+    cmdfile = pbs_jobs.get_cmdfile_dir("tophat2", alias); tnum = 1; gmem = 2
     cmds = "/sternadi/home/volume1/taliakustin/software/tophat-2.1.1.Linux_x86_64/tophat2"\
            + " -o %s %s %s" % (output_dir, bowtie_reference, fastq)
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds,load_python=False)
@@ -512,7 +512,7 @@ def r4s_runner(tree_file, seq_file, outfile, dirname, tree_outfile=None, unormel
         log_outfile = dirname + "/out-log"
 
 
-    cmdfile = "r4s_cmd.txt"; tnum = 1; gmem = 2
+    cmdfile = pbs_jobs.get_cmdfile_dir("r4s_cmd.txt", alias); tnum = 1; gmem = 2
     ref_seq_parameter = "-a " + ref_seq if ref_seq is not None else ""
     if tree_file !=None:
         cmds = "/sternadi/home/volume1/shared/tools/rate4site"\
@@ -555,7 +555,7 @@ def codeml_united_runner(clt1, clt2, rst1_name, rst2_name, alias ="cml"):
     clt1 = file_utilities.check_filename(clt1)
     clt2 = file_utilities.check_filename(clt2)
     base = os.path.split(clt1)[0]
-    cmdfile = "codeml.txt"; tnum = 1; gmem = 2
+    cmdfile = pbs_jobs.get_cmdfile_dir("codeml.txt", alias); tnum = 1; gmem = 2
     cmds = "cd %s\n" \
            "/sternadi/home/volume1/taliakustin/software/paml4.8/bin/codeml %s\n" \
            "mv rst %s\n" \
@@ -605,7 +605,7 @@ def selecton_runner(codon_aln, output_dir=None, tree=None, log=None, rate=None, 
         else:
             cmds = "selecton -i %s -l %s -r %s -o %s -c %s -t %s %s -q %s" \
                    % (codon_aln, log, rate, output, color, out_tree, model, query_seq)
-    cmdfile = "selecton.txt"; tnum = 1; gmem = 2
+    cmdfile = pbs_jobs.get_cmdfile_dir("selecton.txt", alias); tnum = 1; gmem = 2
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
@@ -638,7 +638,7 @@ def pipeline_runner(input_dir, output_dir, ref_file, NGS_or_Cirseq, TYPE_OF_INPU
 
 
     print(cmds)
-    cmdfile = "pipeline.txt"; tnum = 1; gmem = 2; alias="pipeline"
+    cmdfile = pbs_jobs.get_cmdfile_dir("pipeline.txt", alias); tnum = 1; gmem = 2; alias="pipeline"
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
