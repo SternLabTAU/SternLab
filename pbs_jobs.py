@@ -3,12 +3,17 @@
 import os
 import subprocess
 from time import sleep
+import getpass
+import datetime
+
 def create_pbs_cmd(cmdfile, alias, gmem=2, cmds="", dir = "", load_python=True, jnum=False):
     with open(cmdfile, 'w') as o:
         o.write("#!/bin/bash\n#PBS -S /bin/bash\n#PBS -j oe\n#PBS -r y\n")
         o.write("#PBS -q adis\n")
         o.write("#PBS -v PBS_O_SHELL=bash,PBS_ENVIRONMENT=PBS_BATCH \n")
         o.write("#PBS -N "+ alias+"\n")
+        if alias in cmdfile and datetime.datetime.today().strftime('%Y-%m') in cmdfile:
+            o.write("#PBS -o %s\n" % "/".join(cmdfile.split("/")[:-1]))
         if (gmem):
             mem=gmem*1000
             o.write("#PBS -l mem="+str(mem)+"mb\n")
@@ -22,7 +27,7 @@ def create_pbs_cmd(cmdfile, alias, gmem=2, cmds="", dir = "", load_python=True, 
         o.write("hostname\n")
         if load_python:
             o.write("module load python/anaconda_python-3.4.0\n")
-        o.write("'echo %s\n'" % cmds)
+        
         o.write("\n")
         o.write(cmds)
     o.close()
@@ -51,3 +56,20 @@ def check_pbs(job_id):
         status = "Done"
     return status
 
+
+def get_cmdfile_dir(cmdfile, alias):
+    username = getpass.getuser()
+    lab_users_dic = {"taliakustin":"/sternadi/home/volume1/taliakustin/temp"}
+    if username in lab_users_dic.keys():
+        tmp_dir = lab_users_dic[username]
+        if not os.path.exists(tmp_dir):
+            os.system("mkdir %s" % tmp_dir)
+        date = datetime.datetime.today().strftime('%Y-%m')
+        tmp_dir = tmp_dir + "/%s" % date
+        if not os.path.exists(tmp_dir):
+            os.system("mkdir %s" % tmp_dir)
+        tmp_dir = tmp_dir + "/%s" % alias
+        if not os.path.exists(tmp_dir):
+            os.system("mkdir %s" % tmp_dir)
+        cmdfile = tmp_dir + "/" + cmdfile
+    return cmdfile
