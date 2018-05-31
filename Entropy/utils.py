@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import os
-from collections import Counter
 from tqdm import tqdm
 import re
 from Bio import SeqIO, Phylo
@@ -10,8 +9,6 @@ from Bio.Seq import Seq
 import random
 from ete3 import Tree, TextFace, TreeStyle
 from gradients import *
-from itertools import combinations
-from scipy import stats
 
 
 
@@ -73,7 +70,7 @@ def entropy_by_kmer(seq, k):
     """
     calculate the entropy of a sequence according to its k-mers
     :param seq: a genome string
-    :param k: tje size of the k-mer to use
+    :param k: size of the k-mer to use
     :return: entropy
     """
 
@@ -467,7 +464,7 @@ def tree_2_string(tree_file):
     with open(tree_file, "r") as handle:
         return handle.read()
 
-def add_labels_n_colors_2_tree(tree_path, refseq_2_entropy, colors, out):
+def add_labels_n_colors_2_tree(tree_path, refseq_2_entropy, colors, feature, out):
     """
     add entropy measurement to a tree and color it's leaves
     :param tree_path: a path to a tree
@@ -490,7 +487,7 @@ def add_labels_n_colors_2_tree(tree_path, refseq_2_entropy, colors, out):
             all_leaves.append(node.name)
 
     #all_values = refseq_2_entropy[refseq_2_entropy['refseq_id'].isin(all_leaves)]['entropy_5'].values
-    all_values = refseq_2_entropy['entropy_5'].values
+    all_values = refseq_2_entropy[feature].values
 
     num_leaves = len(all_leaves)
 
@@ -502,7 +499,7 @@ def add_labels_n_colors_2_tree(tree_path, refseq_2_entropy, colors, out):
 
     for node in tree:
         if node.is_leaf():
-            value = refseq_2_entropy[refseq_2_entropy['refseq_id'] == node.name.split('.')[0]]['entropy_5'].values[0]
+            value = refseq_2_entropy[refseq_2_entropy['refseq_id'] == node.name.split('.')[0]][feature].values[0]
             virus_name = refseq_2_entropy[refseq_2_entropy['refseq_id'] == node.name.split('.')[0]]['virus_name'].values[0]
 
             # change virus name
@@ -522,9 +519,9 @@ def add_labels_n_colors_2_tree(tree_path, refseq_2_entropy, colors, out):
     ts.show_leaf_name = True
     ts.show_scale = True
     ts.show_branch_length = True
-    ts.title.add_face(TextFace("Entropy values for {}".format(family), fsize=20), column=0)
+    ts.title.add_face(TextFace("{} values for {}".format(feature, family), fsize=20), column=0)
     # Draw Tree
-    tree.render(os.path.join(out, '{}_entropy_tree.pdf'.format(family)), dpi=300, tree_style=ts)
+    tree.render(os.path.join(out, '{}_{}_tree.pdf'.format(family, feature)), dpi=300, tree_style=ts)
 
 
 
@@ -576,4 +573,81 @@ def phylo_entropy_construction(db, df ,out):
     return result
 
 
+def refseq_2_content(genomic, virus_host, out):
+    ''' crate a data frame of ids and their correspond nuc content in genome'''
+
+    result = []
+
+    genomic_sequences = re.split(">", open(genomic, "r").read().replace('\n', ''))[1:]
+    for seq in tqdm(genomic_sequences):
+        if '.' not in seq:
+            print('no dot in sequence name\n')
+            continue
+        if 'complete genome' not in seq:
+            continue
+
+        # get identifier and genomic sequence
+        splitted = seq.split('.')
+        identifier = splitted[0].split()[0]
+        genome = splitted[-1]
+        n = len(genome)
+        a_content = (genome.count('a') / n) * 100
+        c_content = (genome.count('c') / n) * 100
+        g_content = (genome.count('g') / n) * 100
+        t_content = (genome.count('t') / n) * 100
+
+        df = pd.DataFrame({'refseq_id':identifier, 'a_content':a_content, 'c_content':c_content,
+                           'g_content':g_content,'t_content':t_content}, index=[0])
+        result.append(df)
+
+    concat = pd.concat(result)
+    merged = pd.merge(virus_host, concat, on='refseq_id')
+    merged.to_csv(os.path.join(out, "refseq_2_content.csv"), index=False)
+
+def phylo_content_construction(db, df, feature, out):
+    """
+    create a data frame with extreme entropy changed in each tree, containing the change in sequences length and the sum
+    of branchs between them both extreme values
+    :param db: a path to a folders of viruses folders
+    :param df: mapping of tree leaf name (id) to the requested numerical value (value) and to sequence length
+    :param out: a pth to save the results
+    :return: the described data frame
+    """
+    all_df = []
+
+    all_trees = []
+    for root, dirs, files in tqdm(os.walk(db)):
+        tree = [f for f in files if 'phyml_tree' in f]
+        if tree != []:
+            all_trees.append(os.path.join(root, tree[0]))
+
+    for f in tqdm(all_trees):
+        if tree_2_string(f) == '':
+            continue
+        tree = Phylo.read(f, 'newick')
+        term_names = [term.name.split('.')[0] for term in tree.get_terminals()]
+        entropy_values = [(name, df[df['refseq_id'] == name][feature].values[0]) for name in term_names]
+
+        max_tup = max(entropy_values, key=lambda x: x[1])
+        min_tup = min(entropy_values, key=lambda x: x[1])
+
+        len_max_seq =  df[df['refseq_id'] == max_tup[0]]['genome_size_x'].values[0]
+        len_min_seq = df[df['refseq_id'] == min_tup[0]]['genome_size_x'].values[0]
+
+        branch_distance = tree.distance(max_tup[0], min_tup[0])
+
+        tree_df = pd.DataFrame({'max_refseq_id': max_tup[0], 'min_refseq_id': min_tup[0], 'max_{}'.format(feature): max_tup[1],
+                                'min_{}'.format(feature): min_tup[1], 'max_genome_size': len_max_seq, 'min_genome_size': len_min_seq,
+                                'sum_branch_length': branch_distance,'family': os.path.basename(f).split('.')[0],
+                               'num_sequences_in_tree': len(term_names)}, index=[0])
+        all_df.append(tree_df)
+
+
+    result = pd.concat(all_df)
+    result['delta_len'] = result.apply(lambda row: math.fabs(row['max_genome_size'] - row['min_genome_size']), axis=1)
+    result['delta_{}'.format(feature)] = result.apply(lambda row: math.fabs(row['max_{}'.format(feature)] - row['min_{}'.format(feature)]), axis =1)
+
+    result.to_csv(out, index=False)
+
+    return result
 
