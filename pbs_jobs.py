@@ -24,13 +24,16 @@ def create_pbs_cmd(cmdfile, alias, gmem=2, cmds="", dir = "", load_python=True, 
         if dir != "":
             o.write("ls -land %s\n" % dir)
         o.write("id\n")
+        o.write("date\n")
         o.write("hostname\n")
         if load_python:
             o.write("module load python/anaconda_python-3.4.0\n")
         
         o.write("\n")
         o.write(cmds)
+        o.write("date\n")
     o.close()
+
 
 def submit(cmdfile):
     cmd = "/opt/pbs/bin/qsub " + cmdfile
@@ -59,7 +62,7 @@ def check_pbs(job_id):
 
 def get_cmdfile_dir(cmdfile, alias):
     username = getpass.getuser()
-    lab_users_dic = {"taliakustin":"/sternadi/home/volume1/taliakustin/temp"}
+    lab_users_dic = {"taliakustin":"/sternadi/home/volume1/taliakustin/temp", "daniellemiller":"/sternadi/home/volume1/daniellem1/temp"}
     if username in lab_users_dic.keys():
         tmp_dir = lab_users_dic[username]
         if not os.path.exists(tmp_dir):
