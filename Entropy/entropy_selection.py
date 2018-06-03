@@ -32,7 +32,7 @@ def map_family_2_refseq(x, mapping):
 
 
 
-def genome_2_entropy(fasta, k, scramble=False, rc_joint=False):
+def genome_2_entropy(fasta, k, scramble=False, rc_joint=False, out=""):
     """
     create a mapping of the complete genome to its entropy by kmer
     :param fasta: a file containing all fasta files
@@ -76,6 +76,7 @@ def genome_2_entropy(fasta, k, scramble=False, rc_joint=False):
         ref_seq_id.append(identifier)
 
     df = pd.DataFrame({'refseq_id':ref_seq_id, 'k{}'.format(k):k_entropy})
+    df.to_csv(os.path.join(out, 'k{}.csv'.format(k)), index=False)
     return df
 
 def string_by_codon_position(seq, position):
@@ -254,7 +255,7 @@ def entropy_calculator_cds(key, values, jump=False, position=0, scramble=False, 
     return entropy
 
 
-def entropy_by_cds(mapping):
+def entropy_by_cds(mapping, out=""):
     """
     create a data frame with all entropy values for a given refseq id
     :param mapping: dictionary with refseq id and cds sequences
@@ -275,6 +276,7 @@ def entropy_by_cds(mapping):
         result.append(df)
 
     all_values = pd.concat(result)
+    all_values.to_csv(os.path.join(out, 'cds_entropies.csv'), index=False)
     return all_values
 
 
@@ -459,42 +461,42 @@ def test_selection_validity(slopes, out=None):
 
 
 
-
-
-def main():
-    cds = r'/sternadi/home/volume1/daniellem1/Entropy/data/virushostdb.cds.fna'
-    genomics = r'/sternadi/home/volume1/daniellem1/Entropy/data/virushostdb.genomic.fna'
-
-
-    out = r'/sternadi/home/volume1/daniellem1/Entropy/data/'
-
-    dfs = []
-
-    for k in range(1,11):
-        basic_genome_entropy = genome_2_entropy(genomics, k, rc_joint=True)
-        dfs.append(basic_genome_entropy)
-
-    mapping = refseq_2_cds(cds)
-    cds_mapping = entropy_by_cds(mapping)
-    dfs.append(cds_mapping)
-
-    merged = reduce(lambda left, right: pd.merge(left, right, on=['refseq_id'],
-                                                 how='outer'), dfs)
-
-    with open(r'/sternadi/home/volume1/daniellem1/Entropy/data/family_2_refseq.pickle', 'rb') as f:
-        d = pickle.load(f)
-
-    merged['family'] = merged['refseq_id'].apply(lambda x : map_family_2_refseq(x, d))
-
-    merged.to_csv(os.path.join(out, 'entropies.csv'), index=False)
-
-
-    # entropy_mapping = pd.read_csv(ent_map)
-    # entropy_mapping.dropna(subset=['entropy_5'], inplace=True)
-    # run_cds_statistics_by_family(super_fold, entropy_mapping, out)
-
-if __name__ == '__main__':
-    main()
+#
+#
+# def main():
+#     cds = r'/sternadi/home/volume1/daniellem1/Entropy/data/virushostdb.cds.fna'
+#     genomics = r'/sternadi/home/volume1/daniellem1/Entropy/data/virushostdb.genomic.fna'
+#
+#
+#     out = r'/sternadi/home/volume1/daniellem1/Entropy/data/'
+#
+#     dfs = []
+#
+#     for k in range(1,11):
+#         basic_genome_entropy = genome_2_entropy(genomics, k, rc_joint=True)
+#         dfs.append(basic_genome_entropy)
+#
+#     mapping = refseq_2_cds(cds)
+#     cds_mapping = entropy_by_cds(mapping)
+#     dfs.append(cds_mapping)
+#
+#     merged = reduce(lambda left, right: pd.merge(left, right, on=['refseq_id'],
+#                                                  how='outer'), dfs)
+#
+#     with open(r'/sternadi/home/volume1/daniellem1/Entropy/data/family_2_refseq.pickle', 'rb') as f:
+#         d = pickle.load(f)
+#
+#     merged['family'] = merged['refseq_id'].apply(lambda x : map_family_2_refseq(x, d))
+#
+#     merged.to_csv(os.path.join(out, 'entropies.csv'), index=False)
+#
+#
+#     # entropy_mapping = pd.read_csv(ent_map)
+#     # entropy_mapping.dropna(subset=['entropy_5'], inplace=True)
+#     # run_cds_statistics_by_family(super_fold, entropy_mapping, out)
+#
+# if __name__ == '__main__':
+#     main()
 
 
 
