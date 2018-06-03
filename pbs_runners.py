@@ -59,7 +59,7 @@ def array_script_runner(cmds, jnum, alias = "script", load_python=False):
     """
     cmdfile = pbs_jobs.get_cmdfile_dir("script", alias); gmem=7
     print(cmdfile, alias, jnum, gmem, cmds)
-    pbs_jobs.create_array_pbs_cmd(cmdfile, alias=alias, gmem=gmem, cmds=cmds, load_python=load_python)
+    pbs_jobs.create_array_pbs_cmd(cmdfile, jnum, alias=alias, gmem=gmem, cmds=cmds, load_python=load_python)
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
 
