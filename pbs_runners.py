@@ -49,7 +49,7 @@ def script_runner(cmds, alias = "script", load_python=False):
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
 
-def array_script_runner(cmds, alias = "script", jnum=2, load_python=False):
+def array_script_runner(cmds, jnum, alias = "script", load_python=False):
     """
     run script on cluster as a pbs array
     :param cmds: script running line, should include $PBS_ARRAY_INDEX
