@@ -49,6 +49,22 @@ def script_runner(cmds, alias = "script", load_python=False):
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
 
+def array_script_runner(cmds, alias = "script", jnum=2, load_python=False):
+    """
+    run script on cluster as a pbs array
+    :param cmds: script running line, should include $PBS_ARRAY_INDEX
+    :param alias: job name (default: script)
+    :param jnum: number of jobs in the pbs array
+    :return: job id
+    """
+    cmdfile = pbs_jobs.get_cmdfile_dir("script", alias); gmem=7
+    print(cmdfile, alias, jnum, gmem, cmds)
+    pbs_jobs.create_array_pbs_cmd(cmdfile, alias=alias, gmem=gmem, cmds=cmds, load_python=load_python)
+    job_id = pbs_jobs.submit(cmdfile)
+    return job_id
+
+
+
 def phyml_runner(alignment, alias = "phyml", phylip=True):
     """
     run phyml on cluster (converts tpo phylip if the flag phylip==False)
