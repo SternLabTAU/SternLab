@@ -36,7 +36,7 @@ def create_pbs_cmd(cmdfile, alias, gmem=2, cmds="", dir = "", load_python=True, 
     o.close()
 
 
-def create_array_pbs_cmd(cmdfile, alias, jnum, gmem=7, cmds="", dir="", load_python=True):
+def create_array_pbs_cmd(cmdfile, jnum, alias, gmem=7, cmds="", dir="", load_python=True):
     with open(cmdfile, 'w') as o:
         o.write("#!/bin/bash\n#PBS -S /bin/bash\n#PBS -j oe\n#PBS -r y\n")
         o.write("#PBS -q adis\n")
