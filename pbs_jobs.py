@@ -31,6 +31,7 @@ def create_pbs_cmd(cmdfile, alias, gmem=2, cmds="", dir = "", load_python=True, 
         
         o.write("\n")
         o.write(cmds)
+        o.write("\n")
         o.write("date\n")
     o.close()
 
@@ -61,6 +62,7 @@ def create_array_pbs_cmd(cmdfile, alias, gmem=7, jnum=2, cmds="", dir="", load_p
 
         o.write("\n")
         o.write(cmds)
+        o.write("\n")
         o.write("date\n")
     o.close()
 
