@@ -270,7 +270,7 @@ def entropy_by_cds(mapping, out=""):
         codon1_entropy = entropy_calculator_cds(key, mapping[key], jump=False, position=0, rc_joint=True)
         codon2_entropy = entropy_calculator_cds(key, mapping[key], jump=False, position=1, rc_joint=True)
         codon3_entropy = entropy_calculator_cds(key, mapping[key], jump=False, position=2, rc_joint=True)
-        df = pd.DataFrame({'refseq_id':key, '':rf_entropy, 'reading_frame_shift_1':rf2_entropy,
+        df = pd.DataFrame({'refseq_id':key, 'reading_frame':rf_entropy, 'reading_frame_shift_1':rf2_entropy,
                            'reading_frame_shift_2':rf3_entropy, 'codon_position_1':codon1_entropy,
                            'codon_position_2': codon2_entropy, 'codon_position_3':codon3_entropy}, index=[0])
         result.append(df)
@@ -480,13 +480,13 @@ def test_selection_validity(slopes, out=None):
 #     cds_mapping = entropy_by_cds(mapping)
 #     dfs.append(cds_mapping)
 #
-#     merged = reduce(lambda left, right: pd.merge(left, right, on=['refseq_id'],
-#                                                  how='outer'), dfs)
-#
-#     with open(r'/sternadi/home/volume1/daniellem1/Entropy/data/family_2_refseq.pickle', 'rb') as f:
-#         d = pickle.load(f)
-#
-#     merged['family'] = merged['refseq_id'].apply(lambda x : map_family_2_refseq(x, d))
+    # merged = reduce(lambda left, right: pd.merge(left, right, on=['refseq_id'],
+    #                                              how='outer'), dfs)
+    #
+    # with open(r'/sternadi/home/volume1/daniellem1/Entropy/data/family_2_refseq.pickle', 'rb') as f:
+    #     d = pickle.load(f)
+    #
+    # merged['family'] = merged['refseq_id'].apply(lambda x : map_family_2_refseq(x, d))
 #
 #     merged.to_csv(os.path.join(out, 'entropies.csv'), index=False)
 #
