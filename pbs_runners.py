@@ -43,7 +43,7 @@ def script_runner(cmds, alias = "script", load_python=False):
     :param alias: job name (default: script)
     :return: job id
     """
-    cmdfile = pbs_jobs.get_cmdfile_dir("script", alias); tnum=1; gmem=1
+    cmdfile = pbs_jobs.get_cmdfile_dir("script", alias); tnum=1; gmem=4
     print(cmdfile, alias, tnum, gmem, cmds)
     pbs_jobs.create_pbs_cmd(cmdfile, alias=alias, gmem=gmem, cmds=cmds, load_python=load_python)
     job_id = pbs_jobs.submit(cmdfile)
