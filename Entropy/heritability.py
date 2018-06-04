@@ -11,6 +11,8 @@ import random
 from ete3 import Tree, TextFace, TreeStyle
 from itertools import combinations
 from scipy import stats
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
 from utils import *
