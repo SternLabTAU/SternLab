@@ -9,6 +9,8 @@ import math
 from Bio.Seq import Seq
 import random
 from ete3 import Tree, TextFace, TreeStyle
+import matplotlib
+matplotlib.use('Agg')
 from itertools import combinations
 from scipy import stats
 import matplotlib.pyplot as plt
@@ -177,7 +179,7 @@ def run_trait_correlations(featurs, mapping, super_folder, out):
 def main(args):
 
     main_dir = r'/sternadi/home/volume1/daniellem1/Entropy/data/Phylogeny/family'
-    entropies = r'/sternadi/home/volume1/daniellem1/Entropy/data/Phylogeny/data/entropies.csv'
+    entropies = r'/sternadi/home/volume1/daniellem1/Entropy/data/entropies.csv'
 
     out = r'/sternadi/home/volume1/daniellem1/Entropy/data/Phylogeny/data'
 
@@ -189,7 +191,7 @@ def main(args):
         run_randomization_test(main_dir, n=n , mapping=mapping, feature=feature)
         print('Done!')
     else:
-        features = [f for f in mapping.columns if f not in ['family', 'refseq_id']]
+        features = [f for f in mapping.columns if f not in ['family', 'refseq_id', 'virus_name']]
         run_trait_correlations(features, mapping=mapping, super_folder=main_dir, out=out)
         print('Done!')
 
