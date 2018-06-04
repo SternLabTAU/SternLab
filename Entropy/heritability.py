@@ -177,9 +177,9 @@ def run_trait_correlations(featurs, mapping, super_folder, out):
 def main(args):
 
     main_dir = r'/sternadi/home/volume1/daniellem1/Entropy/data/Phylogeny/family'
-    entropies = r'/sternadi/home/volume1/daniellem1/Entropy/data/Phylogeny/data/entropies.csv'
+    entropies = r'/sternadi/home/volume1/daniellem1/Entropy/data/entropies.csv'
 
-    out = r'/sternadi/home/volume1/daniellem1/Entropy/data/Phylogeny/data'
+    out = r'/sternadi/home/volume1/daniellem1/Entropy/data'
 
     mapping = pd.read_csv(entropies)
 
@@ -189,7 +189,7 @@ def main(args):
         run_randomization_test(main_dir, n=n , mapping=mapping, feature=feature)
         print('Done!')
     else:
-        features = [f for f in mapping.columns if f not in ['family', 'refseq_id']]
+        features = [f for f in mapping.columns if f not in ['family', 'refseq_id', 'virus_name']]
         run_trait_correlations(features, mapping=mapping, super_folder=main_dir, out=out)
         print('Done!')
 
