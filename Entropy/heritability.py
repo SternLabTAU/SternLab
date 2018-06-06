@@ -162,11 +162,29 @@ def run_trait_correlations(featurs, mapping, super_folder, out):
         tree = [f for f in files if 'phyml_tree' in f]
         if tree != []:
             all_trees.append(os.path.join(root, tree[0]))
-
+    do_no_consider = [ 'Peribunyaviridae',
+ 'Polydnaviridae',
+ 'Chrysoviridae',
+ 'Benyviridae',
+ 'Quadriviridae',
+ 'Arenaviridae',
+ 'Deltasatellite',
+ 'Bidnaviridae',
+ 'Nairoviridae',
+ 'Picobirnaviridae',
+ 'Birnaviridae',
+ 'Megabirnaviridae',
+ 'Pospiviroidae',
+ 'Cystoviridae',
+ 'Partitiviridae',
+ 'Fimoviridae',
+ 'Avsunviroidae']
     for tree in tqdm(all_trees):
         if tree_2_string(tree) == '':
             continue
         alias = os.path.basename(tree).split('.')[0].strip()
+        if alias in do_no_consider:
+            continue
         print(alias)
         t = Phylo.read(tree, 'newick')
         num_leafs = len([term.name.split('.')[0] for term in t.get_terminals()])
