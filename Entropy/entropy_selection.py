@@ -335,7 +335,8 @@ def get_family_slopes_and_graphs(tree, mapping, features, alias, out=None):
 
     # create the plot
     x = np.linspace(0,1,50)
-    colors = ['#E9C025', '#63AB2B', '#2BA5AB', '#9C59DC', '#E9ADE6', '#961232', '#D1357C', '#36DCAA', '#DC6B36']
+    #colors = ['#E9C025', '#63AB2B', '#2BA5AB', '#9C59DC', '#E9ADE6', '#961232', '#D1357C', '#36DCAA', '#DC6B36']
+    colors = list(sns.color_palette('Spectral', len(features)).as_hex())
     for i, feature in enumerate(features):
         feature_info = features_df[features_df['feature'] == feature]
         slope = feature_info['slope'][0]    # no need in values because its only one line
@@ -359,7 +360,8 @@ def run_entropy_selection_test(super_folder, mapping, out):
     all_trees = []
     results = []
 
-    features = [f for f in mapping.columns if f not in ['family', 'refseq_id', 'virus_name']]
+    #features = [f for f in mapping.columns if f not in ['family', 'refseq_id', 'virus_name']]
+    features = ['k5','reading_frame', 'codon_position_1', 'codon_position_2', 'codon_position_3']
 
     do_not_consider = ['Avsunviroidae', 'Pospiviroidae', 'Deltasatellite']
 
