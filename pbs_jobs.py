@@ -31,7 +31,7 @@ def create_pbs_cmd(cmdfile, alias, gmem=2, cmds="", dir = "", load_python=True, 
         
         o.write("\n")
         o.write(cmds)
-        o.write("date\n")
+        o.write("\ndate\n")
     o.close()
 
 
