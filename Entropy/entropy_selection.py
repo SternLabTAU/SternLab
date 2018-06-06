@@ -10,6 +10,8 @@ import string
 from Bio import SeqIO, Phylo
 from itertools import combinations
 from scipy import stats
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
 import heritability
@@ -347,7 +349,7 @@ def get_family_slopes_and_graphs(tree, mapping, features, alias, out=None):
     plt.legend()
     sns.despine()
     if out != None:
-        plt.savefig(os.path.join(out, 'entropy_diff.png'), format='png', dpi=400, bbox_inches='tight')
+        plt.savefig(os.path.join(out, 'selection_test.png'), format='png', dpi=400, bbox_inches='tight')
         plt.gcf().clear()
 
     return features_df
