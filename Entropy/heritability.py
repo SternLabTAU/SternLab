@@ -9,6 +9,8 @@ import math
 from Bio.Seq import Seq
 import random
 from ete3 import Tree, TextFace, TreeStyle
+import matplotlib
+matplotlib.use('Agg')
 from itertools import combinations
 from scipy import stats
 import matplotlib
@@ -38,7 +40,13 @@ def contrasts(tree, feature, mapping):
 
     # calculate all pairs
     pairs =  list(combinations(values, 2))
-    for pair in pairs:
+    for pair in tqdm(pairs):
+        if np.isnan(pair[0][1]) or np.isnan(pair[1][1]):
+            print('Encontered Nan - removing pair from calculation')
+            continue
+        if np.isinf(pair[0][1] - pair[1][1]):
+            print('Encontered INFINITY - removing pair from calculation')
+            continue
         sqrt_distance = np.sqrt(tree.distance(pair[0][0], pair[1][0]))
         if sqrt_distance == 0:
             sqrt_distance = 10**-5  # consider ignoring those?
@@ -172,7 +180,7 @@ def run_trait_correlations(featurs, mapping, super_folder, out):
             results.append(df)
 
     concat = pd.concat(results)
-    concat.to_csv(os.path.join(out, 'contrasts_correlations.csv'), index=False)
+    concat.to_csv(os.path.join(out, 'contrasts_correlations_picorna.csv'), index=False)
     return concat
 
 
@@ -182,6 +190,7 @@ def main(args):
     entropies = r'/sternadi/home/volume1/daniellem1/Entropy/data/entropies.csv'
 
     out = r'/sternadi/home/volume1/daniellem1/Entropy/data'
+
 
     mapping = pd.read_csv(entropies)
 
