@@ -31,7 +31,40 @@ def create_pbs_cmd(cmdfile, alias, gmem=2, cmds="", dir = "", load_python=True, 
         
         o.write("\n")
         o.write(cmds)
-        o.write("\ndate\n")
+        o.write("\n")
+        o.write("date\n")
+    o.close()
+
+
+def create_array_pbs_cmd(cmdfile, jnum, alias, gmem=7, cmds="", dir="", load_python=True):
+    with open(cmdfile, 'w') as o:
+        o.write("#!/bin/bash\n#PBS -S /bin/bash\n#PBS -j oe\n#PBS -r y\n")
+        o.write("#PBS -q adis\n")
+        o.write("#PBS -v PBS_O_SHELL=bash,PBS_ENVIRONMENT=PBS_BATCH \n")
+        o.write("#PBS -N " + alias + "\n")
+        if alias in cmdfile and datetime.datetime.today().strftime('%Y-%m') in cmdfile:
+            o.write("#PBS -o %s\n" % "/".join(cmdfile.split("/")[:-1]))
+        if (gmem):
+            mem = gmem * 1000
+            o.write("#PBS -l mem=" + str(mem) + "mb\n")
+        if jnum == 1:
+            raise Exception('Jnum parameter should be larger then 1\n')
+        else:
+            o.write("#PBS -J 1-" + str(jnum) + "\n\n")
+            # #o.write("#PBS -J 3-4 \n")
+        if dir != "":
+            o.write("ls -land %s\n" % dir)
+        o.write("id\n")
+        o.write("date\n")
+        o.write("hostname\n")
+        if load_python:
+            o.write("module load python/anaconda_python-3.4.0\n")
+
+        o.write("\n")
+        o.write(cmds)
+        o.write("\n")
+        o.write("date\n")
+>>>>>>> a5f39880e26a130bf8c72421af99768442ad619e
     o.close()
 
 

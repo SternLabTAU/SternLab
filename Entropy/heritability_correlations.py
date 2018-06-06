@@ -9,14 +9,14 @@ import math
 from Bio.Seq import Seq
 import random
 from ete3 import Tree, TextFace, TreeStyle
-import matplotlib
-matplotlib.use('Agg')
 from itertools import combinations
 from scipy import stats
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
 from utils import *
-import argparse
+import statsmodels.formula.api as smf
 
 
 '''
@@ -25,6 +25,7 @@ This code implements the statistics behind Blomberg paper regarding testing for 
 * randomization test
 * k statistic
 '''
+
 
 
 def contrasts(tree, feature, mapping):
@@ -167,7 +168,7 @@ def run_trait_correlations(featurs, mapping, super_folder, out):
 
         for pair in pairs:
             r, p = trait_correlations(pair[0], pair[1], mapping, t)
-            df = pd.DataFrame({'family': alias, 'attr1':pair[0], 'attr2':pair[1], 'p_value':p, 'r_sqrd':r,
+            df = pd.DataFrame({'group': alias, 'attr1':pair[0], 'attr2':pair[1], 'p_value':p, 'r_sqrd':r,
                                'num_leafs':num_leafs}, index=[0])
             results.append(df)
 
@@ -176,32 +177,37 @@ def run_trait_correlations(featurs, mapping, super_folder, out):
     return concat
 
 
-def main(args):
+def main():
+
+    # main_dir = r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/Phylogeny/family'
+    # virus_entropy = r'/Users/daniellemiller/Google Drive/Msc Bioinformatics/Projects/entropy/virus_host_entropy/virus_host_entropy.csv'
+    # virus_entropy_n_content = r'/Users/daniellemiller/Google Drive/Msc Bioinformatics/Projects/entropy/virus_host_entropy/refseq_2_content.csv'
+    # out = r'/Users/daniellemiller/Google Drive/Msc Bioinformatics/Projects/entropy/virus_host_entropy'
 
     main_dir = r'/sternadi/home/volume1/daniellem1/Entropy/data/Phylogeny/family'
-    entropies = r'/sternadi/home/volume1/daniellem1/Entropy/data/entropies.csv'
+    virus_entropy = r'/sternadi/home/volume1/daniellem1/Entropy/data/virus_host_entropy.csv'
+    virus_entropy_n_content = r'/sternadi/home/volume1/daniellem1/Entropy/data/refseq_2_content.csv'
+    out = r'/sternadi/home/volume1/daniellem1/Entropy/data'
 
-    out = r'/sternadi/home/volume1/daniellem1/Entropy/data/Phylogeny/data'
-
-    mapping = pd.read_csv(entropies)
-
+    mapping = pd.read_csv(virus_entropy_n_content)
     n = 1000
-    if args.type == 1:
-        feature = 'k5'
+    #feature= 'entropy_5'
+    features = ['a_content', 'c_content', 'g_content', 't_content']
+    for feature in features:
         run_randomization_test(main_dir, n=n , mapping=mapping, feature=feature)
-        print('Done!')
-    else:
-        features = [f for f in mapping.columns if f not in ['family', 'refseq_id', 'virus_name']]
-        run_trait_correlations(features, mapping=mapping, super_folder=main_dir, out=out)
-        print('Done!')
 
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-t", "--type", type=int,
-                        help="type of running - randomization test = 1, correlation test = 2", default=1)
 
-    args = parser.parse_args()
+    #run_randomization_test(main_dir, n=n , mapping=mapping, feature=feature)
 
-    main(args)
+    #### correlations between traits
+    #features = ['entropy_3', 'entropy_4', 'entropy_5', 'entropy_6', 'a_content', 'c_content', 'g_content', 't_content']
+    #run_trait_correlations(features, mapping, main_dir, out)
+
+    print('Done!')
+
+
+if __name__ == '__main__':
+    main()
+
