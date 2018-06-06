@@ -27,7 +27,7 @@ This code implements the statistics behind Blomberg paper regarding testing for 
 '''
 
 
-def contrasts(tree, feature, mapping):
+def contrasts(tree, feature, mapping, refseq_2_keep = None):
     ''' calculates the variance of all cijs in a given tree'''
 
     all_contrasts = []
@@ -36,14 +36,14 @@ def contrasts(tree, feature, mapping):
     term_names = [term.name.split('.')[0] for term in tree.get_terminals()]
     values = [(name, mapping[mapping['refseq_id'] == name][feature].values[0]) for name in term_names]
 
+    if refseq_2_keep != None:
+        values = [v for v in values if v[0] in refseq_2_keep]
+
     # calculate all pairs
     pairs =  list(combinations(values, 2))
-    for pair in tqdm(pairs):
+    for pair in pairs:
         if np.isnan(pair[0][1]) or np.isnan(pair[1][1]):
             print('Encontered Nan - removing pair from calculation')
-            continue
-        if np.isinf(pair[0][1] - pair[1][1]):
-            print('Encontered INFINITY - removing pair from calculation')
             continue
         sqrt_distance = np.sqrt(tree.distance(pair[0][0], pair[1][0]))
         if sqrt_distance == 0:
@@ -144,9 +144,20 @@ def run_randomization_test(super_folder, n, mapping, feature):
 def trait_correlations(feature1, feature2, mapping, tree):
     ''' simple linear regression for correlation testing between two features'''
 
-    f1_contrasts = contrasts(tree, feature1, mapping)
-    f2_contrasts = contrasts(tree, feature2, mapping)
+    # get the refseq_ids that correspond in both features
+    term_names = [term.name.split('.')[0] for term in tree.get_terminals()]
+    values_1 = [(name, mapping[mapping['refseq_id'] == name][feature1].values[0]) for name in term_names]
+    refseq_ids_1 = [v[0] for v in values_1 if not np.isnan(v[1])]
 
+    values_2 = [(name, mapping[mapping['refseq_id'] == name][feature2].values[0]) for name in term_names]
+    refseq_ids_2 = [v[0] for v in values_2 if not np.isnan(v[1])]
+
+    refseq_2_keep = list(set(refseq_ids_1) & set(refseq_ids_2))
+
+    f1_contrasts = contrasts(tree, feature1, mapping, refseq_2_keep=refseq_2_keep)
+    f2_contrasts = contrasts(tree, feature2, mapping, refseq_2_keep=refseq_2_keep)
+
+    print(len(f1_contrasts), len(f2_contrasts))
     slope, intercept, r_value, p_value, std_err = stats.linregress(f1_contrasts, f2_contrasts)
 
     return r_value, p_value
@@ -162,34 +173,23 @@ def run_trait_correlations(featurs, mapping, super_folder, out):
         tree = [f for f in files if 'phyml_tree' in f]
         if tree != []:
             all_trees.append(os.path.join(root, tree[0]))
-    do_no_consider = [ 'Peribunyaviridae',
- 'Polydnaviridae',
- 'Chrysoviridae',
- 'Benyviridae',
- 'Quadriviridae',
- 'Arenaviridae',
- 'Deltasatellite',
- 'Bidnaviridae',
- 'Nairoviridae',
- 'Picobirnaviridae',
- 'Birnaviridae',
- 'Megabirnaviridae',
- 'Pospiviroidae',
- 'Cystoviridae',
- 'Partitiviridae',
- 'Fimoviridae',
- 'Avsunviroidae']
+    do_not_consider = [ 'Peribunyaviridae','Polydnaviridae','Chrysoviridae','Benyviridae','Quadriviridae',
+                       'Arenaviridae','Deltasatellite','Bidnaviridae','Nairoviridae','Picobirnaviridae','Birnaviridae',
+                       'Megabirnaviridae','Pospiviroidae','Cystoviridae','Partitiviridae','Fimoviridae','Avsunviroidae']
+
     for tree in tqdm(all_trees):
         if tree_2_string(tree) == '':
             continue
         alias = os.path.basename(tree).split('.')[0].strip()
-        if alias in do_no_consider:
+        if alias in do_not_consider:
+            print('skipping {}'.format(alias))
             continue
         print(alias)
         t = Phylo.read(tree, 'newick')
         num_leafs = len([term.name.split('.')[0] for term in t.get_terminals()])
 
         for pair in pairs:
+            print(pair)
             r, p = trait_correlations(pair[0], pair[1], mapping, t)
             df = pd.DataFrame({'family': alias, 'attr1':pair[0], 'attr2':pair[1], 'p_value':p, 'r_sqrd':r,
                                'num_leafs':num_leafs}, index=[0])
@@ -208,7 +208,6 @@ def main(args):
 
     out = r'/sternadi/home/volume1/daniellem1/Entropy/data/Phylogeny/data'
 
-
     mapping = pd.read_csv(entropies)
 
     n = 1000
@@ -226,7 +225,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-t", "--type", type=int,
-                        help="type of running - randomization test = 1, correlation test = 2", default=1)
+                        help="type of running - randomization test = 1, correlation test = 2", default=2)
 
     args = parser.parse_args()
 
