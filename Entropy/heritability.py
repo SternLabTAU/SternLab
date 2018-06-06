@@ -196,7 +196,7 @@ def run_trait_correlations(featurs, mapping, super_folder, out):
             results.append(df)
 
     concat = pd.concat(results)
-    concat.to_csv(os.path.join(out, 'contrasts_correlations_picorna.csv'), index=False)
+    concat.to_csv(os.path.join(out, 'contrasts_correlations.csv'), index=False)
     return concat
 
 
