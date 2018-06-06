@@ -126,5 +126,13 @@ def root_at_midpoint(tree_file, outfile = None):
     Phylo.write([tree], outfile, "newick")
     return outfile
 
+def label_leaf_nodes(tree_file, outfile):
+    tree_file = check_filename(tree_file)
+    outfile = check_filename(outfile, Truefile=False)
+    tree = open(tree_file, 'r').read()
+    tree2 = tree.replace(":", " #1:")
+    tree3 = tree2.replace(") #1", ") #0")
+    with open(outfile, "w") as f:
+        f.write(tree3)
 
 
