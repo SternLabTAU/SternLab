@@ -357,8 +357,7 @@ def run_entropy_selection_test(super_folder, mapping, out):
     all_trees = []
     results = []
 
-    features = ['entropy_5', 'entropy_3', 'codon1_entropy', 'codon2_entropy', 'codon3_entropy', 'rf_entropy',
-                'rf2_entropy', 'rf3_entropy']
+    features = [f for f in mapping.columns if f not in ['family', 'refseq_id', 'virus_name']]
 
     do_not_consider = ['Avsunviroidae', 'Pospiviroidae', 'Deltasatellite']
 
@@ -401,9 +400,9 @@ def cds_statistics_by_family(tree, family, mapping, features):
         num_not_none_leafs = len([val2 for val1, val2, in values if not np.isnan(val2)])
         features_dict[feature] = num_not_none_leafs/num_leafs
 
-    df = pd.DataFrame({'family':family, 'entropy_5':features_dict['entropy_5'], 'codon1_entropy':features_dict['codon1_entropy']
-                          , 'codon2_entropy':features_dict['codon2_entropy'], 'codon3_entropy':features_dict['codon3_entropy'],
-                       'rf_entropy':features_dict['rf_entropy'], 'num_leafs':num_leafs}, index=[0])
+    df = pd.DataFrame({'family':family, 'k5':features_dict['k5'], 'codon_position_1':features_dict['codon1_entropy']
+                          , 'codon_position_2':features_dict['codon2_entropy'], 'codon_position_3':features_dict['codon3_entropy'],
+                       'reading_frame':features_dict['rf_entropy'], 'num_leafs':num_leafs}, index=[0])
 
     return df
 
@@ -412,8 +411,8 @@ def run_cds_statistics_by_family(super_folder, mapping, out):
     all_trees = []
     results = []
 
-    features = ['entropy_5', 'entropy_3', 'codon1_entropy', 'codon2_entropy', 'codon3_entropy', 'rf_entropy',
-                'rf2_entropy', 'rf3_entropy']
+    features = [f for f in mapping.columns if f not in ['family', 'refseq_id', 'virus_name']]
+
 
     for root, dirs, files in tqdm(os.walk(super_folder)):
         tree = [f for f in files if 'phyml_tree' in f]
@@ -432,23 +431,25 @@ def run_cds_statistics_by_family(super_folder, mapping, out):
     final = pd.concat(results)
     final.to_csv(os.path.join(out, 'genomic_cds_entropy_stats.csv'), index=False)
 
-def test_selection_validity(slopes, out=None):
+def test_selection_validity(slopes,feature1,feature2, out=None):
     """
     tests the selection of each family by codon3 entropy vs. entropy k=5 using ci and hypothesis testing
     :param slopes: a dataframe with slopes
+    :param feature1: the wanted upper slope
+    :param feature2: the wanted lower slope
     :param families:
     :return:
     """
 
     mapping = {}
-    slopes = slopes[slopes['feature'].isin(['k5', 'codon_position_3'])]
+    slopes = slopes[slopes['feature'].isin([feature1, feature2])]
     for family in tqdm(set(slopes['family'])):
         df = slopes[slopes['family'] == family]
-        is_significant = df[df['feature'] == 'codon_position_3']['p_value'].values[0] < 0.05 and \
-                         df[df['feature'] == 'k5']['p_value'].values[0] < 0.05
+        is_significant = df[df['feature'] == feature1]['p_value'].values[0] < 0.05 and \
+                         df[df['feature'] == feature2]['p_value'].values[0] < 0.05
 
-        differ = df[df['feature'] == 'codon_position_3']['lower_CI'].values[0] > \
-                 df[df['feature'] == 'k5']['upper_CI'].values[0]
+        differ = df[df['feature'] == feature1]['lower_CI'].values[0] > \
+                 df[df['feature'] == feature2]['upper_CI'].values[0]
 
         mapping[family] = (is_significant, differ)
 
