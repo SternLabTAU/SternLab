@@ -59,7 +59,7 @@ def check_pbs(job_id):
 
 def get_cmdfile_dir(cmdfile, alias):
     username = getpass.getuser()
-    lab_users_dic = {"taliakustin":"/sternadi/home/volume1/taliakustin/temp"}
+    lab_users_dic = {"taliakustin":"/sternadi/home/volume1/taliakustin/temp", "okushnir":"/sternadi/home/volume3/okushnir/running"}
     if username in lab_users_dic.keys():
         tmp_dir = lab_users_dic[username]
         if not os.path.exists(tmp_dir):
