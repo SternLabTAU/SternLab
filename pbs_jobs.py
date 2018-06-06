@@ -64,7 +64,6 @@ def create_array_pbs_cmd(cmdfile, jnum, alias, gmem=7, cmds="", dir="", load_pyt
         o.write(cmds)
         o.write("\n")
         o.write("date\n")
->>>>>>> a5f39880e26a130bf8c72421af99768442ad619e
     o.close()
 
 
