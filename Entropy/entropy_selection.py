@@ -446,7 +446,8 @@ def test_selection_validity(slopes,feature1,feature2, out=None):
     """
 
     mapping = {}
-    slopes = slopes[slopes['feature'].isin([feature1, feature2])]
+    features = [feature1, feature2]
+    slopes = slopes[slopes['feature'].isin(features)]
     for family in tqdm(set(slopes['family'])):
         df = slopes[slopes['family'] == family]
         is_significant = df[df['feature'] == feature1]['p_value'].values[0] < 0.05 and \
