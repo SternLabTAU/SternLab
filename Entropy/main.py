@@ -11,12 +11,19 @@ def main():
 
     main_dir = r'/sternadi/home/volume1/daniellem1/Entropy/data/Phylogeny/family'
     entropies = r'/sternadi/home/volume1/daniellem1/Entropy/data/entropies.csv'
+    selection_results = r'/sternadi/home/volume1/daniellem1/Entropy/data/entropy_selection_test.csv'
+
 
     mapping = pd.read_csv(entropies)
+    selection_stats = pd.read_csv(selection_results)
 
     out = r'/sternadi/home/volume1/daniellem1/Entropy/data/'
 
-    run_entropy_selection_test(main_dir, mapping, out)
+    # run_entropy_selection_test(main_dir, mapping, out)
+    f1 = 'codon_position_3'
+    f2 = 'k5'
+    test_selection_validity(selection_stats, f1, f2, out)
+    
 
     # k = args.kmer
     # coding = args.coding
@@ -27,7 +34,8 @@ def main():
     #     basic_genome_entropy = genome_2_entropy(genomics,k, out=out, rc_joint=True)
 
 
-
+if __name__ == "__main__":
+    main()
 
 # if __name__ == "__main__":
 #     parser = argparse.ArgumentParser()
