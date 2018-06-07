@@ -10,7 +10,7 @@ def extract_selecton_final_params_single_file(file):
     data = open(file, "r").readlines()
     parameters = {}
     for line in data:
-        if "Selecton Optimized Parameters" in line:
+        if "Selecton Optimized Parameters" in line or "wYangModel Parameters:" in line or "wrtModel Parameters:" in line:
             continue
         parameter = line.split(":")[0].replace(" ", "_")
         value = line.split(":")[1].strip()
@@ -37,8 +37,3 @@ def extract_selecton_final_params(files, output_file=None):
         output_file = check_filename(output_file, Truefile=False)
         df.to_csv(output_file)
     return df
-
-
-
-
-
