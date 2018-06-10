@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 from utils import *
+from randomization_utils import *
 import re
 from tqdm import tqdm
 import math
@@ -461,7 +462,7 @@ def test_selection_validity(slopes,feature1,feature2, out=None):
     slopes['pval_significant'] = slopes['family'].apply(lambda x: mapping[x][0])
     slopes['slope_difference'] = slopes['family'].apply(lambda x: mapping[x][1])
     if out != None:
-        slopes.to_csv(os.path.join(out, 'selection_test_stats.csv'), index=False)
+        slopes.to_csv(os.path.join(out, 'selection_test_stats_{}_{}.csv'.format(feature1, feature2)), index=False)
 
     return slopes
 

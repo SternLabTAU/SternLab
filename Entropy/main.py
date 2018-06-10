@@ -11,17 +11,17 @@ def main():
 
     main_dir = r'/sternadi/home/volume1/daniellem1/Entropy/data/Phylogeny/family'
     entropies = r'/sternadi/home/volume1/daniellem1/Entropy/data/entropies.csv'
-    selection_results = r'/sternadi/home/volume1/daniellem1/Entropy/data/entropy_selection_test.csv'
+    selection = r'/sternadi/home/volume1/daniellem1/Entropy/data/entropy_selection_test.csv'
 
 
     mapping = pd.read_csv(entropies)
-    selection_stats = pd.read_csv(selection_results)
+    selection_stats = pd.read_csv(selection)
 
     out = r'/sternadi/home/volume1/daniellem1/Entropy/data/'
 
     # run_entropy_selection_test(main_dir, mapping, out)
     f1 = 'codon_position_3'
-    f2 = 'k5'
+    f2 = 'codon_position_2'
     test_selection_validity(selection_stats, f1, f2, out)
     
 
