@@ -17,6 +17,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import heritability
 import pickle
+from randomization_utils import *
+
+with open(r'/sternadi/volume1/home/daniellem1/Entropy/data/refseq_2_cds_positions.pickle', 'rb') as o:
+    cds_mapping = pickle.load(o)
 
 def remove_punctuation(s):
     splitted = string.punctuation.split('_')
@@ -63,8 +67,9 @@ def genome_2_entropy(fasta, k, scramble=False, rc_joint=False, out=""):
         genome = splitted[-1]
 
         if scramble:
-            genome = scrambler(genome)
-
+            genome = scramble_all_sequence(genome, mapping=cds_mapping, refseq_id=identifier, how=3)
+            if genome == None:
+                continue
         # calculate entropy
 
         if rc_joint:
@@ -149,7 +154,7 @@ def entropy_calculator_cds(key, values, jump=False, position=0, scramble=False, 
     if not rc_joint:
         for seq in values:
             if scramble:
-                seq = scrambler(seq)
+                seq = scramble_synonymous_codons(seq)
             total_len += len(seq)
             if jump:
 
@@ -184,7 +189,7 @@ def entropy_calculator_cds(key, values, jump=False, position=0, scramble=False, 
 
         for seq in values:
             if scramble:
-                seq = scrambler(seq)
+                seq = scramble_synonymous_codons(seq)
             total_len += len(seq)
             if jump:
                 assert (position in [0, 1, 2])

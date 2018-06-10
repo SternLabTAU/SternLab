@@ -5,6 +5,50 @@ from itertools import combinations
 from scipy import stats
 import random
 from Bio.SeqUtils import CodonUsage
+from entropy_selection import *
+import pickle
+
+
+def refseq_2_cds_positions(cds, out=None):
+    """
+    creates a mapping of refseq id to cds positions
+    :param cds: cds fasta file
+    :return: a dictionary containing the mapping
+    """
+
+
+    # create a mapping between each id all the coding sequences it has.
+    mapping = {}
+    sequences = re.split(">", open(cds, "r").read().replace('\n', ''))[1:]
+    for seq in tqdm(sequences):
+        splitted = seq.split('|')
+        # if splitted[2] != '':
+            # print(splitted[0], splitted[2], splitted[3])
+        refseq_id = remove_punctuation(splitted[3])
+        if 'geneid' in refseq_id.lower():
+            refseq_id = remove_punctuation(splitted[4])
+        # refseq_id = splitted[3]
+        if '}' in seq:
+            str_positions = splitted[-1].split('}')[0].split('|')[-1]
+            lst_positions = re.findall(r'\d+', str_positions)
+        else:
+            str_positions = splitted[-1].split(')')[0].split('|')[-1]
+            lst_positions = re.findall(r'\d+', str_positions)
+
+        # add the sequence to the dictionary
+        if refseq_id in mapping:
+            mapping[refseq_id].extend(lst_positions)
+        else:
+            mapping[refseq_id] = lst_positions
+
+    for key in mapping.keys():
+        positions = mapping[key]
+        mapping[key] = sorted([(positions[i], positions[i+1]) for i in range(0, len(positions),2)], key=lambda x: x[0])
+
+    with open (out, 'wb') as o:
+        pickle.dump(mapping, o)
+    return mapping
+
 
 
 def get_cds_by_position(seq, positions):
@@ -91,7 +135,7 @@ def scramble_all_sequence(seq, mapping, refseq_id, how=1):
     if how == 1:
         return scrambler(seq)
 
-    positions = sorted(mapping[refseq_id], key=lambda x: x[0])
+    positions = mapping[refseq_id]
     print(positions)
     all_positions =[]
     for t1, t2 in positions:
@@ -110,7 +154,7 @@ def scramble_all_sequence(seq, mapping, refseq_id, how=1):
 
             scrambled += coding
         else:   # not coding
-            if i == len(all_positions) - 1: # end of the llist
+            if i == len(all_positions) - 1: # end of the list
                 non_coding = scrambler(seq[all_positions[i]+1:])
             else:
                 non_coding = scrambler(seq[all_positions[i]+1: all_positions[i+1]])
@@ -120,7 +164,3 @@ def scramble_all_sequence(seq, mapping, refseq_id, how=1):
     return scrambled
 
 
-
-x = 'atgccaccgatg'
-d = {'lala':[(3,8)]}
-print(scramble_all_sequence(x, d, 'lala', how=3))
