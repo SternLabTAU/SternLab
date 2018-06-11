@@ -173,8 +173,8 @@ def scramble_all_sequence(seq, mapping, refseq_id, how=1):
     print(positions)
     all_positions =[]
     for t1, t2 in positions:
-        all_positions.append(t1)
-        all_positions.append(t2)
+        all_positions.append(int(t1))
+        all_positions.append(int(t2))
     print(all_positions)
     scrambled = scrambler(seq[:all_positions[0]])
 
