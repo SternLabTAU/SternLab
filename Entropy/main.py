@@ -20,9 +20,9 @@ def main():
     out = r'/sternadi/home/volume1/daniellem1/Entropy/data/'
 
     # run_entropy_selection_test(main_dir, mapping, out)
-    f1 = 'codon_position_3'
-    f2 = 'k5'
-    test_selection_validity(selection_stats, f1, f2, out)
+    # f1 = 'codon_position_3'
+    # f2 = 'k5'
+    # test_selection_validity(selection_stats, f1, f2, out)
     
 
     # k = args.kmer
@@ -33,17 +33,17 @@ def main():
     # else:
     #     basic_genome_entropy = genome_2_entropy(genomics,k, out=out, rc_joint=True)
 
+#
+# if __name__ == "__main__":
+#     main()
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-k", "--kmer", type=int,
+                        help="the kmer size", required=True)
+    parser.add_argument("-c", "--coding", type=int,
+                        help="lthe type of file", default=0)
 
-# if __name__ == "__main__":
-#     parser = argparse.ArgumentParser()
-#     parser.add_argument("-k", "--kmer", type=int,
-#                         help="the kmer size", required=True)
-#     parser.add_argument("-c", "--coding", type=int,
-#                         help="lthe type of file", default=0)
+    args = parser.parse_args()
 
-#     args = parser.parse_args()
-
-#     main(args)
+    main(args)
