@@ -84,7 +84,6 @@ def replace_codon(codon, syn_dict, codon_dict):
     aa_type = [k for k,v in syn_dict.items() if codon in v][0]
     syn_codons = list(syn_dict[aa_type])
     valid_options = [c for c in syn_codons if codon_dict[c] != 0 and c != codon]
-    print(valid_options)
     if valid_options == []:
         return codon
     else:
@@ -102,7 +101,7 @@ def scramble_synonymous_codons(seq):
     seq = seq.upper()
     codon_dict = CodonUsage.CodonsDict
     syn_codons = CodonUsage.SynonymousCodons
-    all_codons = [seq[i:i + 3] for i in range(0, len(seq), 3)]
+    all_codons = [seq[i:i + 3] for i in range(0, len(seq), 3) if len(seq[i:i + 3]) == 3]
 
     for codon in all_codons:
         codon_dict[codon] += 1
@@ -110,6 +109,8 @@ def scramble_synonymous_codons(seq):
     shuffled = ''
     for i in range(0, len(seq), 3):
         codon = seq[i:i+3]
+        print(codon)
+        print(syn_codons[codon])
         new_codon = replace_codon(codon, syn_codons, codon_dict)
 
         # remove that option from the available codons
@@ -139,7 +140,8 @@ def scramble_all_sequence(seq, mapping, refseq_id, how=1):
     print(positions)
     all_positions =[]
     for t1, t2 in positions:
-        all_positions.extend([t1,t2])
+        all_positions.append(t1)
+        all_positions.append(t2)
     print(all_positions)
     scrambled = scrambler(seq[:all_positions[0]])
 

@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 from utils import *
+from randomization_utils import *
 import re
 from tqdm import tqdm
 import math
@@ -18,7 +19,7 @@ import heritability
 import pickle
 from randomization_utils import *
 
-with open(r'/sternadi/volume1/home/daniellem1/Entropy/data/refseq_2_cds_positions.pickle', 'rb') as o:
+with open(r'/sternadi/home/volume1/daniellem1/Entropy/data/refseq_2_cds_positions.pickle', 'rb') as o:
     cds_mapping = pickle.load(o)
 
 def remove_punctuation(s):
@@ -38,7 +39,7 @@ def map_family_2_refseq(x, mapping):
 
 
 
-def genome_2_entropy(fasta, k, scramble=False, rc_joint=False, out=""):
+def genome_2_entropy(fasta, k, scramble=True, rc_joint=False, out=""):
     """
     create a mapping of the complete genome to its entropy by kmer
     :param fasta: a file containing all fasta files
@@ -133,7 +134,7 @@ def refseq_2_cds(cds):
 
     # now we have for each id the cds seqs.
 
-def entropy_calculator_cds(key, values, jump=False, position=0, scramble=False, rc_joint=False):
+def entropy_calculator_cds(key, values, jump=False, position=0, scramble=True, rc_joint=False):
     '''
     calculate the entropy according to coding regions only for a given set of . here we have two options - by reading frame or by
     some codon position
@@ -466,7 +467,7 @@ def test_selection_validity(slopes,feature1,feature2, out=None):
     slopes['pval_significant'] = slopes['family'].apply(lambda x: mapping[x][0])
     slopes['slope_difference'] = slopes['family'].apply(lambda x: mapping[x][1])
     if out != None:
-        slopes.to_csv(os.path.join(out, 'selection_test_stats.csv'), index=False)
+        slopes.to_csv(os.path.join(out, 'selection_test_stats_{}_{}.csv'.format(feature1, feature2)), index=False)
 
     return slopes
 
