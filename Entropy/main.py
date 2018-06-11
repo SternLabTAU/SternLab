@@ -21,15 +21,12 @@ def main(args):
 
     # run_entropy_selection_test(main_dir, mapping, out)
     # f1 = 'codon_position_3'
-<<<<<<< HEAD
     # f2 = 'k5'
-=======
     # f2 = 'codon_position_2'
->>>>>>> 2e776343678ff99a574f4a567d6049850812b875
     # test_selection_validity(selection_stats, f1, f2, out)
     
 
-    k = args.kmer
+    k = args.k
     coding = args.coding
     if coding == 1:
         mapping = refseq_2_cds(cds)
@@ -37,16 +34,7 @@ def main(args):
     else:
         basic_genome_entropy = genome_2_entropy(genomics,k, out=out, rc_joint=True)
 
-#
-# if __name__ == "__main__":
-#     main()
 
-<<<<<<< HEAD
-=======
-# if __name__ == "__main__":
-#     main()
-
->>>>>>> 2e776343678ff99a574f4a567d6049850812b875
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-k", "--kmer", type=int,
@@ -57,3 +45,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(args)
+

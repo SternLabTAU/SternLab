@@ -81,14 +81,43 @@ def replace_codon(codon, syn_dict, codon_dict):
     :param codon_dict: codon distribution of a sequence
     :return: new synonymous codon available
     """
-    aa_type = [k for k,v in syn_dict.items() if codon in v][0]
+
+    codon_tag = ambigous_codon_handler(codon)
+    aa_type = [k for k,v in syn_dict.items() if codon_tag in v][0]
     syn_codons = list(syn_dict[aa_type])
-    valid_options = [c for c in syn_codons if codon_dict[c] != 0 and c != codon]
+    valid_options = [c for c in syn_codons if codon_dict[c] != 0 and c != codon_tag]
     if valid_options == []:
         return codon
     else:
         random.shuffle(valid_options)
         return valid_options[0]
+
+def ambigous_codon_handler(codon):
+    """
+    replace ambigouse letters
+    :param codon: codon string
+    :return: unambigious codon
+    """
+    nucleotides = {'R': ['A', 'G'], 'Y': ['C', 'T'],
+                   'S': ['G', 'C'], 'W': ['A', 'T'], 'K': ['G', 'T'], 'M': ['A', 'C'], 'B': ['C', 'G', 'T'],
+                   'D': ['A', 'G', 'T'], 'H': ['A', 'C', 'T'], 'V': ['A', 'C', 'G'], 'N': ['A', 'C', 'G', 'T'],
+                   '-': ['-'], '.': ['-']}
+
+    new_codon = ""
+    to_replace = [c for c in codon if c in nucleotides.keys()]
+    if to_replace == []:
+        return codon
+    for c in codon:
+        if c in nucleotides.keys():
+            options = nucleotides[c]
+            random.shuffle(options)
+            c_tag = options[0]
+            new_codon += c_tag
+        else:
+            new_codon += c
+    return new_codon
+
+
 
 
 def scramble_synonymous_codons(seq):
@@ -101,16 +130,20 @@ def scramble_synonymous_codons(seq):
     seq = seq.upper()
     codon_dict = CodonUsage.CodonsDict
     syn_codons = CodonUsage.SynonymousCodons
-    all_codons = [seq[i:i + 3] for i in range(0, len(seq), 3) if len(seq[i:i + 3]) == 3]
+    all_codons = [seq[i:i+3] for i in range(0, len(seq), 3) if len(seq[i:i+3]) == 3]
 
     for codon in all_codons:
-        codon_dict[codon] += 1
+        if codon in codon_dict:
+            codon_dict[codon] += 1
+        else:
+            codon_dict[codon] = 1
 
     shuffled = ''
     for i in range(0, len(seq), 3):
         codon = seq[i:i+3]
-        print(codon)
-        print(syn_codons[codon])
+        if len(codon) != 3:
+            continue
+
         new_codon = replace_codon(codon, syn_codons, codon_dict)
 
         # remove that option from the available codons
