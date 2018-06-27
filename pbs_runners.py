@@ -101,7 +101,7 @@ def phyml_aa_runner(alignment, alias = "phyml", phylip=True):
     return job_id
 
 
-def fastml_runner(alignment, tree, alias = "fastml", outdir = None):
+def fastml_runner(alignment, tree, outdir = None, alias = "fastml"):
     """
     run fastml from phylogenyCode on cluster
     :param alignment: alignment file path
