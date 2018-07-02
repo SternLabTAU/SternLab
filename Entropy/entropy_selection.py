@@ -39,7 +39,7 @@ def map_family_2_refseq(x, mapping):
 
 
 
-def genome_2_entropy(fasta, k, scramble=True, rc_joint=False, out=""):
+def genome_2_entropy(fasta, k, scramble=False, rc_joint=False, out=""):
     """
     create a mapping of the complete genome to its entropy by kmer
     :param fasta: a file containing all fasta files
