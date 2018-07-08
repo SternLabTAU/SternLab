@@ -183,6 +183,12 @@ sub process_reads {
 		    $gap_counter++;
 		    $position--; # do not advance the counter
 		    $position_to_print.=".$gap_counter";
+		} elsif ($letter_at_read eq "-"){
+			if ($read_strand eq "plus"){
+				$read_position--;	#quality of the deletion would be the quality of the adjacent base
+			} elsif ($read_strand eq "minus"){
+				$read_position++;	#quality of the deletion would be the quality of the adjacent base
+			} 
 		}
 		else {
 		    $gap_counter=0;
@@ -266,11 +272,14 @@ sub read_quality {
 	print "opening file $list_reads_q\n";
     open IN, "<$list_reads_q" or die "cannot open file $list_reads_q\n";
     my @lines=<IN>;
+    print @lines;
     die "unexp error, number of lines returned from search **$list_reads_q** of quality should be even and it is ".scalar (@lines)."\n" if ((scalar (@lines)) %2!=0 || scalar (@lines)==0);
 
 	for (my $i=0; $i<scalar(@lines)-1; $i=$i+2) {    
 	my $line=$lines[$i];
 	chomp $line;
+    print $line;
+    print "\n";
 	if ($line =~ m/\@(\S+)/) { 
 	    my $read=$1;
 	    my $q_line = $lines[$i+1];
@@ -317,7 +326,7 @@ sub summarize {
 			last if ($read_position<0);
 			next LINE unless ($num_repeats >= $min_for_calling) ;
 			
-			my $q_val = substr $read2qual{$read},$read_position,1;
+			my $q_val = substr $read2qual{$read},$read_position-1,1;	# read position is 1 baed index (starting from 1 and not zero)
 			if (! defined $asciiScores{$q_val}){
 				print STDERR "pos=$pos,read=$read,base=$base,read2qual{read}=$read2qual{$read},read_position=$read_position,qval=$q_val\n";
 			}
@@ -490,6 +499,7 @@ sub read_ascii_quality_table {
 
     }
 
+    close (ASCII_HANDLE);
 
 }
 
