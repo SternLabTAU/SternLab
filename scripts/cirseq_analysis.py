@@ -16,22 +16,27 @@ start_time = time.time()
 
 def main():
     # for Cluster
-    # parser = OptionParser("usage: %prog [options]")
-    # parser.add_option("-f", "--freqs_file_path", dest="freqs_file_path", help="path of the freqs file")
-    # parser.add_option("-v", "--virus", dest="virus", help="Virus name: CVB3 for CV; RVB14 for RV; PV for PV")
-    # (options, args) = parser.parse_args()
-    #
-    # freqs_file = options.freqs_file_path
-    # virus = options.virus
-    #
-    # freqs_file = check_filename(freqs_file)
+    parser = OptionParser("usage: %prog [options]")
+    parser.add_option("-f", "--freqs_file_path", dest="freqs_file_path", help="path of the freqs file")
+    parser.add_option("-v", "--virus", dest="virus", help="Virus name: CVB3 for CV; RVB14 for RV; PV for PV")
+    parser.add_option("-s", "--seq_method", dest="seq_method", help="CirSeq or AccuNGS")
+    parser.add_option("-c", "--sample", dest="sample_name", help="The name of the sample ie RV-p11")
+    (options, args) = parser.parse_args()
+
+    freqs_file = options.freqs_file_path
+    virus = options.virus
+    freqs_file = check_filename(freqs_file)
+    seq_meth = options.seq_method
+    sample = options.sample_name
+    suffix = "%s.freqs" % sample
 
     #for Local
-
-    suffix = "RV-p11.freqs"
-    freqs_file = "/Volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/180503_OST_FINAL_03052018/merged/RV-p11/q30_3UTR/" + suffix
-    virus = "RVB14"
-    seq_meth = "AccuNGS"
+    # sample = "RV-p11"
+    # suffix = "%s.freqs" % sample
+    # freqs_file = "/sternadi/home/volume3/okushnir/AccuNGS/180503_OST_FINAL_03052018/merged/%s/q30_3UTR_new/%s" % \
+    #              (sample, suffix)
+    # virus = "RVB14"
+    # seq_meth = "AccuNGS"
 
 
 
@@ -316,8 +321,9 @@ def make_boxplot_transition_mutation(freqs_file, ax):
 
     g1 = sns.factorplot(x="Mutation Type", y="Frequency", data=data, col="Mutation",
                      col_order=["C->U", "U->C", "G->A", "A->G"], kind="box")
-    g1.set_xticklabels(["Synonymous", "Non-Synonymous", "Premature Stop Codon"], fontsize=7)
-    g1.set(yscale="log")
+    g1.set_xticklabels(["Synonymous", "Non\nSynonymous", "Premature\nStop Codon"], fontsize=10)
+    g1.set_xlabels('')
+    g1.set(yscale="log", ylim=(0.000001, 0.01))
 
 
 if __name__ == "__main__":
