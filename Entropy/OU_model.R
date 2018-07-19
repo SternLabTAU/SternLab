@@ -3,13 +3,15 @@
 
 library("optparse")
 library("ouch")
-
+library("phytools")
 
 option_list = list(
   make_option(c("-f", "--file"), type="character", default=NULL, 
               help="dataset file name", metavar="character"),
   make_option(c("-t", "--tree"), type="character", default=NULL, 
               help="tree file name", metavar="character"),
+  make_option(c("-v", "--value"), type="character", default='k5', 
+              help="feature name", metavar="character"),
   make_option(c("-o", "--out"), type="character", default="out.csv", 
               help="output file name [default= %default]", metavar="character")
 ); 
@@ -34,22 +36,23 @@ df <- read.csv(opt$file, header=TRUE)
 
 ot <- ape2ouch(tree)
 otd <- as(ot,"data.frame")
-df$labels <- df$tree.tip.label
-otd <- merge(otd,dat,by="labels",all=TRUE)
+df$labels <- df$node_name
+otd <- merge(otd,df,by="labels",all=TRUE)
 rownames(otd) <- otd$nodes
 
 ### now remake the ouch tree
 ot <- with(otd,ouchtree(nodes=nodes,ancestors=ancestors,times=times,labels=labels))
 
 # BM model
-b1 <- brown(tree=ot,data=otd["values"])
+b1 <- brown(tree=ot,data=otd[opt$value])
 
 ### evaluate an OU model with a single, global selective regime
 otd$regimes <- as.factor("global")
 h1 <- hansen(
   tree=ot,
-  data=otd["values"],
+  data=otd[opt$value],
   regimes=otd["regimes"],
+  fit=TRUE,
   sqrt.alpha=1,
   sigma=1,
   maxit=10000
@@ -62,13 +65,20 @@ b1_res <- summary(b1)
 b1_ll = b1_res$loglik
 h1_ll = h1_res$loglik
 
-lr = b1_ll / h1/ll
+chi.square <- b1_ll - h1_ll
 
-names <- c('BMloglik', 'OUloglik', 'LRT')
-values <- c(b1_ll, h1_ll,lr)
+alpha = h1_res$alpha
+#optima = h1_res$optima$value
+ou_sigma = h1_res$sigma.squared[1]
+bm_sigma = b1_res$sigma.squared[1]
 
-result <- data.frame(statistics=names, values)
-write.table(result, opt$out, sep = ",", col.names = T, append = T)
+pval = pchisq(chi.square, df=h1_res$dof - b1_res$dof, lower.tail=FALSE)
+
+names <- c('alpha', 'chiSquare', 'OUsigma', 'BMsigma', 'Pvalue')
+values <- c(alpha, chi.square, ou_sigma, bm_sigma, pval)
+
+result <- data.frame(statistics=names, valus=values)
+write.table(result, opt$out, sep = ",", col.names = T, append = T, row.names=FALSE)
 
 print(result)
 print("Done")
