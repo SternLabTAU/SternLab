@@ -123,31 +123,45 @@ def make_boxplot_sample_control(freqs_list, ax):
         data_freqs = arrange_freqs_file(i)
         data = pd.concat([data_freqs, data], axis=0)
     #
-    data.to_csv("/Volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/180503_OST_FINAL_03052018/merged/RV-p11/q30_3UTR/data.csv", sep=',', encoding='utf-8')
+    data.to_csv("/Volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/180503_OST_FINAL_03052018/merged/RV-p11/q30_3UTR_new/data.csv", sep=',', encoding='utf-8')
 
-    g1 = sns.factorplot(x="Mutation Type", y="Frequency", data=data, col="Mutation", hue="Sample",
-                     col_order=["C->U", "U->C", "G->A", "A->G"], kind="box")
+    g1 = sns.factorplot(x="Mutation Type", y="Frequency", data=data, col="Mutation", hue="Sample", order=["Synonymous",
+                        "Non-Synonymous", "Premature Stop Codon"], col_order=["C->U", "U->C", "G->A", "A->G"], kind="box")
     g1.set_xticklabels(["Synonymous", "Non\nSynonymous", "Premature\nStop Codon"], fontsize=10)
-    g1.set(yscale="log", ylim=(0.000001, 0.01))
+    g1.set(yscale="log", ylim=(0.00001, 0.01))
     g1.set_xlabels('')
+
     sns.set_palette(sns.color_palette("Paired", 12))
-    for a in g1.axes.flat:
-        a.axhline(y=2.07E-04, color='r', linestyle='--')
-
-    data_AG = data[data['Mutation'] == 'A->G']
-    data_AG = data_AG[data_AG['Mutation Type'] == 'Synonymous']
-    data_CU = data[data['Mutation'] == 'C->U']
-    data_CU = data_CU[data_CU['Mutation Type'] == 'Synonymous']
-    data_AG.to_csv(
-        "/Volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/180503_OST_FINAL_03052018/merged/RV-p11/q30_3UTR/data_AG.csv",
+    # for a in g1.axes.flat:
+    #     a.axhline(y=2.07E-04, color='r', linestyle='--')
+    #Synonymous mutations
+    data_AG_syn = data[data['Mutation'] == 'A->G']
+    data_AG_syn = data_AG_syn[data_AG_syn['Mutation Type'] == 'Synonymous']
+    data_UC_syn = data[data['Mutation'] == 'U->C']
+    data_UC_syn = data_UC_syn[data_UC_syn['Mutation Type'] == 'Synonymous']
+    data_AG_syn.to_csv(
+        "/Volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/180503_OST_FINAL_03052018/merged/RV-p11/q30_3UTR_new/data_AG_syn.csv",
         sep=',', encoding='utf-8')
-    cat1 = data_AG[data_AG['Sample'] == 'RV-IVT']
-    cat2 = data_AG[data_AG['Sample'] == 'RV-p12']
-    print("A->G synonymous", ttest_ind(cat1['Frequency'], cat2['Frequency']))
-    cat3 = data_CU[data_CU['Sample'] == 'RV-IVT']
-    cat4 = data_CU[data_CU['Sample'] == 'RV-p12']
-    print("C->U synonymous", ttest_ind(cat3['Frequency'], cat4['Frequency']))
-
+    cat1 = data_AG_syn[data_AG_syn['Sample'] == 'RV-IVT']
+    cat2 = data_AG_syn[data_AG_syn['Sample'] == 'RV-p12']
+    print("A->G Synonymous", ttest_ind(cat1['Frequency'], cat2['Frequency']))
+    cat3 = data_UC_syn[data_UC_syn['Sample'] == 'RV-IVT']
+    cat4 = data_UC_syn[data_UC_syn['Sample'] == 'RV-p12']
+    print("U->C Synonymous", ttest_ind(cat3['Frequency'], cat4['Frequency']))
+    # Non-Synonymous mutations
+    data_AG_nonsyn = data[data['Mutation'] == 'A->G']
+    data_AG_nonsyn = data_AG_nonsyn[data_AG_nonsyn['Mutation Type'] == 'Non-Synonymous']
+    data_UC_nonsyn = data[data['Mutation'] == 'U->C']
+    data_UC_nonsyn = data_UC_nonsyn[data_UC_nonsyn['Mutation Type'] == 'Non-Synonymous']
+    data_AG_nonsyn.to_csv(
+        "/Volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/180503_OST_FINAL_03052018/merged/RV-p11/q30_3UTR_new/data_AG_nonsyn.csv",
+        sep=',', encoding='utf-8')
+    cat1 = data_AG_nonsyn[data_AG_nonsyn['Sample'] == 'RV-IVT']
+    cat2 = data_AG_nonsyn[data_AG_nonsyn['Sample'] == 'RV-p12']
+    print("A->G Non-Synonymous", ttest_ind(cat1['Frequency'], cat2['Frequency']))
+    cat3 = data_UC_nonsyn[data_UC_nonsyn['Sample'] == 'RV-IVT']
+    cat4 = data_UC_nonsyn[data_UC_nonsyn['Sample'] == 'RV-p12']
+    print("U->C Non-Synonymous", ttest_ind(cat3['Frequency'], cat4['Frequency']))
 
 if __name__ == "__main__":
     main()
