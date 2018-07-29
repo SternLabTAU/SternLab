@@ -25,7 +25,7 @@ if (is.null(opt$file)){
 }
 if (is.null(opt$tree)){
   print_help(opt_parser)
-  stop("Tree foile path shpuld be supplied.n", call.=FALSE)
+  stop("Tree file path should be supplied.n", call.=FALSE)
 }
 
 # extract input files
