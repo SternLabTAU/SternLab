@@ -31,12 +31,16 @@ if (is.null(opt$tree)){
 # extract input files
 tree <- read.tree(opt$tree)
 df <- read.csv(opt$file, header=TRUE)
+rownames(df) <- df$node_name
+df <- as.data.frame(df)
+nc <- name.check(tree,df)
+tree <- drop.tip(tree,nc$tree_not_data)
 
 # transform into ouch tree object and pre-process the tree and the trait values
 
 ot <- ape2ouch(tree)
 otd <- as(ot,"data.frame")
-df$labels <- df$node_name
+df$labels <- rownames(df)
 otd <- merge(otd,df,by="labels",all=TRUE)
 rownames(otd) <- otd$nodes
 
@@ -44,13 +48,13 @@ rownames(otd) <- otd$nodes
 ot <- with(otd,ouchtree(nodes=nodes,ancestors=ancestors,times=times,labels=labels))
 
 # BM model
-b1 <- brown(tree=ot,data=otd[opt$value])
+b1 <- brown(tree=ot,data=otd[c(opt$value)])
 
 ### evaluate an OU model with a single, global selective regime
 otd$regimes <- as.factor("global")
 h1 <- hansen(
   tree=ot,
-  data=otd[opt$value],
+  data=otd[c(opt$value)],
   regimes=otd["regimes"],
   fit=TRUE,
   sqrt.alpha=1,
@@ -65,7 +69,11 @@ b1_res <- summary(b1)
 b1_ll = b1_res$loglik
 h1_ll = h1_res$loglik
 
-chi.square <- b1_ll - h1_ll
+# was in use when i stupidly tought that the result is minus 2 log likelihood
+#chi.square <- b1_ll - h1_ll
+
+# calculate 2glr statistic
+chi.square <- 2*(h1_ll - b1_ll)
 
 alpha = h1_res$alpha
 #optima = h1_res$optima$value
