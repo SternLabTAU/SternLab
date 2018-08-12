@@ -70,10 +70,10 @@ b1_ll = b1_res$loglik
 h1_ll = h1_res$loglik
 
 # was in use when i stupidly tought that the result is minus 2 log likelihood
-#chi.square <- b1_ll - h1_ll
+chi.square <- b1_ll - h1_ll
 
 # calculate 2glr statistic
-chi.square <- 2*(h1_ll - b1_ll)
+#chi.square <- 2*(h1_ll - b1_ll)
 
 alpha = h1_res$alpha
 #optima = h1_res$optima$value
@@ -88,7 +88,6 @@ values <- c(alpha, chi.square, ou_sigma, bm_sigma, pval)
 result <- data.frame(statistics=names, valus=values)
 write.table(result, opt$out, sep = ",", col.names = T, append = T, row.names=FALSE)
 
-print(result)
 print("Done")
 
 
