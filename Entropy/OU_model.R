@@ -4,6 +4,7 @@
 library("optparse")
 library("ouch")
 library("phytools")
+library("geiger")
 
 option_list = list(
   make_option(c("-f", "--file"), type="character", default=NULL, 
@@ -34,7 +35,10 @@ df <- read.csv(opt$file, header=TRUE)
 rownames(df) <- df$node_name
 df <- as.data.frame(df)
 nc <- name.check(tree,df)
-tree <- drop.tip(tree,nc$tree_not_data)
+if (nc != "OK"){
+  tree <- drop.tip(tree,nc$tree_not_data)  
+}
+
 
 # transform into ouch tree object and pre-process the tree and the trait values
 
@@ -70,10 +74,10 @@ b1_ll = b1_res$loglik
 h1_ll = h1_res$loglik
 
 # was in use when i stupidly tought that the result is minus 2 log likelihood
-chi.square <- b1_ll - h1_ll
+#chi.square <- b1_ll - h1_ll
 
 # calculate 2glr statistic
-#chi.square <- 2*(h1_ll - b1_ll)
+chi.square <- 2*(h1_ll - b1_ll)
 
 alpha = h1_res$alpha
 #optima = h1_res$optima$value

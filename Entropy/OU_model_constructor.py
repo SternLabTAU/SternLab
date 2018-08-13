@@ -70,11 +70,19 @@ def run_OU_model(super_folder, features):
         print(alias)
         data = os.path.join(os.path.dirname(t), 'entropies_{}.csv'.format(alias))
 
+        # remove duplicate tips
+        df = pd.read_csv(data)
+        df['flag'] = df['node_name'].apply(lambda x: 1 if '.' in x else 0)
+        df = df[df['flag'] == 1]
+        df.drop(['flag'], inplace=True, axis=1)
+        filtered_data = os.path.join(os.path.dirname(t), 'entropies_{}_no_duplicates.csv'.format(alias))
+        df.to_csv(filtered_data, index=False)
+
         # run separately for each feature
         for f in tqdm(features):
             out = os.path.join(os.path.dirname(t), 'OU_summary_{}_{}.csv'.format(f,alias))
             try:
-                os.system('Rscript OU_model.R -f {} -t {} -v {} -o {}'.format(data, t, f, out))
+                os.system('Rscript OU_model.R -f {} -t {} -v {} -o {}'.format(filtered_data, t, f, out))
             except:
                 print(alias)
 
@@ -86,7 +94,7 @@ def get_feature(x):
     return '_'.join(os.path.basename(x).split('_')[2:-1])
 
 
-def merge_OU_results(ou_output_dir, out):
+def merge_OU_results(ou_output_dir, out, mapping=None):
     """
     merges all the ou results from the
     :param ou_output_dir: a path to a folder containing csv's from the r script run
@@ -100,11 +108,23 @@ def merge_OU_results(ou_output_dir, out):
         df = pd.read_csv(f)
         family = get_family(f)
         feature = get_feature(f)
-        df['famiy'] = family
+        df['family'] = family
         df['feature'] = feature
-        df.append(dfs)
+        dfs.append(df)
 
     result = pd.concat(dfs)
+
+    if mapping != None:
+        mapping = mapping[[c for c in mapping.columns if c not in ['values', 'statistics', 'significant', 'feature']]]
+        result = pd.merge(result, mapping, on='family')
+
+    # add model columns
+    g = result[result['statistics'] == 'Pvalue'][['family', 'feature', 'valus']].drop_duplicates()
+    g['Model'] = g['valus'].apply(lambda x: 'BM' if x > 0.05 else 'OU')
+    g.drop(['valus'], inplace=True, axis=1)
+    result = pd.merge(result, g, on=['family', 'feature'])
+
+
     result.to_csv(out, index=False)
 
 # call for pre-process data for each viral family
