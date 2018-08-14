@@ -1,0 +1,365 @@
+GUI Stuff 2017-10-19
+- trying to run debug and release on macs without qt (_1)
+-- "the application cannot be opened"
+- trying macdeployqt fits_gui.app -dmg in the release folder (_2)
+-- trying app
+-- trying dmg
+--- don't work. I have two versions of qt installed on my mac could be confusing. unsintalled reset will reinstall.
+
+
+
+
+Observations:
+- the prior sampling takes about 1 ms, any other single step in the program takes less than 1 ms.
+
+REJECTED:
+- replacement of vector with deque; FITS uses ~200MB at most, don't think it's worth the effort
+- sort (< operator) by each allele instead of total sum of distance. Doesn'r improve results
+
+
+
+
+Future versions
+
+
+
+- : return to parallel simulations, now with async - simply dispatch batches using async within CMulatorABC object
+    SHOULD THE ASYNC BE WITHIN THE BATCH SUBROUTINE, OR WRAP IT?
+- : replace float with double, but do it with #define to allow return if too slow
+- : TODO: control precision of random fitness values. We don't care about more than 3 decimal places. This could open up rounding to 0.
+- : Calculate next generation using vectorXmatrix multiplication
+-
+- : mark all variables as unsigend, unless otherwise needed **Note that -1 is often used to indicate default value**
+- : make sure validation functions are used and only they are used for validation (no ad hoc conditions)
+- wrap boost exception with more readable error of invalid parameter
+- make binomial selection in a separate function to minimize code repetition
+- within GetRawFrequencyData, move resampling such that it won't happen regardless if needed. Consider having two matrices - one for actual values and one for sampled.. e.g. _sim_data_sampled_for_next_passage.
+- unify the two functions of GetRawFrequencyData such that the one that does not select a subset simply selects a subset identical to the whole data.
+- BUILD TOOL TO COMPARE BETWEEN VERSIONS, TO PREVENT DESTRYING THE PROGRAM THROUGH DEVELOPMENT
+- delete commented lines no longer needed
+- easier integration with Qt by exporting the approproate functions
+- TODO: EXPLORE GENERATION INFERENCE
+
+TODO:
+- Stop calculating distance sim_actual if not needed
+- round to 1.0 - use std epsilon instead of user configured - inaccuracies were not identified.
+- change all indexes to std::size_t instead of int
+
+- TODO
+
+
+- Ability to set/infer a single mutation rate for all alleles
+- Calculate heterozygosity?
+
+
+
+IMPORTANT - infer wt automatically is implemented within CMulator and relies on initial frequencies if existing. WT is inferred when loading actual data anyways so the parameter should not be used.
+
+- TODO: Rewrite SampleFromDistribution such that it would sample an array of values at a time, instead of initializing a distribution for every single value, e.g. 4 times for a single sample of 4 alleles.
+- TODO: cut down on priors - leave only uniform and composite.
+- TODO: expand generation inference to accomodate for different interval between each time points
+- TODO: try to use Eigen or Armadillo instead of ublas
+
+
+Solving the Bug of 0 Distance - 20170622
+=========================================
+1. Results vector - do we have simulations in matrix (sim_data)?
+2. Actual data - is the data loaded?
+3. Actual data - are the generation numbers correct?
+4. Keeping only generations that will be compared - is it done correctly?
+5. Is distance calculated correctly?
+6. Is distance stored?
+7. Is distane passed between copies of simulation result objects?
+8. Is distance written properly to distribution file?
+
+TODO: consider measuring distance of only the mutant alleles and not the WT.
+
+2018-07-03
+ADDED:
+    - non-significant levene's test is also marks allele is not reliable.
+
+FITS 0.95 2017-10-01
+ADDED:
+    - Levene's test for population size and mutation rate
+
+FITS 0.94
+ADDED:
+    - clear method for zparams wasn't implemented
+    - posterior distributions can be retreived as string and not only text files
+FIXED:
+    - Mishmash with exception types in ZParams. Converted all exception throws in zparams to const char* and added some appropriate catch clauses.
+    - Levene's test in fitness used fitness_composite even when actually smoothed composite is used - probably affected results.
+    - Boost does not calculate Median well according to https://www.nu42.com/2016/12/descriptive-stats-with-cpp-boost.html So I replace every median calculation with a dumb one using nth_element. The error caused by Boost caused the discrepency between Levene's test calculated by R and the c++ code of FITS here.
+    - Prior taken for levenes was too small maybe, same size as the posterior. this could have resulted the almost meaningless pvalues.
+    - pvalue for levenes test was calculated manually instead of using the cdf of the complement, corrected.
+    - Following Moran's comments, mutation rates are only shown between alleles when inferring them. the complement is ignored as it often was rounded to 1 and/or was simply confusing and in anyways does not represent the value we did infer.
+    - No longer crashing when no prior file is given
+
+
+
+FITS 0.93
+ADDED:
+    - levene's test pvalue for each allele (whether posterior is narrowed)
+    - smoothed_composiste prior to alleviate discrete-looking DFE
+FIXED:
+    - parameters for min/max popsize moved to fits_constants
+    -
+REMOVED:
+    - generation inference option removed from menu
+
+
+FITS 0.92 beta 8
+FIXED:
+ - ACCEPTANCE_RATE_DEFAULT was set to 0.00 so if it was not defined in parameter file - segmentation fault arose
+
+
+FITS 0.92 beta 7
+- default scaling is off
+- changed move statements to copy - maybe it causes trouble
+
+FITS 0.92 beta 6
+- Added generation inference - inferrs interval between generations and prints the inferred generation numbers at the end.
+- Added ability to infer generations with non-uniform interval, but doesn'r work so well
+
+
+FITS 0.92 beta 5
+- Composite now takes min and max as subrange of the composite, allowing iterative running
+
+FITS 0.92 beta 4
+- Added prior filename as an official parameter
+- code beutification in Main
+- command line arguments added to fits_constants
+- started generation inference
+- SamplePrior used to take number of items to sample - not actually needed as size of min/max vector is sufficient
+- TODO: write special method for matrix/vector/single sampling
+
+FITS 0.92 beta 3
+TODO:
+    - COMPOSITE AND INTERVAL UNIFORM - not configurable range.
+        each bin at least 0.5% Boost int distrib because each bin is known.
+        Important - neu and lth
+    - Rerun boxplot - broader range similar to Cell. maybe 0.1 intervals. Ratio.
+    - Create new data for this.
+    - Quad is relevant. Side by side - same dataset for quad. Show loss of accuracy but still category is good. No need for triallelic.
+    - N=10^5, u=1e-05, 15=generations
+    - Picture for dataset generation in phone.
+
+- 2909 panel for figure in quad, sampling 200,000 - according to position coverage
+- another panel - infer mutation rate from syn sites. AG synonymous Adi sent me list of positions.
+- check probability of each allele. start with no filtering and see what happens.
+- Work with AG for that. TC my be susceptible for selection. maybe we want to filter out some dinucleotides,
+first run for all positions then check median for different subsets of positions.
+Send Adi the new composite.
+
+
+- ADDED
+    - single mutation rate can be inferred and used for simulations
+    - lethal_uniform prior
+    - changed composite distribution such that all but del are 0.1
+TODO: make sure that each category is at least percent_to_keep, with overrepresentation of del
+    - number of generations is taken from actual data. parameter only used for simulations.
+
+- CHANGED
+    - Reporting - many vectors were double instead of FLOAT_TYPE for some reason. Changing to FLOAT_TYPE for consistency.
+    - BINOMIAL SAMPLING - because of repetitive code created the method Freqs2Binomial2Freqs. In this method I changed the way values are casted from int to float, this may affect results.
+    - composite prior distribution for fitness unless otherwise chosen by user
+    - in report changed "min dist" to "minldist to clarify that it's the Ldistance and not distribution
+    - many constants moved to centralized location, will continue this migration
+    - GetAllOutputAsText now gets a delimiter as a parameter (replacing CSV and tab)
+
+
+- TODO
+    - matrix along aside the multiarray
+    - observed data matrix will be the same size as the full matrix. only start dealing with sparse matrix or other solution of it hinders performance.
+    - instead of sparse matrix, maybe use external map for [actual gen, actual idx]
+    - using sparse matrices or mapping will pave the way for memory conservation mode.
+
+    - get rid of initial frequencies vector!!!
+    - in printing the menu - print only the executable name rather than full path from agrv
+    - Replace multidimentional array with ublas matrix. keep recent generation in an ublas vector, and then copy to matrix only if has corresponding generation in actual data
+    - Make CMulator objects multi-threading friendly
+    - Change name of CMulator to FITSCore or something like that
+    - verify that actual data given in correct format (generation, base etc.)
+    - change "base" to "allele", change it from int to std::string to allow letters
+    - make sense in storing generation number (e.g. generation shift, generation+1, what is generation 0) maybe with sparse matrices
+- DELETED
+    - GetAllOutputAsCSV
+
+FITS 0.91
+- CHANGED
+- ADDED
+    - version keeping is in a dedicated namespace, to be used when writing report
+    - in reports the version of fits used for the analysis as well as time of run is written
+    - REPORTING NEEDS TO BE TESTED.
+
+- REMOVED
+    - infer wt automatically was removed from CMulator. There it relied on the initial freqs provided
+        by the param file. Now we rely on the actual data for this, so no need.
+
+
+FITS 0.90
+- CHANGED
+    - simulation rate for biallelic convergence checkings went up from 40k/sec to 124k/sec
+        after I started keeping only simulated generations equivalent to existing actual
+        data and keeping is in a matrix, not as free text.
+
+- ADDED
+    - Output warning for Nu<1 for fitness inference
+
+- REMOVED
+    - verify mutation range is a valid frequency - tolerance to float errors too great
+    - Demise of CMulatorToolbox
+    - Demise of the graveyards
+
+
+
+FITS 0.87 - 2017-03-21
+
+    - NOTES
+        - Past feature called for sampling the population as in taking only a few genomes for sequencing. Parameter _sample_size was used for the size of the sample. This feature was deemed unneeded, but still exists in the code - GetRawFrequencyData( bool resample = false ). Resampling set to true would turn that feature on.
+        - _generation_shift is deprecated, as using ABC it is overriden with datat from the actual data file anyway
+        - Feature review - going over and see what I've really implemented and tested
+
+        - Add default values to parameters. Mostly useful for GUI but also good here.
+        - Change intervals of sampling to inclusive, i.e. [lower,upper] instead of [lower,upper) as sometimes used
+
+
+    - ADDED
+        - Coverage testing
+        - Scaling of all simulations with SD (TODO: consider changed to MAD as data is not discrete)
+        - debug functionality across code (_debug_mode)
+        - Added rejection threshold used for inference to the summary report
+        - user can specify proprtions of LTH/DEL/NEU/ADV mutations for composite fitness distribution
+        - prior caching for future output - may drantically increase memory use
+        - alternative population size. Once, at a randomly chosen generation, the population size will change to this value. This is created in order to introduce noise to the simulated data. This is patchy, and should be developed to either a fully parametered feature or to a full-blown scripting, i.e. at generation X change fitness of allele Y; at generation X change pop size to N1, etc.
+
+    - CHANGED
+        - parameter _acceptance_rate instead of _sims_to_keep to be more coherent.
+        - changed back to FITS as in 'Flexible'
+        - when inferring mutation rate, the software throws errors that mutation rate was not given, even though it indeed should not be given and it's ok.
+        - for population size and mutation rate - prior distribution is log uniform
+        - mutation rate inference exponent is int and not float
+
+    - REMOVED
+        - error for not mentioning top percent to keep, because it was triggered even if only a simulation was asked. Need to be triggered only for inference.
+        - simulate generatons until fixation of an allele - feature deemed unneeded
+
+
+
+MITS 0.86.3 2017-01-15
+    - population no longer recived actual pop size for min and max but rather the exponent (i.e. 10^min, 10^max)
+    - began employing the debug switch (in param file Debug 1)
+    - mutation same as population - log uniform
+
+MITS 0.86.2 2016-12-26
+    - Fixed behavior - apparenlty crashes without giving out error message. Deployed to help Danielle M
+
+MITS 0.86.1
+    - FIXED: doesn't throw some unnecessary exceptions
+
+MITS 0.86 - 2016-11-17
+- ADDED/CHANGED
+    - Moved ABC entirely into clsCMulatorABC - this would allow easy integration to GUI
+    - ability to infer population size and mutation rates
+    - CMulatorToolbox almost entirely gone.
+    - Massive reorganization of code (see initialization of member variables in CMulator)
+    - ActualDataFile class
+    - SimulationResult and ActualDataEntry no longer part of CMulatorToolbox
+    - PriorSampler replaced clsFieldRange; I keep clsFieldRange for the time being as backup
+    - more functions marked as const
+    - added catch for more exceptions (so won't be "unknown")
+    - more exceptions are of std:exception type to be more readable
+    - parameters not held as member, but rather used temporarily to initialize the cmulator object
+    - parsing now uses boost lexical cast in order to be more strict (previously 123fjh would be read as 123 with no error, now an error will be given - boost lexical cast exception)
+    - New class for sampling from prior (instead of clsFieldRange) - slowly transition. Its main advantage is the ability to sample float and int types. If you want to put this in matrix, you can.
+    - read parameter file only outside cmulator, only pass zparams object to cmulator ctor
+    - parameterize prior - either uniform or composite
+- FIXED
+    - population frequencies were resamples (_sample_size) only in output to R (which is not used for a while). I reintroduced this concept into the Raw frequencies functions in order to make the model more reliable.
+    - hopefully fixed segmentation fault while generating report. this could have been caused by improperly-initialized accumulators. thing is - if this was the problem it is not clear how it worked well thus far.
+
+
+FITS 0.85
+- Completely removed pupko library
+- Parameters library replaced by zparams
+- binomial distribution of boost works great performance-wise - still getting 30k+ sims/sec maybe even better
+- No Compilation errors/warnings at all for the first time ever
+
+
+FITS 0.84
+- Prior distribution is back to uniform, but changeable at compile time
+- Slowly moving to ZParams (loading but not using)
+
+
+FITS 0.83
+- Code cleanup (Parallel), not "using namespace std" in most code (equivalent boost types also used; creates confusion)
+
+
+FITS 0.82 2016-10-05
+- ADDED: Two dedicated output files - one for distribution and one for the report
+- ADDED: relaxed (50%) threshold along with the old, strict (95%) threshold. Additional classes - ADV? in addition to ADV, etc.
+- ADDED: shrink_to_fit() to results vector before passing it to processing, maybe it will help with crashes due to memory issues (page fault)
+- ADDED: pre-allocation of memory (10xchunk size) as a result of empiric observations
+- ADDED: sanity checks on size of vector of results - if empty throw exception and report
+- REMOVED: "infer" switch no longer supported
+- SOLVED: frequent runs resulted in using identical seed, thus yielding identical results. seed changed from time(0) to chrono high resolution clock
+- SOLVED: ABC will run even if _num_repeats is not given - should crash if 0 simulations are to be kept
+- SOLVED: if unkown parameter is given the software does not crash with error, simply terminates
+- SOLVED: wt allele not marked as such because member wasnt copied in copy ctor
+- CHANGED: GetDistanceSimActual - now uses std::transform and std::accumulate, hopefully faster
+
+
+
+FITS 0.8 2016-07-07
+- output of report is now also written (commented) to output file
+- (-infer) switch is deprecated as mutation inference is being developed
+- WT allele marked as WT instead of NEU
+
+
+Commandline 0.7 2016-06-23
+- while attemptig to compile on cluster, mentioning threading cuases gcc 4.9 to work fine,
+but the software crashed with segmentation fault (runs perfect on windows).
+- moving to gcc 5.3 allergic reaction to threading - mentioning "future" and "async" etc.
+causes gcc to print error of unreferred call to pthread or something like that. commented with #ifdef
+all mentioning of threading, and now compiles fine except for deprecated std libraries that boost 1.60 uses
+(only warnings).
+- got back to using move, also solved some things. basically i have no idea where the segmentation fault came from and why it is solved.
+partially
+- exception was thrown as the result vector (very large!) was copied. Passing by ref solved the problem.
+- on cluster - able to run 6,084 sim/sec (not optimized, not parallelized) This is down to ~3,000 on 9/2016 not sure why
+
+- While losing my mind with various exceptions of text "std::exception" and still segmentation faults,
+it seems like many of my copy ctors don't function well(?) as when pushing copies to vectors the program crashes and
+when using move the program runs well (context of SimulationResult).
+
+- Output seemed very synchronized in sense that it's being locked in a bad way. Moved lock guards to #ifdef
+- Print order hasn't changed after disabling all mutexes
+
+Commandline 0.6
+- Fixed a major bug. Initial allele frequencies used to be constantly reset to -1, as member variables storing these values were not initialized from actual data.
+It should be noted that these variables are initialized if values are given in parameter file.
+
+Commandline 0.5
+- CMulator: GetAllOutputAsText - header used to print alleles with space, eg "Allele 0", caused problems, now space omitted and all lowercase
+
+
+Commandline 0.4 - Sampling edition
+- Added "rounding" of fitness values to nearest multiplicity of increment such that output is similar to previous versions
+- TODO: check if using a different random engine affects results (as rate is less important now - bnldev much faster than std::mt)
+- TODO: print final epsilon in report
+- TODO (done, untested): prepare random number service class as an alternative to global bnldev
+
+Commandline 0.3 - Sampling edition
+- Minor bug fixes, elaborated printing of distribution
+- Ayelet ran tests, observed error of 0.01 relative to complete scan
+- Ayelet ran tests, rounding to nearest multiplicity of increment reduces error a bit, may be more logical
+
+Commandline 0.2 - Sampling edition
+- Fork, applying sampling instead of scanning whole fitness range
+
+Commandline 0.11
+- fixed bug - writing wrong number of simulations (using number of repeats)
+- fixed bug - writing one additional line than needed to
+
+Commandline 0.1
+- multithreaded
