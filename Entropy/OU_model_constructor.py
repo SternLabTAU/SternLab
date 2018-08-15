@@ -94,7 +94,7 @@ def get_feature(x):
     return '_'.join(os.path.basename(x).split('_')[2:-1])
 
 
-def merge_OU_results(ou_output_dir, out, mapping=None):
+def merge_OU_results(ou_output_dir, out, mapping):
     """
     merges all the ou results from the
     :param ou_output_dir: a path to a folder containing csv's from the r script run
@@ -104,7 +104,7 @@ def merge_OU_results(ou_output_dir, out, mapping=None):
 
     all_files = glob.glob(os.path.join(ou_output_dir, '*.csv'))
     dfs = []
-    for f in all_files:
+    for f in tqdm(all_files):
         df = pd.read_csv(f)
         family = get_family(f)
         feature = get_feature(f)
@@ -114,17 +114,18 @@ def merge_OU_results(ou_output_dir, out, mapping=None):
 
     result = pd.concat(dfs)
 
-    if mapping != None:
-        mapping = mapping[[c for c in mapping.columns if c not in ['values', 'statistics', 'significant', 'feature']]]
-        result = pd.merge(result, mapping, on='family')
+    mapping = mapping[[c for c in mapping.columns if c not in ['values', 'statistics', 'significant', 'feature', 'Model']]]
+    result = pd.merge(result, mapping, on='family')
 
     # add model columns
-    g = result[result['statistics'] == 'Pvalue'][['family', 'feature', 'valus']].drop_duplicates()
-    g['Model'] = g['valus'].apply(lambda x: 'BM' if x > 0.05 else 'OU')
-    g.drop(['valus'], inplace=True, axis=1)
+    g = result[result['statistics'] == 'Pvalue'][['family', 'feature', 'values']].drop_duplicates()
+    g['Model'] = g['values'].apply(lambda x: 'BM' if x > 0.05 else 'OU')
+    g.drop(['values'], inplace=True, axis=1)
     result = pd.merge(result, g, on=['family', 'feature'])
-
-
+    cols = ['baltimore_1', 'baltimore_2', 'kingdom', 'domain']
+    for c in cols:
+        result[c] = result[c].apply(lambda x: x.strip())
+    result = result.drop_duplicates()
     result.to_csv(out, index=False)
 
 # call for pre-process data for each viral family
@@ -136,9 +137,7 @@ def merge_OU_results(ou_output_dir, out, mapping=None):
 # run_OU_model(r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/Phylogeny/family', features)
 
 ####### Auxiliary functions for plotting ###########
-ou_results = r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/OU_model/ou_results_unite.csv'
 
-sns.set_style('white')
 
 
 def replace(group):
@@ -149,12 +148,12 @@ def replace(group):
 
 def plot_alphas(df, features, hue=None, out=None):
 
-    df['Model'] = df['significant'].apply(lambda x: 'OU' if x == 'significant' else 'BM')
     only_alphas = df[(df['statistics'] == 'alpha')]
-    # only_alphas = only_alphas[~(np.abs(only_alphas['values'] - only_alphas['values'].mean()) >
-    #                             (3 * only_alphas['values'].std()))]
-    # only_alphas['values'] = only_alphas.groupby('feature')['values'].transform(replace)
-    only_alphas = only_alphas[only_alphas['values'] <= 20]
+    only_alphas = only_alphas[~(np.abs(only_alphas['values'] - only_alphas['values'].mean()) >
+                                (3 * only_alphas['values'].std()))]
+    only_alphas['values'] = only_alphas.groupby('feature')['values'].transform(replace)
+
+    #only_alphas = only_alphas[only_alphas['values'] <= 20]
     only_alphas.reset_index(inplace=True)
     if hue != None:
         only_alphas = only_alphas[only_alphas[hue].isin(only_alphas[hue].value_counts()
@@ -184,7 +183,6 @@ def plot_alphas(df, features, hue=None, out=None):
 
 def plot_sigmas(df, features, hue=None, out=None):
 
-    df['Model'] = df['significant'].apply(lambda x: 'OU' if x == 'significant' else 'BM')
     only_sigmas = df[((df['statistics'] == 'OUsigma') & (df['Model'] == 'OU')) |
                      ((df['statistics'] == 'BMsigma') & (df['Model'] == 'BM'))]
     # only_sigmas = only_sigmas[~(np.abs(only_sigmas['values'] - only_sigmas['values'].mean()) >
@@ -218,7 +216,6 @@ def plot_sigmas(df, features, hue=None, out=None):
 
 def plot_model_by_feature(df, statistic,v_features=None, hue=None, model='BM', lst_features=None, out=None):
 
-    df['Model'] = df['significant'].apply(lambda x: 'OU' if x == 'significant' else 'BM')
     df = df[(df['statistics'] == statistic) & (df['Model'] == model)]
     if lst_features != None and hue != None:
         df = df[df[hue].isin(lst_features)]
@@ -248,7 +245,6 @@ def plot_model_by_feature(df, statistic,v_features=None, hue=None, model='BM', l
 def boxplot_by_model(df, statistic, feature, subset=None, hue=None, out=None):
 
     # filter data
-    df['Model'] = df['significant'].apply(lambda x: 'OU' if x == 'significant' else 'BM')
     if 'sigma' in statistic:
         df = df[((df['statistics'] == 'OUsigma') & (df['Model'] == 'OU')) |
                      ((df['statistics'] == 'BMsigma') & (df['Model'] == 'BM'))]
@@ -276,7 +272,7 @@ def boxplot_by_model(df, statistic, feature, subset=None, hue=None, out=None):
     plt.gcf().clear()
 
 def boxplot_valus_by_x(df, statistic, feature, subset=None, hue='Model', out=None):
-    df['Model'] = df['significant'].apply(lambda x: 'OU' if x == 'significant' else 'BM')
+
     if 'sigma' in statistic:
         df = df[((df['statistics'] == 'OUsigma') & (df['Model'] == 'OU')) |
                 ((df['statistics'] == 'BMsigma') & (df['Model'] == 'BM'))]
@@ -305,7 +301,7 @@ def boxplot_valus_by_x(df, statistic, feature, subset=None, hue='Model', out=Non
     plt.gcf().clear()
 
 def multiple_boxplots(df, statistic, x, subset, out=None):
-    df['Model'] = df['significant'].apply(lambda x: 'OU' if x == 'significant' else 'BM')
+
     if 'sigma' in statistic:
         df = df[((df['statistics'] == 'OUsigma') & (df['Model'] == 'OU')) |
                 ((df['statistics'] == 'BMsigma') & (df['Model'] == 'BM'))]
@@ -337,7 +333,6 @@ def multiple_boxplots(df, statistic, x, subset, out=None):
 
 def plot_pie_chart_by_feature(df, feature, column, out=None):
 
-    df['Model'] = df['significant'].apply(lambda x: 'OU' if x == 'significant' else 'BM')
 
     colors = ['gold', 'yellowgreen', 'lightcoral', 'lightskyblue', '#68635A', '#844196', 'darkorange']
 
@@ -367,7 +362,6 @@ def plot_pie_chart_by_feature(df, feature, column, out=None):
 
 def plot_pie_chart_by_model(df, feature, column, out=None):
 
-    df['Model'] = df['significant'].apply(lambda x: 'OU' if x == 'significant' else 'BM')
 
     colors = ['#D35C37', '#97B8C2']
 
@@ -637,8 +631,14 @@ def generate_all_plots(df, out):
 
 
 
+ou_results = r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/OU_model/ou_results_unite.csv'
 
+sns.set_style('white')
 df = pd.read_csv(ou_results)
+df = df[df['num_sequences_in_tree'] >= 10]
+df = df[df['statistics'] != 'chiSquare']
+df['values'] = df['values'].astype(float)
+
 out = r'/Users/daniellemiller/Google Drive/Msc Bioinformatics/Projects/entropy/most_updated/OU_BM/plots'
 # generate_all_plots(df, out)
 
@@ -648,6 +648,6 @@ wanted_rows = [c for c in set(df['feature']) if 'shift' not in c]
 
 for r in tqdm(wanted_rows):
     for c in tqdm(wanted_cols):
-        #plot_pie_chart_by_feature(df, feature=r, column=c, out=out)
-        # plot_pie_chart_by_model(df, feature=r, column=c, out=out)
+        plot_pie_chart_by_feature(df, feature=r, column=c, out=out)
+        plot_pie_chart_by_model(df, feature=r, column=c, out=out)
         plot_minus_log_pval(df, hue=c, feature=r, out=out)

@@ -1,10 +1,17 @@
 # this script is for running the OU model on a tree as described in 
 # A.A. King's "Phylogenetic Comparative Analysis: A Modeling Approach for Adaptive Evolution"
 
-library("optparse")
-library("ouch")
-library("phytools")
-library("geiger")
+#library("optparse")
+#library("ouch")
+#library("phytools")
+#library("geiger")
+
+require("optparse")
+require("ouch")
+require("phytools")
+require("geiger")
+
+
 
 option_list = list(
   make_option(c("-f", "--file"), type="character", default=NULL, 
@@ -77,19 +84,19 @@ h1_ll = h1_res$loglik
 #chi.square <- b1_ll - h1_ll
 
 # calculate 2glr statistic
-chi.square <- 2*(h1_ll - b1_ll)
+chi.square <- as.numeric(2*(h1_ll - b1_ll))
 
-alpha = h1_res$alpha
+alpha = as.numeric(h1_res$alpha)
 #optima = h1_res$optima$value
-ou_sigma = h1_res$sigma.squared[1]
-bm_sigma = b1_res$sigma.squared[1]
+ou_sigma = as.numeric(h1_res$sigma.squared[1])
+bm_sigma = as.numeric(b1_res$sigma.squared[1])
 
-pval = pchisq(chi.square, df=h1_res$dof - b1_res$dof, lower.tail=FALSE)
+pval = as.numeric(pchisq(chi.square, df=h1_res$dof - b1_res$dof, lower.tail=FALSE))
 
 names <- c('alpha', 'chiSquare', 'OUsigma', 'BMsigma', 'Pvalue')
 values <- c(alpha, chi.square, ou_sigma, bm_sigma, pval)
 
-result <- data.frame(statistics=names, valus=values)
+result <- data.frame(statistics=names, values=values)
 write.table(result, opt$out, sep = ",", col.names = T, append = T, row.names=FALSE)
 
 print("Done")
