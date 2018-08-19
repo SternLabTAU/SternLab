@@ -12,7 +12,7 @@
 **Cool qstat aliases:**
 * To get job description: qstat -f <JobID>
 * To get a jog array progress by each array entry: qstat -f <JobID[]>
-* To get all computational nodes for all jobs running: for job in `qstat | grep username | cut -f1 -d.`; do echo  $job; qstat -f $job | grep host;  done
+* To get all computational nodes for all jobs running: `for job in `qstat | grep username | cut -f1 -d.`; do echo  $job; qstat -f $job | grep host;  done`
 * **-a** Display all jobs in any status (running, queued, held)
 * **-r** Display all running or suspended jobs
 * **-n** Display the execution hosts of the running jobs
