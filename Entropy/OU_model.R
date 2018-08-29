@@ -43,7 +43,8 @@ rownames(df) <- df$node_name
 df <- as.data.frame(df)
 nc <- name.check(tree,df)
 if (nc != "OK"){
-  tree <- drop.tip(tree,nc$tree_not_data)  
+  tree <- drop.tip(tree,nc$tree_not_data)
+  df <- df[! df$node_name %in% nc$data_not_tree,]
 }
 
 
