@@ -4,6 +4,12 @@ import pandas as pd
 import re
 import math
 
+MUTATION_PATTERN = re.compile('[ACGTN]{2}')
+INSERTION_PATTERN = re.compile('-[ACGTN]')
+DELETION_PATTERN = re.compile('[ACGTN]-')
+NUMBER_PATTERN = re.compile('\d+')
+GENERAL_BLAST_PATTERN = re.compile('[ACGTN-]{2}|\d+')
+
 def blast_to_df(blast_path):
     '''
     Creates pandas dataframe from blast file
@@ -49,27 +55,23 @@ def parse_btop(row):
     Gets a pandas dataframe row from a blast file and parses the btop field.
     Used in blast_to_mutations_list function.
     '''
-    mutation_pattern = re.compile('[ACGTN]{2}')
-    insertion_pattern = re.compile('-[ACGTN]')
-    deletion_pattern = re.compile('[ACGTN]-')
-    number_pattern = re.compile('\d+')
-    pattern = re.compile('[ACGTN-]{2}|\d+')
-
     insertions = []
     deletions = []
     mutations = []
     location = float(row['start_ref'])
-    btops = pattern.findall(row['btop'])
+    btops = GENERAL_BLAST_PATTERN.findall(row['btop'])
     for b in btops:
-        if number_pattern.findall(b) != []:
-            location = float(math.floor(location) + int(b))
-        if mutation_pattern.findall(b) != []:
+        if NUMBER_PATTERN.findall(b) != []:
+            location = float(math.ceil(location) + int(b))
+        elif MUTATION_PATTERN.findall(b) != []:
             mutations.append((float(math.ceil(location)), b))
             location = float(math.ceil(location) + 1)
-        if insertion_pattern.findall(b) != []:
+        elif INSERTION_PATTERN.findall(b) != []:
+            if location.is_integer():
+                location -= 1.0
             location += 0.01
             insertions.append((location, b))
-        if deletion_pattern.findall(b) != []:
+        elif DELETION_PATTERN.findall(b) != []:
             deletions.append((float(math.ceil(location)), b))
             location = float(math.ceil(location) + 1) 
     return {'mutations':mutations, 'deletions':deletions, 'insertions':insertions}
