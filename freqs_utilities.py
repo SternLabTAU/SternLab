@@ -6,6 +6,7 @@ from Bio.Seq import Seq
 from scipy.stats import ttest_ind
 import numpy as np
 import os
+from functools import reduce
 
 
 
@@ -460,6 +461,30 @@ def get_median_coverage_and_stop_mutation_for_df(df):
     GA_stop_mutation_count =  len(df[(df["Mutation.Type"] =="Premature Stop Codon") & (df["Ref"] =="G") & (df["Base"] =="A")])
     ns_transition_mutation_count = len(df[(df["mutation_in_conseved_area"] == True)])
     return (median_coverage, stop_mutation_count, GA_stop_mutation_count, ns_transition_mutation_count)
+
+
+def compare_positions_between_freqs(dict_of_freqs, out_path=False, positions_to_compare=False):
+    '''
+    Compare and display frequencies and read counts per position between different freqs files.
+    :param dict_of_freqs: a dictionary of freqs files to compare in the format of {name:freqs_path}
+    :param out_path: path to save output csv, optional
+    :param positions_to_compare: a list of positions to compare, optional
+    :return: merged dataframe
+    '''
+    dfs = []
+    for i in dict_of_freqs:
+        df = pd.read_csv(dict_of_freqs[i], sep='\t')
+        df = df[['Ref', 'Pos', 'Base', 'Freq', 'Read_count']]
+        df.rename(columns={'Read_count':'Read_count_' + i, 'Freq':'Freq_' + i}, inplace=True)
+        dfs.append(df)
+    df_final = reduce(lambda left,right: pd.merge(left,right,on=['Ref', 'Pos', 'Base']), dfs)
+    if positions_to_compare:
+        df_final = df_final[(df_final.Pos.isin(positions_to_compare))]
+    if out_path:
+        df_final.to_csv(out_path, index=False)
+    return df_final
+
+
 
 if __name__ == "__main__":
     main()
