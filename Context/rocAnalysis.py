@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 import argparse
-#from tqdm import tqdm
+from tqdm import tqdm
 import numpy as np
 import glob
 from sklearn.metrics import auc
@@ -51,13 +51,13 @@ def folderAnalyze(folder):
 def main(args):
 
     all_result_summarys = []
-
-    for root, dirs, files in os.walk(args.folder):
+    folder = args.folder
+    for root, dirs, files in tqdm(os.walk(folder)):
         if "resultSummary" in dirs:
             all_result_summarys.append(os.path.join(root, [f for f in dirs if 'resultSummary' in f][0]))
 
     dfs = []
-    for f in all_result_summarys:
+    for f in tqdm(all_result_summarys):
         try:
             df = folderAnalyze(f)
             dfs.append(df)
@@ -78,3 +78,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(args)
+
