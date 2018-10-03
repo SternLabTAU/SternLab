@@ -140,7 +140,8 @@ def fdr_correct_by_features(df, features=None):
 
 def test_simulate_bm():
 
-    simulations_data = r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/OU_model/simulations'
+    #simulations_data = r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/OU_model/simulations'
+    simulations_data = r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/OU_model/monte_carlo_simulations'
     real_data = r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/OU_model/BM-OU_sampled_trees'
 
     simulated_files = glob.glob(os.path.join(simulations_data,'*.csv'))
@@ -150,24 +151,29 @@ def test_simulate_bm():
     for f in tqdm(simulated_files):
 
         family = f.split('_')[-1].split('.')[0].strip()
-        family_real_data = glob.glob(os.path.join(real_data, '*frame*{}*.csv'.format(family)))
+        family_real_data = glob.glob(os.path.join(real_data, '*k5*{}*.csv'.format(family)))
         if family_real_data ==[]:
             print(family)
             continue
 
         simulation = pd.read_csv(f)
         real = pd.read_csv(family_real_data[0])
-
-        lower_cutoff = np.percentile(simulation['chi_sqr'].values, 5)
-        upper_cutoff = np.percentile(simulation['chi_sqr'].values, 95)
+        lower_cutoff = np.percentile(simulation['lr_bm'].values, 5)
+        upper_cutoff = np.percentile(simulation['lr_bm'].values, 95)
 
         real_value = real[real['statistics'] == 'chiSquare']['values'].values[0]
 
-        significance = lower_cutoff <= real_value <= upper_cutoff
+        significance_bm = lower_cutoff <= real_value <= upper_cutoff
 
         pvalue = real[real['statistics'] == 'Pvalue']['values'].values[0]
 
-        df = pd.DataFrame({'isBM':significance, 'family':family, 'pvalue':pvalue}, index=[0])
+        lower_cutoff = np.percentile(simulation['lr_ou'].values, 5)
+        upper_cutoff = np.percentile(simulation['lr_ou'].values, 95)
+
+
+        significance_ou = lower_cutoff <= real_value <= upper_cutoff
+
+        df = pd.DataFrame({'isBM': significance_bm, 'isOU': significance_ou, 'family': family, 'pvalue': pvalue}, index=[0])
 
         dfs.append(df)
 
@@ -179,14 +185,6 @@ def test_simulate_bm():
     result['significance'] = result.apply(lambda row: True if (row['isBM'] == True and row['model'] == 'BM') or
                                                               (row['isBM'] == False and row['model'] == 'OU') else False, axis=1)
     return result
-
-
-
-
-
-
-
-
 
 
 
@@ -748,8 +746,8 @@ wanted_rows = [c for c in set(df['feature']) if 'shift' not in c]
 
 
 x = test_simulate_bm()
-x['feature'] = 'reading_frame'
-x.to_csv(r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/OU_model/simulations_significance_bm_rf.csv', index=False)
+x['feature'] = 'k5'
+x.to_csv(r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/OU_model/simulations_significance_bm_k5.csv', index=False)
 
 
 
