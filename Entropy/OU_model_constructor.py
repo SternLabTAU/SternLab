@@ -3,7 +3,9 @@ import glob
 import seaborn as sns
 import matplotlib.pyplot as plt
 import statsmodels.stats.multitest as multi
-
+import sys
+from datetime import datetime
+import os
 
 def pre_process_files(super_folder, mapping, maxNorm=False):
     """
@@ -48,12 +50,25 @@ def pre_process_files(super_folder, mapping, maxNorm=False):
 
     print('Preprocess is done successfully')
 
-def run_OU_model(super_folder, features):
+
+def BM_OU_runner(super_folder, features, out, MC=False, log=False):
     """
-    run the OU model R script sequentially for all phylogenies on all numerical traits
-    :param super_folder:
-    :return:
+    run the OU model R script sequentially for all phylogenys on all numerical traits
+    :param super_folder: a folder contaning information about trees. can be canonical
+    :param features: a list of features for simulating\running
+    :param out: output folder to save results
+    :param MC: whether or not to run monte carlo simulations. default is false - checking the model on a given tree.
+    :param log: print to screen or write to log
+    :return: saves for each tree and for each feature a csv with simulation results
     """
+
+    if log:
+        today = datetime.now()
+        cur_log = r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/logs/' + today.strftime('%Y%m%d') \
+                  + '{}:{}'.format(today.hour, today.minute) + '_BM_OU_runner'
+        if not os.path.exists(cur_log):
+            os.mkdir(cur_log)
+        sys.stdout = open(os.path.join(cur_log, 'running_log.txt'), 'w')
 
     # get all tree files
     all_trees = []
@@ -74,11 +89,16 @@ def run_OU_model(super_folder, features):
 
         # run separately for each feature
         for f in tqdm(features):
-            out = os.path.join(os.path.dirname(t), 'OU_summary_{}_{}.csv'.format(f,alias))
+            out = os.path.join(out, 'OU_summary_{}_{}.csv'.format(f,alias))
             try:
-                os.system('Rscript OU_model.R -f {} -t {} -v {} -o {}'.format(data, t, f, out))
+                if not MC:
+                    os.system('Rscript OU_model.R -f {} -t {} -v {} -o {}'.format(data, t, f, out))
+                else:
+                    os.system('Rscript monte_carlo.R -f {} -t {} -v {} -o {}'.format(data, t, f, out))
             except:
                 print(alias)
+
+
 
 
 def get_family(x):
@@ -145,7 +165,7 @@ def test_simulate_bm():
     real_data = r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/OU_model/BM-OU_sampled_trees'
 
     simulated_files = glob.glob(os.path.join(simulations_data,'*.csv'))
-    real_data_files = glob.glob(os.path.join(real_data, '*k5*.csv'))
+    real_data_files = glob.glob(os.path.join(real_data, '*reading_frame*.csv'))
 
     dfs = []
     for f in tqdm(simulated_files):
@@ -188,7 +208,15 @@ def test_simulate_bm():
 
 
 
-
+def plot_distribution(simulation, lower_cutoff, upper_cutoff, real_value, family, feature,out):
+    sns.distplot(simulation['lr_bm'], color='#2FA3BD', hist=False, kde_kws={'shade': True})
+    plt.axvline(x=lower_cutoff, color='#DF2115')
+    plt.axvline(x=upper_cutoff, color='#DF2115')
+    plt.axvline(x=real_value, color='olive')
+    sns.despine()
+    plt.title('{} BM simulations distribution {}'.format(family, feature), fontsize=22)
+    plt.xlabel('Chi Square statistic', fontsize=20)
+    plt.savefig(out, dpi=400, bbox_inches='tight')
 
 # call for pre-process data for each viral family
 # mapping = pd.read_csv(r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/entropies.csv')
@@ -746,8 +774,8 @@ wanted_rows = [c for c in set(df['feature']) if 'shift' not in c]
 
 
 x = test_simulate_bm()
-x['feature'] = 'k5'
-x.to_csv(r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/OU_model/simulations_significance_bm_k5.csv', index=False)
+x['feature'] = 'reading_frame'
+x.to_csv(r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/OU_model/simulations_significance_bm_rf.csv', index=False)
 
 
 

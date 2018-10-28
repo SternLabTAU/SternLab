@@ -66,7 +66,7 @@ alpha = as.numeric(summary(h1)$alpha)
 theta = as.numeric(summary(h1)$optima$k5)
 # now we have our own parameters, simulate both OU an BM
 
-N = 1000
+N = 100
 
 lr_bm <- vector()
 lr_ou <- vector()
