@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from utils import joint_entropy, get_reverse_complement
 from entropy_selection import string_by_codon_position
-from tqdm import tqdm
+# from tqdm import tqdm
 import re
 import os
 
@@ -54,7 +54,7 @@ def get_kmers_distribution(fasta, k, out):
     all_values = []
 
     sequences = re.split(">", open(fasta, "r").read().replace('\n', ''))[1:]
-    for seq in tqdm(sequences):
+    for seq in sequences:
         # get identifier and genomic sequence
         splitted = seq.split('.')
         genome = splitted[-1]
@@ -143,7 +143,7 @@ def get_entropy_profile(fasta, w, out=None):
     alias = os.path.basename(fasta).split('.')[0]
 
     sequences = re.split(">", open(fasta, "r").read().replace('\n', ''))[1:]
-    for i, seq in tqdm(enumerate(sequences)):
+    for i, seq in enumerate(sequences):
         entropies = []
         # get identifier and genomic sequence
         splitted = seq.split('.')
