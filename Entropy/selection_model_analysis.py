@@ -1,10 +1,10 @@
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
+# import matplotlib.pyplot as plt
+# import seaborn as sns
 from utils import joint_entropy, get_reverse_complement
 from entropy_selection import string_by_codon_position
-# from tqdm import tqdm
+from tqdm import tqdm
 import re
 import os
 
@@ -143,29 +143,28 @@ def get_entropy_profile(fasta, w, out=None):
     alias = os.path.basename(fasta).split('.')[0]
 
     sequences = re.split(">", open(fasta, "r").read().replace('\n', ''))[1:]
-    for i, seq in enumerate(sequences):
+    for i, seq in tqdm(enumerate(sequences)):
         entropies = []
         # get identifier and genomic sequence
         splitted = seq.split('.')
         genome = splitted[-1]
-        print(i)
 
-        for i in range(len(genome) - w):
-            sub_genome = genome[i:i+w]
+        for j in range(len(genome) - w):
+            sub_genome = genome[j:j+w]
             rc_sub_genome = get_reverse_complement(sub_genome)
 
             entropy = joint_entropy(sub_genome, rc_sub_genome, 5)
             entropies.append(entropy)
-
+        print('Done with seq {}'.format(i))
         all_entropies['seq_{}'.format(i)] = entropies
-        plt.plot(entropies)
-    plt.title('Entropy profile {}'.format(alias), fontsize=18)
-    plt.xlabel('Genome position', fontsize=18)
-    plt.ylabel('Entropy', fontsize=18)
-    sns.despine(offset=10)
-    plt.savefig(os.path.join(out, '{}_profile.png'.format(alias)), format='png', dpi=400,
-                bbox_inches='tight')
-    plt.gcf().clear()
+    #     plt.plot(entropies)
+    # plt.title('Entropy profile {}'.format(alias), fontsize=18)
+    # plt.xlabel('Genome position', fontsize=18)
+    # plt.ylabel('Entropy', fontsize=18)
+    # sns.despine(offset=10)
+    # plt.savefig(os.path.join(out, '{}_profile.png'.format(alias)), format='png', dpi=400,
+    #             bbox_inches='tight')
+    # plt.gcf().clear()
 
     df = pd.DataFrame(all_entropies)
     df.to_csv(os.path.join(out, '{}_profile.csv'), index=False)
