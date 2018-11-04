@@ -63,7 +63,7 @@ h1 <- hansen(tree=ot,data=otd[c(opt$value)],regimes=otd["regimes"],fit=TRUE,sqrt
 sigma_ou = as.numeric(summary(h1)$sigma.squared)
 sigma_bm = as.numeric(summary(b1)$sigma.squared)
 alpha = as.numeric(summary(h1)$alpha)
-theta = as.numeric(summary(h1)$optima$k5)
+theta = as.numeric(summary(h1)$optima$codon_position_2) ### notice that it should be by value and not by reference
 # now we have our own parameters, simulate both OU an BM
 
 N = 100

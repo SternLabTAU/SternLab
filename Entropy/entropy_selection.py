@@ -19,8 +19,8 @@ import heritability
 import pickle
 from randomization_utils import *
 
-with open(r'/sternadi/home/volume1/daniellem1/Entropy/data/refseq_2_cds_positions.pickle', 'rb') as o:
-    cds_mapping = pickle.load(o)
+# with open(r'/sternadi/home/volume1/daniellem1/Entropy/data/refseq_2_cds_positions.pickle', 'rb') as o:
+#     cds_mapping = pickle.load(o)
 
 def remove_punctuation(s):
     splitted = string.punctuation.split('_')
