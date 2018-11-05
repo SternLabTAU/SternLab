@@ -22,7 +22,8 @@ def main(args):
 
     df = pd.read_csv(r'/sternadi/home/volume1/daniellem1/Entropy/data/OU_model/simulations_significance_bm_k5.csv')
     families = df[df['model']=='OU']['family'].values
-    family = families[args.index + 1]
+    family = families[args.index -1]
+    print(family)
     fasta = r'/sternadi/home/volume1/daniellem1/Entropy/data/Phylogeny/family/{}/{}.fasta'.format(family, family)
     # get_kmers_distribution(fasta, 1, out)
     get_entropy_profile(fasta, 200, out)
