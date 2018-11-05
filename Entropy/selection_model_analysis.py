@@ -166,7 +166,7 @@ def get_entropy_profile(fasta, w, out=None):
     #             bbox_inches='tight')
     # plt.gcf().clear()
 
-    df = pd.DataFrame(all_entropies)
+    df = pd.DataFrame(dict([(k,pd.Series(v)) for k,v in all_entropies.items()]))
     df.to_csv(os.path.join(out, '{}_profile.csv'), index=False)
 
     return df
