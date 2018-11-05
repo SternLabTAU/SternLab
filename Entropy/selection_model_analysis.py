@@ -151,10 +151,13 @@ def get_entropy_profile(fasta, w, out=None):
 
         for j in range(len(genome) - w):
             sub_genome = genome[j:j+w]
-            rc_sub_genome = get_reverse_complement(sub_genome)
+            try:
+                rc_sub_genome = get_reverse_complement(sub_genome)
+                entropy = joint_entropy(sub_genome, rc_sub_genome, 5)
+                entropies.append(entropy)
+            except:
+                break
 
-            entropy = joint_entropy(sub_genome, rc_sub_genome, 5)
-            entropies.append(entropy)
         print('Done with seq {}'.format(i))
         all_entropies['seq_{}'.format(i)] = entropies
     #     plt.plot(entropies)
