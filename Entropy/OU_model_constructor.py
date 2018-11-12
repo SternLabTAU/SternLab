@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import statsmodels.stats.multitest as multi
 import sys
 from datetime import datetime
-import os, subprocess
+import os
 
 def pre_process_files(super_folder, mapping, maxNorm=False):
     """

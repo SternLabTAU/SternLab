@@ -17,17 +17,26 @@ def main(args):
 
     # run the analysis of the families that are ou significant
     fasta = r'/sternadi/home/volume1/daniellem1/Entropy/data/Phylogeny/family/Caliciviridae/Caliciviridae.fasta'
-    #out = r'/Users/daniellemiller/Google Drive/Msc Bioinformatics/Projects/entropy/most_updated/OU_significant/k5'
+    out = r'/Users/daniellemiller/Google Drive/Msc Bioinformatics/Projects/entropy/most_updated/OU_significant/k5'
     out = r'/sternadi/home/volume1/daniellem1/Entropy/data/OU_model/profile'
 
-    df = pd.read_csv(r'/sternadi/home/volume1/daniellem1/Entropy/data/OU_model/simulations_significance_bm_k5.csv')
-    families = df[df['model']=='OU']['family'].values
-    family = families[args.index -1]
-    print(family)
-    fasta = r'/sternadi/home/volume1/daniellem1/Entropy/data/Phylogeny/family/{}/{}.fasta'.format(family, family)
-    # get_kmers_distribution(fasta, 1, out)
-    get_entropy_profile(fasta, 200, out)
 
+    df = pd.read_csv(r'/sternadi/home/volume1/daniellem1/Entropy/data/OU_model/simulations_significance_bm_k5.csv')
+    #df = pd.read_csv(r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/OU_model/simulations_significance_bm_k5.csv')
+    families = df['family'].values
+    family = families[args.index -1]
+    # print(family)
+    fasta = r'/sternadi/home/volume1/daniellem1/Entropy/data/Phylogeny/family/{}/{}.fasta'.format(family, family)
+    # # get_kmers_distribution(fasta, 1, out)
+    # get_entropy_profile(fasta, 200, out)
+    deltaG_profile(fasta, 200, out)
+
+    # sns.set_style('white')
+    # # run the kmers test for all families regardless their model significance
+    # families = df['family'].values
+    # for family in tqdm(families):
+    #     fasta = r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/Phylogeny/family/{}/{}.fasta'.format(family, family)
+    #     get_kmers_distribution(fasta, 5, out)
 
 
 
