@@ -165,14 +165,14 @@ def get_entropy_profile(fasta, w, out=None):
 
         print('Done with seq {}'.format(i))
         all_entropies['seq_{}'.format(i)] = entropies
-        plt.plot(entropies)
-    plt.title('Entropy profile {}'.format(alias), fontsize=18)
-    plt.xlabel('Genome position', fontsize=18)
-    plt.ylabel('Entropy', fontsize=18)
-    sns.despine(offset=10)
-    plt.savefig(os.path.join(out, '{}_profile.png'.format(alias)), format='png', dpi=400,
-                bbox_inches='tight')
-    plt.gcf().clear()
+        # plt.plot(entropies)
+    # plt.title('Entropy profile {}'.format(alias), fontsize=18)
+    # plt.xlabel('Genome position', fontsize=18)
+    # plt.ylabel('Entropy', fontsize=18)
+    # sns.despine(offset=10)
+    # plt.savefig(os.path.join(out, '{}_profile.png'.format(alias)), format='png', dpi=400,
+    #             bbox_inches='tight')
+    # plt.gcf().clear()
 
     df = pd.DataFrame(dict([(k,pd.Series(v)) for k,v in all_entropies.items()]))
     df.to_csv(os.path.join(out, '{}_profile.csv'.format(alias)), index=False)
@@ -322,6 +322,32 @@ def deltaG_profile(fasta, w, out):
     df.to_csv(os.path.join(out, '{}_deltaG_profile.csv'.format(alias)), index=False)
 
     return df
+
+
+def regress_entropy2deltaG(entropy_filepath, deltaG_filepath):
+    """
+    regress two files of entropy and delta g and get the p value and significance
+    :param entropy_filepath: a path to an entropy profile file
+    :param deltaG_filepath: a path to an delta g profile file
+    :return: p value list
+    """
+
+    entropy = pd.read_csv(entropy_filepath)
+    deltag = pd.read_csv(deltaG_filepath)
+
+    r_values = []
+    p_values = []
+
+    num_sequences = len(list(entropy.columns()))
+    for i in range(num_sequences):
+        x = entropy.iloc[i,].values
+        y = deltag.iloc[i,].values
+
+        slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
+        r_values.append(r_value)
+        p_values.append(p_value)
+
+    return pd.DataFrame({'R_value':r_values, 'p_value':p_values})
 
 
 

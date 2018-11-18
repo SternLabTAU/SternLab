@@ -28,8 +28,8 @@ def main(args):
     # print(family)
     fasta = r'/sternadi/home/volume1/daniellem1/Entropy/data/Phylogeny/family/{}/{}.fasta'.format(family, family)
     # # get_kmers_distribution(fasta, 1, out)
-    # get_entropy_profile(fasta, 200, out)
-    deltaG_profile(fasta, 200, out)
+    get_entropy_profile(fasta, 200, out)
+    # deltaG_profile(fasta, 200, out)
 
     # sns.set_style('white')
     # # run the kmers test for all families regardless their model significance
