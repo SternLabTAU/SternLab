@@ -18,7 +18,8 @@ def main(args):
     # run the analysis of the families that are ou significant
     fasta = r'/sternadi/home/volume1/daniellem1/Entropy/data/Phylogeny/family/Caliciviridae/Caliciviridae.fasta'
     out = r'/Users/daniellemiller/Google Drive/Msc Bioinformatics/Projects/entropy/most_updated/OU_significant/k5'
-    out = r'/sternadi/home/volume1/daniellem1/Entropy/data/OU_model/profile'
+    # out = r'/sternadi/home/volume1/daniellem1/Entropy/data/OU_model/profile'
+    out = r'/sternadi/home//volume1/daniellem1/Entropy/data/ecoli'
 
 
     # df = pd.read_csv(r'/sternadi/home/volume1/daniellem1/Entropy/data/OU_model/simulations_significance_bm_k5.csv')
@@ -39,7 +40,7 @@ def main(args):
     #     get_kmers_distribution(fasta, 5, out)
 
 
-
+    get_entropy_profile_per_sequence(args.seq, w=500, alias=args.description, out=out)
 
 
 
