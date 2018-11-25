@@ -10,6 +10,7 @@ import os
 import scipy.stats as stats
 import statsmodels.stats.multitest as multi
 import RNA
+from Bio import SeqIO
 
 cp2_path = r'/sternadi/home/volume1/daniellem1/Entropy/data/OU_model/simulations_significance_bm_cp2.csv'
 rf_path = r'/sternadi/home/volume1/daniellem1/Entropy/data/OU_model/simulations_significance_bm_rf.csv'
@@ -165,14 +166,6 @@ def get_entropy_profile(fasta, w, out=None):
 
         print('Done with seq {}'.format(i))
         all_entropies['seq_{}'.format(i)] = entropies
-        # plt.plot(entropies)
-    # plt.title('Entropy profile {}'.format(alias), fontsize=18)
-    # plt.xlabel('Genome position', fontsize=18)
-    # plt.ylabel('Entropy', fontsize=18)
-    # sns.despine(offset=10)
-    # plt.savefig(os.path.join(out, '{}_profile.png'.format(alias)), format='png', dpi=400,
-    #             bbox_inches='tight')
-    # plt.gcf().clear()
 
     df = pd.DataFrame(dict([(k,pd.Series(v)) for k,v in all_entropies.items()]))
     df.to_csv(os.path.join(out, '{}_profile.csv'.format(alias)), index=False)
@@ -180,6 +173,33 @@ def get_entropy_profile(fasta, w, out=None):
     return df
 
 
+def get_entropy_profile_per_sequence(seq, w, alias, out=None):
+    """
+    sliding window entropy profile of all sequences in a family
+    :param fasta: a fasta file contatining viral sequences
+    :param w: the window size
+    :param out: optional. if != None a profile will be saved as a png
+    :return: the vector of profile entropy
+    """
+    all_entropies = {}
+
+    entropies = []
+    # get identifier and genomic sequence
+    genome = seq
+
+    for j in range(len(genome) - w):
+        sub_genome = genome[j:j+w]
+        try:
+            rc_sub_genome = get_reverse_complement(sub_genome)
+            entropy = joint_entropy(sub_genome, rc_sub_genome, 5)
+            entropies.append(entropy)
+        except:
+            break
+
+    df = pd.DataFrame({'{}'.format(alias):entropies})
+    df.to_csv(os.path.join(out, '{}_profile.csv'.format(alias)), index=False)
+
+    return df
 
 
 def construct_heatmap(filepath, out):
@@ -324,7 +344,7 @@ def deltaG_profile(fasta, w, out):
     return df
 
 
-def regress_entropy2deltaG(entropy_filepath, deltaG_filepath):
+def regress_entropy2deltaG(entropy_filepath, deltaG_filepath, start=None, end=None, family=None):
     """
     regress two files of entropy and delta g and get the p value and significance
     :param entropy_filepath: a path to an entropy profile file
@@ -335,19 +355,37 @@ def regress_entropy2deltaG(entropy_filepath, deltaG_filepath):
     entropy = pd.read_csv(entropy_filepath)
     deltag = pd.read_csv(deltaG_filepath)
 
+    # remove empty columns in entropy
+    entropy = entropy.dropna(how='all', axis=1)
+    deltag = deltag[entropy.columns]
+
+    if start!=None:
+
+        entropy = entropy.iloc[list(range(start, end))]
+        deltag = deltag.iloc[list(range(start, end))]
+        entropy = entropy.dropna(how='all', axis=1)
+        deltag = deltag[entropy.columns]
+
     r_values = []
     p_values = []
 
-    num_sequences = len(list(entropy.columns()))
-    for i in range(num_sequences):
-        x = entropy.iloc[i,].values
-        y = deltag.iloc[i,].values
 
-        slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
+    for c in entropy.columns:
+        x = entropy[c].values
+        y = deltag[c].values
+
+        data = pd.DataFrame({'x':x, 'y':y})
+        data = data.dropna()
+        slope, intercept, r_value, p_value, std_err = stats.linregress(data['x'], data['y'])
         r_values.append(r_value)
         p_values.append(p_value)
 
-    return pd.DataFrame({'R_value':r_values, 'p_value':p_values})
+
+    result = pd.DataFrame({'R_value':r_values, 'p_value':p_values})
+    result['corrected_pvalue'] = multi.fdrcorrection(result['p_value'])[1]
+    if family != None:
+        result['family'] = family
+    return result
 
 
 
