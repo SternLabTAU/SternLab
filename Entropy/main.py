@@ -46,7 +46,9 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--index", type=int, help="array index")
+    # parser.add_argument("-i", "--index", type=int, help="array index")
+    parser.add_argument("-seq", "--seq", type=str, help="array index")
+    parser.add_argument("-des", "--description", type=str, help="array index")
 
     args = parser.parse_args()
 
