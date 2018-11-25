@@ -39,16 +39,22 @@ def main(args):
     #     fasta = r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/Phylogeny/family/{}/{}.fasta'.format(family, family)
     #     get_kmers_distribution(fasta, 5, out)
 
+    description_2_seq = []
+    for rec in SeqIO.parse("/sternadi/home/volume1/daniellem1/Entropy/data/ecoli/sequence.gb", "genbank"):
+        description_2_seq.append((rec.description, str(rec.seq)))
 
-    get_entropy_profile_per_sequence(args.seq, w=500, alias=args.description, out=out)
+    idx = args.index
+
+    description = description_2_seq[idx][0]
+    seq = description_2_seq[idx][1]
+
+    get_entropy_profile_per_sequence(seq, 10000, description, out=out)
 
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    # parser.add_argument("-i", "--index", type=int, help="array index")
-    parser.add_argument("-seq", "--seq", type=str, help="array index")
-    parser.add_argument("-des", "--description", type=str, help="array index")
+    parser.add_argument("-i", "--index", type=int, help="array index")
 
     args = parser.parse_args()
 
