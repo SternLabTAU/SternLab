@@ -27,7 +27,7 @@ def create_pbs_cmd(cmdfile, alias, gmem=2, cmds="", dir = "", load_python=True, 
         o.write("date\n")
         o.write("hostname\n")
         if load_python:
-            o.write("module load python/anaconda_python-3.4.0\n")
+            o.write("module load python/anaconda_python-3.6.1\n")
         
         o.write("\n")
         o.write(cmds)
