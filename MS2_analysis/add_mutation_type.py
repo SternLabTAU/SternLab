@@ -102,8 +102,8 @@ def get_mutation_type(pos, base, ref, offset=1):
 	# check the type of the mutation
 	if mutant == '*' and prot != '*' and mut_seq != 'UGA': 	# stop to stop will be a synonymous mutation, and so as read through
 		mut_type = "stop"
-	elif prot != '*' and mut_seq == 'UGA':
-		mut_type = "read-through"
+	# elif prot != '*' and mut_seq == 'UGA':
+	# 	mut_type = "read-through"
 	elif prot == mutant:
 		mut_type = "synonymous"
 	elif prot != mutant:
