@@ -169,7 +169,8 @@ def test_simulate_bm():
 
     #simulations_data = r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/OU_model/simulations'
     simulations_data = r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/OU_model/MonteCarlo'
-    real_data = r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/OU_model/BM-OU_sampled_trees'
+    #real_data = r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/OU_model/BM-OU_sampled_trees'
+    real_data = r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/OU_model/filtered_pruned'
 
     simulated_files = glob.glob(os.path.join(simulations_data,'*k5*.csv'))
     real_data_files = glob.glob(os.path.join(real_data, '*k5*.csv'))
@@ -786,7 +787,7 @@ wanted_rows = [c for c in set(df['feature']) if 'shift' not in c]
 
 x = test_simulate_bm()
 x['feature'] = 'k5'
-x.to_csv(r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/OU_model/simulations_significance_bm_k5.csv', index=False)
+x.to_csv(r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/OU_model/k5_MC.csv', index=False)
 
 
 
