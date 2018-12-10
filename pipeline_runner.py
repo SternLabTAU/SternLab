@@ -1,4 +1,4 @@
-#! /usr/local/python_anaconda/bin/python3.4
+
 
 
 from file_utilities import check_filename, check_dirname

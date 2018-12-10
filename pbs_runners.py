@@ -633,7 +633,7 @@ def pipeline_runner(input_dir, output_dir, ref_file, NGS_or_Cirseq, TYPE_OF_INPU
     ref_file = check_filename(ref_file)
     if NGS_or_Cirseq not in [1, 2]:
         raise Exception("NGS_or_Cirseq has to be 1 or 2")
-    cmds = "/sternadi/home/volume1/shared/SternLab/pipeline_runner.py -i %s -o %s -r %s -NGS_or_Cirseq %i" \
+    cmds = "python /sternadi/home/volume1/shared/SternLab/pipeline_runner.py -i %s -o %s -r %s -NGS_or_Cirseq %i" \
            % (input_dir, output_dir, ref_file, NGS_or_Cirseq)
     if TYPE_OF_INPUT_FILE != None:
         cmds += " -t %s" % TYPE_OF_INPUT_FILE
@@ -655,6 +655,6 @@ def pipeline_runner(input_dir, output_dir, ref_file, NGS_or_Cirseq, TYPE_OF_INPU
 
     print(cmds)
     cmdfile = pbs_jobs.get_cmdfile_dir("pipeline.txt", alias); tnum = 1; gmem = 2; 
-    pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
+    pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds, load_python=True)
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
