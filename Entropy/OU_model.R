@@ -50,7 +50,7 @@ if (nc != "OK"){
 
 # transform into ouch tree object and pre-process the tree and the trait values
 
-ot <- ape2ouch(tree)
+ot <- ape2ouch(tree, scale = FALSE, branch.lengths = tree$edge.length)
 otd <- as(ot,"data.frame")
 df$labels <- rownames(df)
 otd <- merge(otd,df,by="labels",all=TRUE)

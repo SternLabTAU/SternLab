@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from utils import joint_entropy, get_reverse_complement
+from utils import joint_entropy, get_reverse_complement, entropy_by_kmer
 from entropy_selection import string_by_codon_position
 from tqdm import tqdm
 import re
@@ -57,12 +57,11 @@ def get_kmers_distribution(fasta, k, out=None):
     alias = os.path.basename(fasta).split('.')[0]
     all_values = []
 
-    sequences = re.split(">", open(fasta, "r").read().replace('\n', ''))[1:]
-    for seq in sequences:
+
+    for rec in SeqIO.parse(fasta, "fasta"):
         # get identifier and genomic sequence
-        splitted = seq.split('.')
-        genome = splitted[-1]
-        #rc_genome = get_reverse_complement(genome)
+        genome = rec.seq
+        rc_genome = str(get_reverse_complement(genome))
 
         kmers_1 = {}
         kmers_2 = {}
@@ -86,7 +85,7 @@ def get_kmers_distribution(fasta, k, out=None):
         elif k == 3:
             # reading frame
             for i in range(0, len(genome) - 3, 3):
-                kmer = seq[i:i + 3]
+                kmer = genome[i:i + 3]
                 if kmer in kmers_1:
                     kmers_1[kmer] += 1
                 else:
@@ -100,7 +99,7 @@ def get_kmers_distribution(fasta, k, out=None):
             #         kmers_2[kmer] = 1
         else:
             assert(k==1)
-            codon_trimmed = string_by_codon_position(seq, 2)
+            codon_trimmed = string_by_codon_position(genome, 2)
             # rc_codon_trimmed = get_reverse_complement(seq)
             for i in range(len(codon_trimmed)):
                 kmer = codon_trimmed[i]
@@ -137,7 +136,7 @@ def get_kmers_distribution(fasta, k, out=None):
 
 
 
-def get_entropy_profile(fasta, w, out=None):
+def get_joint_entropy_profile(fasta, w, out=None):
     """
     sliding window entropy profile of all sequences in a family
     :param fasta: a fasta file contatining viral sequences
@@ -148,12 +147,12 @@ def get_entropy_profile(fasta, w, out=None):
     all_entropies = {}
     alias = os.path.basename(fasta).split('.')[0]
 
-    sequences = re.split(">", open(fasta, "r").read().replace('\n', ''))[1:]
-    for i, seq in tqdm(enumerate(sequences)):
+    i = 0
+    for rec in SeqIO.parse(fasta, "fasta"):
         entropies = []
         # get identifier and genomic sequence
-        splitted = seq.split('.')
-        genome = splitted[-1]
+
+        genome = rec.seq
 
         for j in range(len(genome) - w):
             sub_genome = genome[j:j+w]
@@ -166,12 +165,47 @@ def get_entropy_profile(fasta, w, out=None):
 
         print('Done with seq {}'.format(i))
         all_entropies['seq_{}'.format(i)] = entropies
+        i += 1
 
     df = pd.DataFrame(dict([(k,pd.Series(v)) for k,v in all_entropies.items()]))
     df.to_csv(os.path.join(out, '{}_profile.csv'.format(alias)), index=False)
 
     return df
 
+
+
+def get_entropy_profile(fasta, w, out=None):
+    """
+    sliding window entropy profile of all sequences in a family
+    :param fasta: a fasta file contatining viral sequences
+    :param w: the window size
+    :param out: optional. if != None a profile will be saved as a png
+    :return: the vector of profile entropy
+    """
+    all_entropies = {}
+    alias = os.path.basename(fasta).split('.')[0]
+
+    i = 0
+    for rec in SeqIO.parse(fasta, "fasta"):
+        entropies = []
+        # get identifier and genomic sequence
+
+        genome = rec.seq
+
+        for j in range(len(genome) - w):
+            sub_genome = genome[j:j+w]
+            entropy = entropy_by_kmer(sub_genome, 5)
+            entropies.append(entropy)
+
+
+        print('Done with seq {}'.format(i))
+        all_entropies['seq_{}'.format(i)] = entropies
+        i += 1
+
+    df = pd.DataFrame(dict([(k,pd.Series(v)) for k,v in all_entropies.items()]))
+    #df.to_csv(os.path.join(out, '{}_profile.csv'.format(alias)), index=False)
+
+    return df
 
 def get_entropy_profile_per_sequence(seq, w, alias, out=None):
     """
