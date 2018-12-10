@@ -30,6 +30,8 @@ def create_pbs_cmd(cmdfile, alias, gmem=2, cmds="", dir = "", load_python=True, 
             o.write("module load python/anaconda_python-3.6.1\n")
         
         o.write("\n")
+        o.write('echo "%s"' % cmds)
+        o.write("\n")
         o.write(cmds)
         o.write("\n")
         o.write("date\n")
