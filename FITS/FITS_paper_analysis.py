@@ -1,9 +1,9 @@
 import pandas as pd
 import numpy as np
 import os
-from pbs_runners import pipeline_runner
+#from pbs_runners import pipeline_runner
 import glob
-from MS2_analysis import add_mutation_type
+#from MS2_analysis import add_mutation_type
 from tqdm import tqdm
 
 '''
@@ -22,11 +22,11 @@ def main():
     all_bi_allelic = summary_2_csv_biallelic(summaries_bi)
     all_4_allelic = summary_2_csv_4allelic(summaries_4)
 
-    # all_bi_allelic = unite_with_freq_information(all_bi_allelic,
-    #                                              out=r'/ sternadi/home/volume1/daniellem1/FITS/Mahoney/bi_allelic_summary.csv')
+    all_bi_allelic = unite_with_freq_information(all_bi_allelic,
+                                                 out=r'/sternadi/home/volume1/daniellem1/FITS/Mahoney/bi_allelic_summary.csv')
 
     all_4_allelic = unite_with_freq_information(all_4_allelic,
-                                                 out=r'/ sternadi/home/volume1/daniellem1/FITS/Mahoney/quarter_allelic_summary.csv')
+                                                 out=r'/sternadi/home/volume1/daniellem1/FITS/Mahoney/quarter_allelic_summary.csv')
 
 
 
@@ -371,7 +371,7 @@ def summary_2_csv_4allelic(summary_dir, out=None):
     dfs = []
     for f in tqdm(files):
         for mt in mutations:
-            pos = int(f.split('summary')[-1])
+            pos = int(f.split('summary')[-1].split('.')[0])
 
 
             with open(f, 'r') as o:
@@ -399,7 +399,7 @@ def summary_2_csv_4allelic(summary_dir, out=None):
 
 
 
-def unite_with_freq_information(summary, mapping=None, out = None):
+def unite_with_freq_information(summary, out = None):
     """
     This method concatenates the mapping information and the summary files
     :param summary: summary data frame
@@ -408,8 +408,7 @@ def unite_with_freq_information(summary, mapping=None, out = None):
     :return: a data frame with all information
     """
 
-    if mapping == None:
-        mapping = r'/sternadi/home/volume1/daniellem1/FITS/all/Mahoney_data_all.csv'
+    mapping = pd.read_csv(r'/sternadi/home/volume1/daniellem1/FITS/Mahoney_data.csv')
 
     merged = pd.merge(summary, mapping, how='left', on=['Pos', 'Mutation'])
     merged = merged.sort_values(['Pos', 'passage'])
@@ -419,5 +418,6 @@ def unite_with_freq_information(summary, mapping=None, out = None):
 
     return merged
 
-
+if __name__ == '__main__':
+    main()
 
