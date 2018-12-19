@@ -658,3 +658,77 @@ def pipeline_runner(input_dir, output_dir, ref_file, NGS_or_Cirseq, TYPE_OF_INPU
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds, load_python=True)
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
+
+
+def fits_runner(inference_type, dataset_file, param_file,alias='FITS', posterior_file=None, summary_file=None, batch=None):
+    """
+    run fits currect version on cluster
+    :param inference_type: the type of inference - fitness = 0, mutation rate =1, population size=2, simulate=3,
+    :param dataset_file: dataset file. if batch != None should indicate $PBS_ARRAY_INDEX
+    :param param_file: parameter file
+    :param alias: job alias. default is FITS.
+    :param posterior_file: output posterior file. should be provided to all types except of simulate. if batch != None should indicate $PBS_ARRAY_INDEX
+    :param summary_file: output summary file. should be provided to all types except of simulate. if batch != None should indicate $PBS_ARRAY_INDEX
+    :param batch: the number of jobs in the array, if None run as a single job
+    :return: sumbit a job\ job array to the cluster
+    """
+
+    dataset_file = check_filename(dataset_file)
+    param_file = check_filename(param_file)
+
+    if inference_type not in [0,1,2,3]:
+        raise Exception('Inference type should be 0 (fitness), 1 (mutation rate), 2 (population size), or 3 (simulate)')
+
+
+    if inference_type == 0: # fitness inference
+        if posterior_file == None:
+            posterior_file = os.path.join(os.path.dirname(dataset_file), 'posterior.txt')
+        if summary_file == None:
+            summary_file = os.path.join(os.path.dirname(dataset_file), 'summary.txt')
+        cmds = 'module load gcc/gcc-7.3.0\n' +\
+        '/sternadi/home/volume1/talzinger/FITS_Analyses/FITS_bin/fits_current_version -fitness ' \
+        '{} {} {} {}'.format(param_file, dataset_file, posterior_file,summary_file)
+
+        if batch == None:
+            script_runner(cmds, alias)
+        else:
+            array_script_runner(cmds,batch,alias)
+
+    elif inference_type == 1: # mutation rate inference
+        if posterior_file == None:
+            posterior_file = os.path.join(os.path.dirname(dataset_file), 'posterior.txt')
+        if summary_file == None:
+            summary_file = os.path.join(os.path.dirname(dataset_file), 'summary.txt')
+        cmds = 'module load gcc/gcc-7.3.0\n' +\
+        '/sternadi/home/volume1/talzinger/FITS_Analyses/FITS_bin/fits_current_version -mutation ' \
+        '{} {} {} {}'.format(param_file, dataset_file, posterior_file,summary_file)
+
+        if batch == None:
+            script_runner(cmds, alias)
+        else:
+            array_script_runner(cmds,batch,alias)
+
+    elif inference_type == 2:  # population size inference
+        if posterior_file == None:
+            posterior_file = os.path.join(os.path.dirname(dataset_file), 'posterior.txt')
+        if summary_file == None:
+            summary_file = os.path.join(os.path.dirname(dataset_file), 'summary.txt')
+        cmds = 'module load gcc/gcc-7.3.0\n' + \
+               '/sternadi/home/volume1/talzinger/FITS_Analyses/FITS_bin/fits_current_version -popsize ' \
+               '{} {} {} {}'.format(param_file, dataset_file, posterior_file, summary_file)
+
+        if batch == None:
+            script_runner(cmds, alias)
+        else:
+            array_script_runner(cmds, batch, alias)
+
+    else:  # simulations
+
+        cmds = 'module load gcc/gcc-7.3.0\n' + \
+               '/sternadi/home/volume1/talzinger/FITS_Analyses/FITS_bin/fits_current_version -simulate ' \
+               '{} {}'.format(param_file, dataset_file)
+
+        if batch == None:
+            script_runner(cmds, alias)
+        else:
+            array_script_runner(cmds, batch, alias)
