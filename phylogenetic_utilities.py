@@ -136,3 +136,21 @@ def label_leaf_nodes(tree_file, outfile):
         f.write(tree3)
 
 
+def remove_dots_from_node_names(tree_file, outfile=None):
+    """
+    change dots (.) to underscore (_) in node names
+    :param tree_file: input tree path
+    :param outfile: output tree path to save (default: None)
+    :return: saves the new tree in outfile
+    """
+    tree_file = check_filename(tree_file)
+    if outfile == None:
+        outfile = tree_file
+    else:
+        outfile = check_filename(outfile, Truefile=False)
+    tree = Phylo.read(tree_file, "newick")
+    clades = list(tree.find_clades())
+    for c in clades:
+        if c.name != None:
+            c.name = c.name.replace(".", "_")
+    Phylo.write([tree], outfile, "newick")
