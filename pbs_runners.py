@@ -43,7 +43,7 @@ def script_runner(cmds, alias = "script", load_python=False):
     :param alias: job name (default: script)
     :return: job id
     """
-    cmdfile = pbs_jobs.get_cmdfile_dir("script", alias); tnum=1; gmem=4
+    cmdfile = pbs_jobs.get_cmdfile_dir("script", alias); tnum=1; gmem=2
     print(cmdfile, alias, tnum, gmem, cmds)
     pbs_jobs.create_pbs_cmd(cmdfile, alias=alias, gmem=gmem, cmds=cmds, load_python=load_python)
     job_id = pbs_jobs.submit(cmdfile)
@@ -455,7 +455,7 @@ def bowtie2_runner(bowtie_index_path, fastq_file, sam_output, alias="bowtie2"):
     return job_id
 
 
-def bowtie2_build_runner(input_file, output_db_name=None, alias="bowtie2-build  "):
+def bowtie2_build_runner(input_file, output_db_name=None, alias="bowtie2-build"):
     """
 
     :param input_file:
@@ -627,7 +627,7 @@ def selecton_runner(codon_aln, output_dir=None, tree=None, log=None, rate=None, 
     return job_id
 
 def pipeline_runner(input_dir, output_dir, ref_file, NGS_or_Cirseq, TYPE_OF_INPUT_FILE=None, start=None, end=None, gaps=None,
-                    qscore=None, blast=None, rep=None, t=None):
+                    qscore=None, blast=None, rep=None, t=None, alias="pipeline"):
     input_dir = check_dirname(input_dir)
     output_dir = check_dirname(output_dir)
     ref_file = check_filename(ref_file)
