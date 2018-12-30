@@ -651,3 +651,47 @@ def phylo_content_construction(db, df, feature, out):
 
     return result
 
+
+def remove_duplicated_from_aln(aln, alias):
+    """
+    removes duplicate sequences for a given alignment
+    :param aln: a path to an alignment file
+    :return: alignment without duplications
+    """
+
+    record_dict = SeqIO.to_dict(SeqIO.parse(aln, "fasta"))
+    no_duplicates = {key: val for key, val in record_dict.items() if '.1' not in key}
+    output = os.path.join(os.path.dirname(aln), alias + '.filtered.aln.fas')
+    with open(output, 'w') as o:
+        SeqIO.write(no_duplicates.values(), o, "fasta")
+
+
+
+
+def prune_tree(aln, tree_path, alias, threshold=0.5):
+    """
+    removes the tips in which their branch length exceeds some threshold
+    :param aln: a path to an aln file
+    :param tree: a path to an existing tree files
+    :return: saves a new aln file named filtered pruned, to the prune directory
+    """
+    if tree_2_string(tree_path) == '':
+        return
+
+    tree = Phylo.read(tree_path, 'newick')
+
+    # get all terminal names to exlude from the aln
+    need_2_remove = []
+    for clade in list(tree.find_clades()):
+        if clade.branch_length == None:
+            continue
+        if clade.branch_length > threshold:
+            need_2_remove.extend([l.name for l in list(clade.get_terminals())])
+
+    # create a new aln exluding the problematic nodes.
+    record_dict = SeqIO.to_dict(SeqIO.parse(aln, "fasta"))
+    no_duplicates = {key: val for key, val in record_dict.items() if '.1' not in key and key not in need_2_remove}
+    output = os.path.join('/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/Phylogeny/pruned_trees/', alias +'.filtered_prune.aln.fas')
+
+    with open(output, 'w') as o:
+        SeqIO.write(no_duplicates.values(), o, "fasta")

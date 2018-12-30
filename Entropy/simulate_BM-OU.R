@@ -23,6 +23,7 @@ if (is.null(opt$tree)){
 
 # extract input files
 tree <- read.tree(opt$tree)
+tree <- force.ultrametric(tree)
 
 # start simulating the ltr
 N = 100
