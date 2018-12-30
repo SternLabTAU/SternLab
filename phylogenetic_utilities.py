@@ -135,4 +135,12 @@ def label_leaf_nodes(tree_file, outfile):
     with open(outfile, "w") as f:
         f.write(tree3)
 
+def label_internal_nodes(tree_file, outfile):
+    tree_file = check_filename(tree_file)
+    outfile = check_filename(outfile, Truefile=False)
+    tree = open(tree_file, 'r').read()
+    tree2= tree.replace("):", ") #1 :")
+    with open(outfile, "w") as f:
+        f.write(tree2)
+
 
