@@ -492,3 +492,22 @@ def replace_stop_codons_with_gapps(aln_file, in_format="fasta", output=None):
         seq.seq = new_seq
     SeqIO.write(aln, output, "fasta")
     print("%i replacments of stop codons to ---" % stop_codon_count)
+
+def reverse_complement_file(file, in_format="fasta", output=None):
+    """
+    saves a fasta file as a reverse complement
+    if no output file given - will save in the same filename
+    :param file: input seq file
+    :param in_format: input file format
+    :param output: output file (default=None)
+    :return:
+    """
+    file = check_filename(file)
+    if output == None:
+        output = file
+    else:
+        output = check_filename(output, Truefile=False)
+    seqs = list(SeqIO.parse(file, in_format))
+    for s in seqs:
+        s.seq = s.seq.reverse_complement()
+    SeqIO.write(seqs, output, "fasta")
