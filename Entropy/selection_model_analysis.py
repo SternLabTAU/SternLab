@@ -204,7 +204,7 @@ def get_entropy_profile(fasta, w, out=None, type='fasta'):
         i += 1
 
     df = pd.DataFrame(dict([(k,pd.Series(v)) for k,v in all_entropies.items()]))
-    #df.to_csv(os.path.join(out, '{}_profile.csv'.format(alias)), index=False)
+    df.to_csv(os.path.join(out, '{}_profile.csv'.format(alias)), index=False)
 
     return df
 
