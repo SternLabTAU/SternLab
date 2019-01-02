@@ -345,7 +345,7 @@ def deltaG_calculator(seq):
     ss, mfe = RNA.fold(seq)
     return mfe
 
-def deltaG_profile(fasta, w, out):
+def deltaG_profile(fasta, w, out=None, type='fasta'):
 
     """
     sliding window free energy profile of all sequences in a family
