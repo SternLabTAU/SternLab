@@ -191,7 +191,7 @@ def get_entropy_profile(fasta, w, out=None, type='fasta'):
         entropies = []
         # get identifier and genomic sequence
 
-        genome = rec.seq
+        genome = str(rec.seq)
 
         for j in range(len(genome) - w):
             sub_genome = genome[j:j+w]
@@ -361,7 +361,7 @@ def deltaG_profile(fasta, w, out=None, type='fasta'):
     for rec in SeqIO.parse(fasta, type):
         values = []
 
-        genome = rec.seq
+        genome = str(rec.seq)
 
         for j in range(len(genome) - w):
             sub_genome = genome[j:j+w]
