@@ -11,6 +11,7 @@ import scipy.stats as stats
 import statsmodels.stats.multitest as multi
 import RNA
 from Bio import SeqIO
+from random import sample
 
 cp2_path = r'/sternadi/home/volume1/daniellem1/Entropy/data/OU_model/simulations_significance_bm_cp2.csv'
 rf_path = r'/sternadi/home/volume1/daniellem1/Entropy/data/OU_model/simulations_significance_bm_rf.csv'
@@ -174,7 +175,7 @@ def get_joint_entropy_profile(fasta, w, out=None):
 
 
 
-def get_entropy_profile(fasta, w, out=None):
+def get_entropy_profile(fasta, w, out=None, type='fasta'):
     """
     sliding window entropy profile of all sequences in a family
     :param fasta: a fasta file contatining viral sequences
@@ -186,7 +187,7 @@ def get_entropy_profile(fasta, w, out=None):
     alias = os.path.basename(fasta).split('.')[0]
 
     i = 0
-    for rec in SeqIO.parse(fasta, "fasta"):
+    for rec in SeqIO.parse(fasta, type):
         entropies = []
         # get identifier and genomic sequence
 
@@ -356,21 +357,20 @@ def deltaG_profile(fasta, w, out):
     all_deltaG = {}
     alias = os.path.basename(fasta).split('.')[0]
 
-    sequences = re.split(">", open(fasta, "r").read().replace('\n', ''))[1:]
-    for i, seq in tqdm(enumerate(sequences)):
+    i = 0
+    for rec in SeqIO.parse(fasta, type):
         values = []
-        # get identifier and genomic sequence
-        splitted = seq.split('.')
-        genome = splitted[-1]
-        rna_genome = genome.replace('t', 'u')
 
-        for j in range(len(rna_genome) - w):
-            sub_genome = rna_genome[j:j+w]
+        genome = rec.seq
+
+        for j in range(len(genome) - w):
+            sub_genome = genome[j:j+w]
             mfe = deltaG_calculator(sub_genome)
             values.append(mfe)
 
         print('Done with seq {}'.format(i))
         all_deltaG['seq_{}'.format(i)] = values
+        i += 1
 
     df = pd.DataFrame(dict([(k,pd.Series(v)) for k,v in all_deltaG.items()]))
     df.to_csv(os.path.join(out, '{}_deltaG_profile.csv'.format(alias)), index=False)
@@ -422,8 +422,41 @@ def regress_entropy2deltaG(entropy_filepath, deltaG_filepath, start=None, end=No
     return result
 
 
+def enrichment_test_OU(df, feature, c):
+    """
+    test if there exists any enrichments in the OU families
+    :param df:
+    :return:
+    """
+
+    ou_feature = df[(df['model'] == 'OU') & (df[feature] == c)]
+    ou_Notfeature = df[(df['model'] == 'OU') & (df[feature] != c)]
+    bm_feature = df[(df['model'] == 'BM') & (df[feature] == c)]
+    bm_Notfeature = df[(df['model'] == 'BM') & (df[feature] != c)]
+
+    x11 = len(set(ou_feature['family']))
+    x12 = len(set(bm_feature['family']))
+    x21 = len(set(ou_Notfeature['family']))
+    x22 = len(set(bm_Notfeature['family']))
+
+    oddsratio, pvalue = stats.fisher_exact([[x11, x12], [x21, x22]])
+
+    return oddsratio, pvalue
 
 
+def sample_from_fasta(fasta, n, out):
+    """
+    This method randomly samples n sequences from a fasta file and saves it to a new file
+    :param fasta: a fasta file containing < 300 sequences
+    :param n: number of sequences to sample
+    :param out: output file
+    :return: saves the new fasta file to "out"
+    """
+
+    seqs = SeqIO.parse(fasta, 'fasta')
+    sampled = sample(list(seqs), n)
+    with open(out, 'w') as o:
+        SeqIO.write(sampled, o, "fasta")
 
 
 
