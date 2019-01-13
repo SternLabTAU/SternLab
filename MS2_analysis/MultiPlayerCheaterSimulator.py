@@ -1,15 +1,15 @@
 import numpy as np
 from itertools import permutations
-import math
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import math
 from tqdm import tqdm
 from scipy import stats
-from scipy.stats import hypergeom
+import os
+import argparse
 
-
+# global parameters used in the model.
 
 THRESHOLD = 10**-5
 CT_BASE_FITNESS = 0
@@ -236,14 +236,13 @@ class Cycle(object):
         print(self.N, self.n1, self.n2, self.n3, self.moi)
 
 
-def main():
+def main(args):
 
-    out = r'/Users/daniellemiller/Google Drive/Lab/Analysis/cheaters model/multiPlayer_mdl_passage_cycle.csv'
     #create the model
-    mdl = ChtrModel(N=10**9, n1=10**9, G=3569, r=0.2, B=10000, MOI=1)
-    c = Cycle(N=mdl.N, n1=mdl.n1, n2=100, n3=100, moi=mdl.moi, k=10)
+    mdl = ChtrModel(N=args.N, n1=args.n1, G=args.genome, r=args.res, B=args.burst, MOI=args.expmoi)
+    c = Cycle(N=mdl.N, n1=mdl.n1, n2=args.n2, moi=mdl.moi, k=args.k)
 
-    num_passages = 20
+    num_passages = args.passage
     for p in tqdm(range(1, num_passages + 1)):
         print("passage is : {}".format(p))
         c.simulate_cycle(mdl, p)
@@ -254,7 +253,7 @@ def main():
     df['f1'] = df.apply(lambda row: row['n1'] / (row['n1'] + row['n2'] + row['n3']), axis=1)
     df['f2'] = df.apply(lambda row: row['n2'] / (row['n1'] + row['n2'] + row['n3']), axis=1)
     df['f3'] = df.apply(lambda row: row['n3'] / (row['n1'] + row['n2'] + row['n3']), axis=1)
-    df.to_csv(out, index=False)
+    df.to_csv(os.path.join(args.out, 'multiPlayer_dynamics_info.csv'), index=False)
 
     sns.set_style('white')
     sns.pointplot(x='Passage', y='f2', data=df.drop_duplicates('Passage'), color='#3093C4')
@@ -263,15 +262,26 @@ def main():
     plt.xlabel('Passage', fontsize=18)
     plt.ylabel('Cheater frequencies', fontsize=18)
     plt.ylim(0,1)
-    plt.savefig(r'/Users/daniellemiller/Google Drive/Lab/Analysis/cheaters model/multiPlayer.png', format='png', dpi=400,
+    plt.savefig(os.path.join(args.out, 'multiPlayer_dynamics.csv'), format='png', dpi=400,
                 bbox_inches='tight')
     # plt.show()
     plt.gcf().clear()
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-N", "--N", type=int, help="num of cells",default=10**9)
+    parser.add_argument("-n1", "--n1", type=int, help="wt particles", default=10 ** 9)
+    parser.add_argument("-g", "--genome", type=int, help="genome lentgh", default=3569)
+    parser.add_argument("-r", "--res", type=float, help="resistence fraction", default=0.3)
+    parser.add_argument("-b", "--burst", type=int, help="burst size", default=10 ** 5)
+    parser.add_argument("-m", "--expmoi", type=float, help="moi of the experiment", default=1)
+    parser.add_argument("-n2", "--n2", type=int, help="initial number of cheaters", default=1000)
+    parser.add_argument("-n3", "--n3", type=int, help="initial number of syn", default=1000)
+    parser.add_argument("-k", "--k", type=int, help="maximal cell infected particles", default=10)
+    parser.add_argument("-p", "--passage", type=int, help="num of passages to simulate", default=20)
+    parser.add_argument("-o", "--out", type=str, help="path to save the output figure", required=True)
 
-
-
+    args = parser.parse_args()
+    main(args)
 
 
