@@ -1,21 +1,21 @@
 import numpy as np
 from itertools import permutations
+import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import math
 from tqdm import tqdm
 from scipy import stats
-import os
 import argparse
 
-# global parameters used in the model.
+
 
 THRESHOLD = 10**-5
 CT_BASE_FITNESS = 0
 SYN_BASE_FITNESS = 0
 WT_BASE_FITNESS = 1
-payoffs = np.matrix([[1,0.8,0.8], [2,0,0.2], [2,0.2,0.2]])
+#payoffs = np.matrix([[1,0.8,0.8], [2,0,1.4], [2,0.2,0.2]])
 
 def nCr(n,r):
     f = math.factorial
@@ -39,6 +39,7 @@ class ChtrModel(object):
         self.syn = []
         self.ecoli = []
         self.time = []
+
 
 
     def resistantN(self):
@@ -65,6 +66,7 @@ class Cycle(object):
         self.n3 = n3
         self.moi = moi
         self.k = k
+        self.payoffs = np.matrix([[1,0.8,0.8], [2,0,0], [2,0.2,0.2]])
 
     def setN(self, N):
         self.N = N
@@ -95,6 +97,39 @@ class Cycle(object):
                stats.binom.pmf(k2, k1+k2+k3, self.n2/(self.n1+self.n2+self.n3)) * \
                stats.binom.pmf(k3, k1+k2+k3, self.n3/(self.n1+self.n2+self.n3)) * nCr(self.k, k1+k2+k3)
 
+    def get_mean_fitness(self):
+        # calculate the mean fitness of a population according to viral frequencies and fitness
+        omega = 0
+        payoffs = self.payoffs
+        p1 = self.n1 / (self.n1 + self.n2 + self.n3)
+        p2 = self.n2 / (self.n1 + self.n2 + self.n3)
+        p3 = self.n3 / (self.n1 + self.n2 + self.n3)
+
+        mapping = {'0':p1, '1':p2, '2':p3}
+        for i in range(3):
+            for j in range(3):
+                omega += mapping[str(i)] *  mapping[str(j)] * payoffs[i,j]
+
+        return omega
+
+
+    def update_payoff(self):
+        # this method normalizes the payoff matrix to generate the relative fitness
+        payoffs = self.payoffs
+        W = np.zeros(shape=(3,3))
+        p1 = self.n1 / (self.n1 + self.n2 + self.n3)
+        p2 = self.n2 / (self.n1 + self.n2 + self.n3)
+        p3 = self.n3 / (self.n1 + self.n2 + self.n3)
+
+        mapping = {'0': p1, '1': p2, '2': p3}
+        mean_fitness = self.get_mean_fitness()
+
+        for i in range(3):
+            for j in range(3):
+                W[i,j] = (mapping[str(i)] *  mapping[str(j)] * payoffs[i,j]) / mean_fitness
+        return W
+
+
 
     def infection_proba(self, k, b):
 
@@ -114,11 +149,12 @@ class Cycle(object):
 
             P[i, j, q] = self.poisson_prob(i, j, q)
 
-
-        psum = sum([P[i,j,q] for i in range(k+1) for j in range(k+1) for q in range(k+1)])
+        # psum is the probability of infection. sum over all options and subtract the probability of no infection.
+        psum = sum([P[i,j,q] for i in range(k+1) for j in range(k+1) for q in range(k+1)]) - P[0,0,0]
 
         # if we have a 10^3 more viruses then cells the poission probability == zero!!
         if psum == 0:
+
             for triplet in triplets:
                 i = triplet[0]
                 j = triplet[1]
@@ -126,7 +162,11 @@ class Cycle(object):
                 P[i, j, q] = self.binomial_prob(i, j, q)
 
             # probabilities should sum to 1.
-            psum = sum([P[i, j, q] for i in range(k + 1) for j in range(k + 1) for q in range(k + 1)])
+            psum = sum([P[i, j, q] for i in range(k + 1) for j in range(k + 1) for q in range(k + 1)]) - P[0,0,0]
+
+        # get the relative fitness matrix for the next calculations
+        W = self.update_payoff()
+
 
         # start filling the probabilities.
         for triplet in triplets:
@@ -137,37 +177,40 @@ class Cycle(object):
 
             # assuming syn has a working replicase both n2 and n3 are coming out after the infection
             if i ==0 and j != 0 and q != 0:
-                n2 += (P[i,j,q]/ psum ) * q*payoffs[1,2] * b * j * (q/j)
-                n3 += (P[i,j,q]/ psum ) * j*payoffs[2,1] * b * q
+                n2 += (P[i,j,q]/ psum ) * W[1,2] * b
+                n3 += (P[i,j,q]/ psum ) * W[2,1] * b
 
-            # we have in infection of all three. we assume that this model is aditive
+            # we have infection of all three. we assume an average payoff
             if i != 0 and j != 0 and q != 0:
-                n1 += (P[i, j, q] / psum) * ((j*payoffs[0, 1] + q*payoffs[0, 2]) / (j+q)) * b * i
-                n2 += (P[i, j, q] / psum) * ((i*payoffs[1, 0] + q*payoffs[1, 2]) / (i+q)) * b * j * ((i+q)/j)
-                n3 += (P[i, j, q] / psum) * ((i*payoffs[2, 0] + j*payoffs[2, 1]) / (i+j)) * b * q * (i/q)
+                n1 += (P[i, j, q] / psum) * ((W[0, 1] + W[0, 2]) / 2) * b
+                n2 += (P[i, j, q] / psum) * ((W[1, 0] + W[1, 2]) / 2) * b
+                n3 += (P[i, j, q] / psum) * ((W[2, 0] + W[2, 1]) / 2) * b
 
             # only wt infection, update n1 only
             if i != 0 and j == 0 and q == 0:
-                n1 += (P[i, j, q] / psum) * WT_BASE_FITNESS * b * i
+                n1 += (P[i, j, q] / psum) * WT_BASE_FITNESS * b
 
             # wt and cheater infection. wt and cheaters are coming out
             if i != 0 and j != 0 and q == 0:
-                n1 += (P[i, j, q] / psum) * j*payoffs[0, 1] * b * i
-                n2 += (P[i, j, q] / psum) * i*payoffs[1, 0] * b * j * (i/j)
+                n1 += (P[i, j, q] / psum) * W[0, 1] * b
+                n2 += (P[i, j, q] / psum) * W[1, 0] * b
 
             # infection of wt and syn. this case we have wt coming out as well as syns.
             if i != 0 and j == 0 and q != 0:
-                n1 += (P[i, j, q] / psum) * q*payoffs[0, 2] * b * i
-                n3 += (P[i, j, q] / psum) * i*payoffs[2, 0] * b * q * (i/q)
+                n1 += (P[i, j, q] / psum) * W[0, 2] * b
+                n3 += (P[i, j, q] / psum) * W[2, 0] * b
+
 
         updated_n1 = n1 * self.N + self.n1 * (sum([P[0, j, q] / psum for j in range(k + 1) for q in range(k + 1)]) + P[0,0,0]/psum)
         updated_n2 = n2 * self.N + self.n2 * (sum([P[i, 0, q] / psum for i in range(k + 1) for q in range(k + 1)]) + P[0,0,0]/psum)
         updated_n3 = n3 * self.N + self.n3 * (sum([P[i, j, 0] / psum for j in range(k + 1) for i in range(k + 1)]) + P[0,0,0]/psum)
 
-        addition = np.log((self.n1+self.n3)/self.n2)
-        if addition < 0:
-            addition = -1/addition
-        updated_n2 = updated_n2 * addition
+
+        # do not consider weird log multiplication
+        # addition = np.log((self.n1+self.n3)/self.n2)
+        # if addition < 0:
+        #     addition = -1/addition
+        # updated_n2 = updated_n2 * addition
 
         return updated_n1, updated_n2, updated_n3
 
@@ -188,8 +231,8 @@ class Cycle(object):
         else:
             dilution_factor = model.N / model.wt[-1]# in each passage we have a dilution factor.
 
-            self.set_n2(model.cheater[-1] * dilution_factor + self.n1 *10**-5)
-            self.set_n3(model.syn[-1] * dilution_factor + self.n1 * 10 **-5)
+            self.set_n2(model.cheater[-1] * dilution_factor + self.n1 *10 ** -5)
+            self.set_n3(model.syn[-1] * dilution_factor + self.n1 * 10 ** -5)
             model.cheater.append(self.n2)
             model.syn.append(self.n3)
 
@@ -240,7 +283,7 @@ def main(args):
 
     #create the model
     mdl = ChtrModel(N=args.N, n1=args.n1, G=args.genome, r=args.res, B=args.burst, MOI=args.expmoi)
-    c = Cycle(N=mdl.N, n1=mdl.n1, n2=args.n2, moi=mdl.moi, k=args.k)
+    c = Cycle(N=mdl.N, n1=mdl.n1, n2=args.n2, n3=args.n3, moi=mdl.moi, k=args.k)
 
     num_passages = args.passage
     for p in tqdm(range(1, num_passages + 1)):
