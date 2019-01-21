@@ -153,23 +153,20 @@ def get_joint_entropy_profile(fasta, w, out=None):
         entropies = []
         # get identifier and genomic sequence
 
-        genome = rec.seq
+        genome = str(rec.seq)
 
         for j in range(len(genome) - w):
             sub_genome = genome[j:j+w]
-            try:
-                rc_sub_genome = get_reverse_complement(sub_genome)
-                entropy = joint_entropy(sub_genome, rc_sub_genome, 5)
-                entropies.append(entropy)
-            except:
-                break
-
+            rc_sub_genome = str(get_reverse_complement(sub_genome))
+            entropy = joint_entropy(sub_genome, rc_sub_genome, 5)
+            entropies.append(entropy)
+            
         print('Done with seq {}'.format(i))
         all_entropies['seq_{}'.format(i)] = entropies
         i += 1
 
     df = pd.DataFrame(dict([(k,pd.Series(v)) for k,v in all_entropies.items()]))
-    df.to_csv(os.path.join(out, '{}_profile.csv'.format(alias)), index=False)
+    df.to_csv(os.path.join(out, '{}_Joint_profile.csv'.format(alias)), index=False)
 
     return df
 
