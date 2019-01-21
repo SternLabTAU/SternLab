@@ -30,7 +30,10 @@ def main(args):
 
     for rec in tqdm(SeqIO.parse(db, "fasta")):
         seq = str(rec.seq).lower()
-        entropy = joint_entropy(seq, str(get_reverse_complement(seq)), 5)
+        try:
+            entropy = joint_entropy(seq, str(get_reverse_complement(seq)), 5)
+        except:
+            continue
         delta = deltaG_calculator(seq)
         ent.append(entropy)
         g.append(delta)
