@@ -8,15 +8,9 @@ def main(args):
     df = pd.read_csv(r'/sternadi/home/volume1/daniellem1/Entropy/data/OU_model/simulations_significance_bm_k5.csv')
     families = df['family'].values
 
-
-    if args.index == 61:
-        get_entropy_profile(zikv_dengv, 60, out)
-        deltaG_profile(zikv_dengv, 60, out)
-        get_joint_entropy_profile(zikv_dengv, 60, out)
-    else:
-        family = families[args.index - 1]
-        fasta = r'/sternadi/home/volume1/daniellem1/Entropy/data/Phylogeny/family/{}/{}.fasta'.format(family, family)
-        get_joint_entropy_profile(fasta, 200, out)
+    family = families[args.index - 1]
+    fasta = r'/sternadi/home/volume1/daniellem1/Entropy/data/Phylogeny/family/{}/{}.fasta'.format(family, family)
+    get_joint_entropy_profile(fasta, 200, out)
 
 
 if __name__ == "__main__":
