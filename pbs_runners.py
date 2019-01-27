@@ -57,7 +57,7 @@ def array_script_runner(cmds, jnum, alias = "script", load_python=False):
     :param jnum: number of jobs in the pbs array
     :return: job id
     """
-    cmdfile = pbs_jobs.get_cmdfile_dir("script", alias); gmem=7
+    cmdfile = pbs_jobs.get_cmdfile_dir("script", alias); gmem=1
     print(cmdfile, alias, jnum, gmem, cmds)
     pbs_jobs.create_array_pbs_cmd(cmdfile, jnum=jnum, alias=alias, gmem=gmem, cmds=cmds, load_python=load_python)
     job_id = pbs_jobs.submit(cmdfile)
@@ -165,7 +165,7 @@ def prank_runner(sequence, alignment=None, alias = "prank"):
     sequence = check_filename(sequence)
     alignment = check_filename(alignment, Truefile=False)
     cmds = "/powerapps/share/bin/prank -d=%s -o=%s -F" % (sequence, alignment)
-    cmdfile = pbs_jobs.get_cmdfile_dir("prank_alignment", alias); tnum=1; gmem=7
+    cmdfile = pbs_jobs.get_cmdfile_dir("prank_alignment", alias); tnum=1; gmem=1
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
