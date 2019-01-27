@@ -22,10 +22,12 @@ def main(args):
     #     fasta = r'/sternadi/home/volume1/daniellem1/Entropy/data/Phylogeny/family/{}/{}.fasta'.format(family, family)
     #     get_joint_entropy_profile(fasta, 200, out)
 
+    # calculate correlations of the secondary structures analysis
     ent = []
     g = []
     idx = args.index
     db = glob.glob(r'/sternadi/home/volume1/daniellem1/Entropy/data/Phylogeny/structure/known_structures/DBS/{}*'.format(idx))[0]
+
 
     for rec in tqdm(SeqIO.parse(db, "fasta")):
         seq = str(rec.seq).lower()
