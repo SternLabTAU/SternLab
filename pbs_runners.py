@@ -627,11 +627,8 @@ def selecton_runner(codon_aln, output_dir=None, tree=None, log=None, rate=None, 
     return job_id
 
 def pipeline_runner(input_dir, output_dir, ref_file, NGS_or_Cirseq, TYPE_OF_INPUT_FILE=None, start=None, end=None, gaps=None,
-<<<<<<< HEAD
                     qscore=None, blast=None, rep=None, t=None, alias='pipeline'):
-=======
-                    qscore=None, blast=None, rep=None, t=None, alias="pipeline"):
->>>>>>> c3f2131a5259a0f4c92763276d2d4af5f2288112
+
     input_dir = check_dirname(input_dir)
     output_dir = check_dirname(output_dir)
     ref_file = check_filename(ref_file)
