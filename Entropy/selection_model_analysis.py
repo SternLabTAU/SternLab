@@ -12,6 +12,8 @@ import statsmodels.stats.multitest as multi
 import RNA
 from Bio import SeqIO
 from random import sample
+import glob
+from functools import reduce
 
 cp2_path = r'/sternadi/home/volume1/daniellem1/Entropy/data/OU_model/simulations_significance_bm_cp2.csv'
 rf_path = r'/sternadi/home/volume1/daniellem1/Entropy/data/OU_model/simulations_significance_bm_rf.csv'
@@ -153,15 +155,16 @@ def get_joint_entropy_profile(fasta, w, out=None):
         entropies = []
         # get identifier and genomic sequence
 
-        genome = rec.seq
+        genome = str(rec.seq)
 
         for j in range(len(genome) - w):
             sub_genome = genome[j:j+w]
             try:
-                rc_sub_genome = get_reverse_complement(sub_genome)
+                rc_sub_genome = str(get_reverse_complement(sub_genome))
                 entropy = joint_entropy(sub_genome, rc_sub_genome, 5)
                 entropies.append(entropy)
             except:
+                print('exception', i)
                 break
 
         print('Done with seq {}'.format(i))
@@ -169,7 +172,7 @@ def get_joint_entropy_profile(fasta, w, out=None):
         i += 1
 
     df = pd.DataFrame(dict([(k,pd.Series(v)) for k,v in all_entropies.items()]))
-    df.to_csv(os.path.join(out, '{}_profile.csv'.format(alias)), index=False)
+    df.to_csv(os.path.join(out, '{}_joint_profile.csv'.format(alias)), index=False)
 
     return df
 
@@ -444,19 +447,91 @@ def enrichment_test_OU(df, feature, c):
     return oddsratio, pvalue
 
 
-def sample_from_fasta(fasta, n, out):
+def sample_from_fasta(fasta, n, out, ref_id='NC_004162'):
     """
     This method randomly samples n sequences from a fasta file and saves it to a new file
     :param fasta: a fasta file containing < 300 sequences
     :param n: number of sequences to sample
     :param out: output file
+    :param ref_id: an id of the reference sequence
     :return: saves the new fasta file to "out"
     """
 
-    seqs = SeqIO.parse(fasta, 'fasta')
-    sampled = sample(list(seqs), n)
+    seqs = list(SeqIO.parse(fasta, 'fasta'))
+    seqs_to_sample = []
+    reference = ''
+
+    for s in seqs:
+        if s.id == ref_id:
+            reference = s
+        else:
+            seqs_to_sample.append(s)
+
+    sampled = sample(seqs_to_sample, n-1)
+    sample.append(reference)
     with open(out, 'w') as o:
         SeqIO.write(sampled, o, "fasta")
 
 
 
+def parse_r4s_results(data, out=None):
+    """
+    parse rate 4 site output file
+    :param data: a data output file
+    :param out: output filepath
+    :return: a data frame containing the r4s scores per position
+    """
+
+    # read the data frame and skip the 13 first rows (comments)
+    df = pd.read_table(data, skiprows=13, header=None)
+
+    pos = []
+    seq = []
+    score = []
+
+    for i in range(df.shape[0]):
+        row = df.iloc[i,0].split()
+        # we are at the end of the file, two comments not records
+        if len(row) < 6 :
+            break
+
+        pos.append(int(row[0]))
+        seq.append(row[1])
+        score.append(float(row[2]))
+
+    res = pd.DataFrame({'pos':pos, 'seq':seq, 'score':score})
+    if out != None:
+        res.to_csv(os.path.join(os.path.dirname(data), os.path.basename(data)+'_parsed.csv'), index=False)
+    return res
+
+
+def r4s_2_heatmap(filepath):
+    """
+    create a data frame with position to conservation by all alignments sizes
+    :param filepath: an input directory with parsed csv files from r4s
+    :return: a data frame with position and the averaged score by the alignment
+    """
+
+    all_r4s = glob.glob(os.path.join(filepath, '*.csv'))
+    num_seqs = set([os.path.basename(x).split('_')[1] for x in all_r4s])
+
+    all_means = []
+
+    for n in num_seqs:
+        csvs = glob.glob(os.path.join(filepath, 'n_{}_*.csv'.format(n)))
+        dfs = []
+        for c in csvs:
+            df = pd.read_csv(c)
+            df = df[['pos','score']]
+            dfs.append(df)
+
+        df_merged = reduce(lambda left, right: pd.merge(left, right, on=['pos'], how='outer'), dfs)
+        df_merged = df_merged.dropna()
+        df_merged.set_index(['pos'], inplace=True)
+        df_merged[n] = df_merged.mean(axis=1)
+
+        df_merged = df_merged[[n]]
+        all_means.append(df_merged)
+
+    result = pd.concat(all_means, axis=1)
+    return result
