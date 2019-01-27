@@ -57,7 +57,7 @@ def array_script_runner(cmds, jnum, alias = "script", load_python=False):
     :param jnum: number of jobs in the pbs array
     :return: job id
     """
-    cmdfile = pbs_jobs.get_cmdfile_dir("script", alias); gmem=7
+    cmdfile = pbs_jobs.get_cmdfile_dir("script", alias); gmem=1
     print(cmdfile, alias, jnum, gmem, cmds)
     pbs_jobs.create_array_pbs_cmd(cmdfile, jnum=jnum, alias=alias, gmem=gmem, cmds=cmds, load_python=load_python)
     job_id = pbs_jobs.submit(cmdfile)
@@ -165,7 +165,7 @@ def prank_runner(sequence, alignment=None, alias = "prank"):
     sequence = check_filename(sequence)
     alignment = check_filename(alignment, Truefile=False)
     cmds = "/powerapps/share/bin/prank -d=%s -o=%s -F" % (sequence, alignment)
-    cmdfile = pbs_jobs.get_cmdfile_dir("prank_alignment", alias); tnum=1; gmem=7
+    cmdfile = pbs_jobs.get_cmdfile_dir("prank_alignment", alias); tnum=1; gmem=1
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
@@ -627,7 +627,11 @@ def selecton_runner(codon_aln, output_dir=None, tree=None, log=None, rate=None, 
     return job_id
 
 def pipeline_runner(input_dir, output_dir, ref_file, NGS_or_Cirseq, TYPE_OF_INPUT_FILE=None, start=None, end=None, gaps=None,
+<<<<<<< HEAD
                     qscore=None, blast=None, rep=None, t=None, alias='pipeline'):
+=======
+                    qscore=None, blast=None, rep=None, t=None, alias="pipeline"):
+>>>>>>> c3f2131a5259a0f4c92763276d2d4af5f2288112
     input_dir = check_dirname(input_dir)
     output_dir = check_dirname(output_dir)
     ref_file = check_filename(ref_file)

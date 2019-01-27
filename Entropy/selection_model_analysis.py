@@ -159,6 +159,7 @@ def get_joint_entropy_profile(fasta, w, out=None):
 
         for j in range(len(genome) - w):
             sub_genome = genome[j:j+w]
+<<<<<<< HEAD
             try:
                 rc_sub_genome = str(get_reverse_complement(sub_genome))
                 entropy = joint_entropy(sub_genome, rc_sub_genome, 5)
@@ -167,12 +168,22 @@ def get_joint_entropy_profile(fasta, w, out=None):
                 print('exception', i)
                 break
 
+=======
+            rc_sub_genome = str(get_reverse_complement(sub_genome))
+            entropy = joint_entropy(sub_genome, rc_sub_genome, 5)
+            entropies.append(entropy)
+            
+>>>>>>> c3f2131a5259a0f4c92763276d2d4af5f2288112
         print('Done with seq {}'.format(i))
         all_entropies['seq_{}'.format(i)] = entropies
         i += 1
 
     df = pd.DataFrame(dict([(k,pd.Series(v)) for k,v in all_entropies.items()]))
+<<<<<<< HEAD
     df.to_csv(os.path.join(out, '{}_joint_profile.csv'.format(alias)), index=False)
+=======
+    df.to_csv(os.path.join(out, '{}_Joint_profile.csv'.format(alias)), index=False)
+>>>>>>> c3f2131a5259a0f4c92763276d2d4af5f2288112
 
     return df
 
@@ -207,7 +218,7 @@ def get_entropy_profile(fasta, w, out=None, type='fasta'):
         i += 1
 
     df = pd.DataFrame(dict([(k,pd.Series(v)) for k,v in all_entropies.items()]))
-    #df.to_csv(os.path.join(out, '{}_profile.csv'.format(alias)), index=False)
+    df.to_csv(os.path.join(out, '{}_profile.csv'.format(alias)), index=False)
 
     return df
 
