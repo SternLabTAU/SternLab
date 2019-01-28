@@ -48,7 +48,7 @@ def stretchFinder(profile, l, m):
     start_index = []
     p_values = []
 
-    for i in tqdm(range(len(profile) - l)):
+    for i in tqdm(range(0,len(profile) - l, l)):
         # get the current window and its average value
         w = profile[i:i+l]
         avg = np.mean(w)
@@ -78,7 +78,7 @@ def main(args):
 
     df = pd.read_csv(args.data)
 
-    c = 'seq_{}'.format(args.index + 1)
+    c = 'seq_{}'.format(args.index - 1)
     seq = np.array(df[c].dropna())
     res = stretchFinder(seq, args.window, args.m)
     out= r'/sternadi/home/volume1/daniellem1/Entropy/stats/{}_stats.csv'.format(c)
