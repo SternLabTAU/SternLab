@@ -529,7 +529,7 @@ def r4s_runner(tree_file, seq_file, outfile, dirname, tree_outfile=None, unormel
 
 
     cmdfile = pbs_jobs.get_cmdfile_dir("r4s_cmd.txt", alias); tnum = 1; gmem = 2
-    ref_seq_parameter = "-a " + ref_seq if ref_seq is not None else ""
+    ref_seq_parameter = " -a " + ref_seq if ref_seq is not None else ""
     if tree_file !=None:
         cmds = "/sternadi/home/volume1/shared/tools/rate4site"\
                                                             + " -t " + tree_file\
@@ -627,11 +627,7 @@ def selecton_runner(codon_aln, output_dir=None, tree=None, log=None, rate=None, 
     return job_id
 
 def pipeline_runner(input_dir, output_dir, ref_file, NGS_or_Cirseq, TYPE_OF_INPUT_FILE=None, start=None, end=None, gaps=None,
-<<<<<<< HEAD
                     qscore=None, blast=None, rep=None, t=None, alias='pipeline'):
-=======
-                    qscore=None, blast=None, rep=None, t=None, alias="pipeline"):
->>>>>>> c3f2131a5259a0f4c92763276d2d4af5f2288112
     input_dir = check_dirname(input_dir)
     output_dir = check_dirname(output_dir)
     ref_file = check_filename(ref_file)
