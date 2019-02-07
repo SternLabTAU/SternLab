@@ -89,9 +89,10 @@ def find_mutation_type(freqs_file, ncbi_id):
     file_name = freqs_file
     data = freqs_to_dataframe(freqs_file)
     data.reset_index(drop=True, inplace=True)
+    orign_data = data
     start_pos, end_pos = find_coding_region(ncbi_id)
     data = data.loc[data['Pos'] >= start_pos]
-    data = data.loc[data['Pos'] <= end_pos]
+    data = data.loc[data['Pos'] ]
     if check_12mer(data) != 1:
         raise Exception("The data is not in 12 mer. arrange the data, start_pos=" + str(start_pos) + " end_pos=" + str(end_pos))
     data['Codon'] = ""
@@ -111,8 +112,12 @@ def find_mutation_type(freqs_file, ncbi_id):
         kmer_df['Mutation Type'] = kmer_df[['Ref_AA', 'Potential_AA']].apply(
             lambda protein: check_mutation_type(protein[0], protein[1]), axis=1)
     print("After a long for loop")
+    top_data = orign_data.loc[data['Pos'] <= start_pos]
+    bottom_data = orign_data.loc[data['Pos'] >= end_pos]
+    data = pd.merge(top_data, data)
+
     file_name = file_name[0:-5]
-    file_name += "with.mutation.type.freqs"
+    file_name += "with.mutation1.type.freqs"
     data.to_csv(file_name, sep='\t', encoding='utf-8')
     print("The File is ready in the folder")
     print("--- %s sec ---" % (time.time() - start_time))
