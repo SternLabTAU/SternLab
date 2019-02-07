@@ -85,6 +85,11 @@ def find_mutation_type(freqs_file, ncbi_id):
     :param freqs_file:  The path of the relevant freqs file
     :return:DataFrame of the freqs file with mutation type column, save it into txt file
     """
+
+    #Debug
+    # freqs_file = "/Volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/180503_OST_FINAL_03052018/merged/RV-p11/q30_3UTR_new/RV-p11.freqs"
+    # ncbi_id = "NC_001490"
+
     start_time = time.time()
     file_name = freqs_file
     data = freqs_to_dataframe(freqs_file)
@@ -112,17 +117,28 @@ def find_mutation_type(freqs_file, ncbi_id):
         kmer_df['Mutation Type'] = kmer_df[['Ref_AA', 'Potential_AA']].apply(
             lambda protein: check_mutation_type(protein[0], protein[1]), axis=1)
     print("After a long for loop")
-    top_data = orign_data.loc[data['Pos'] <= start_pos]
-    bottom_data = orign_data.loc[data['Pos'] >= end_pos]
-    data = pd.merge(top_data, data, on=["Pos"])
+    top_data = orign_data.loc[orign_data['Pos'] < start_pos]
+    top_data['Codon'] = ""
+    top_data['Ref_AA'] = ""
+    top_data['Potential_AA'] = ""
+    top_data['Mutation Type'] = ""
+    top_data['Pos'] = top_data['Pos'].astype(int)
+    bottom_data = orign_data.loc[orign_data['Pos'] > end_pos]
+    bottom_data['Codon'] = ""
+    bottom_data['Ref_AA'] = ""
+    bottom_data['Potential_AA'] = ""
+    bottom_data['Mutation Type'] = ""
+    bottom_data['Pos'] = top_data['Pos'].astype(int)
+    frames = [top_data, data, bottom_data]
+    data_final = pd.concat(frames)
     file_name = file_name[0:-5]
     file_name += "with.mutation.type.freqs"
-    data.to_csv(file_name, sep='\t', encoding='utf-8')
+    data_final.to_csv(file_name, sep='\t', encoding='utf-8')
     print("The File is ready in the folder")
     print("--- %s sec ---" % (time.time() - start_time))
     print("start_pos:%i" % start_pos)
     print("end_pos:%i" % end_pos)
-    return data
+    return data_final
 
 
 def freqs_to_dataframe(freqs_file):
