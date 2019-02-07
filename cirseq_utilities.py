@@ -89,6 +89,7 @@ def find_mutation_type(freqs_file, ncbi_id):
     file_name = freqs_file
     data = freqs_to_dataframe(freqs_file)
     data.reset_index(drop=True, inplace=True)
+    orign_data = data
     start_pos, end_pos = find_coding_region(ncbi_id)
     data = data.loc[data['Pos'] >= start_pos]
     data = data.loc[data['Pos'] <= end_pos]
@@ -111,6 +112,9 @@ def find_mutation_type(freqs_file, ncbi_id):
         kmer_df['Mutation Type'] = kmer_df[['Ref_AA', 'Potential_AA']].apply(
             lambda protein: check_mutation_type(protein[0], protein[1]), axis=1)
     print("After a long for loop")
+    top_data = orign_data.loc[data['Pos'] <= start_pos]
+    bottom_data = orign_data.loc[data['Pos'] >= end_pos]
+    data = pd.merge(top_data, data, on=["Pos"])
     file_name = file_name[0:-5]
     file_name += "with.mutation.type.freqs"
     data.to_csv(file_name, sep='\t', encoding='utf-8')
@@ -235,3 +239,9 @@ def check_mutation_type(protein1, protein2):
     if protein2 == '*':
         Mutation_Type = "Premature Stop Codon"
     return Mutation_Type
+
+
+def main():
+    find_mutation_type("/Volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/180503_OST_FINAL_03052018/merged/RV-p11/q30_3UTR_new/RV-p11.freqs", "NC_001490")
+if __name__ == "__main__":
+    main()
