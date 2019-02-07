@@ -8,7 +8,7 @@ import os.path
 import pathlib
 from file_utilities import *
 from optparse import OptionParser
-from cirseq_utilities import *
+from SternLab/cirseq_utilities import *
 sns.set_context("talk")
 start_time = time.time()
 
