@@ -48,7 +48,8 @@ def main(args):
 
 	# save the median vector to a file.
 	if args.out_dir:
-		all_slopes_df.to_csv(os.path.join(out, 'regression_slopes.csv'), encoding='utf-8', index = False)
+		all_slopes_df = pd.DataFrame({"Mutation": mutations, "Average_slope": np.median([item for values in slopes.values() for item in values])})
+		all_slopes_df.to_csv(os.path.join(args.out_dir, 'regression_slopes.csv'), encoding='utf-8', index = False)
 
 	# plot the outputs
 	#plot_all_slopes(averaged_slopes, replica, degree)
