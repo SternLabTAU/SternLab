@@ -26,6 +26,7 @@ def main(args):
     # calculate correlations of the secondary structures analysis
     ent = []
     g = []
+    joint = []
     idx = args.index
     db = glob.glob(r'/sternadi/home/volume1/daniellem1/Entropy/data/Phylogeny/structure/known_structures/DBS/{}*'.format(idx))[0]
 
@@ -33,11 +34,13 @@ def main(args):
     for rec in tqdm(SeqIO.parse(db, "fasta")):
         seq = str(rec.seq).lower()
         try:
-            entropy = joint_entropy(seq, str(get_reverse_complement(seq)), 5)
+            joint_ent = joint_entropy(seq, str(get_reverse_complement(seq)), 5)
+            entropy = entropy_by_kmer(seq,5)
         except:
             continue
         delta = deltaG_calculator(seq)
         ent.append(entropy)
+        joint.append(joint_ent)
         g.append(delta)
 
     db_type = os.path.basename(db).split('_')[1]
@@ -45,7 +48,7 @@ def main(args):
     if '.fasta' in db_type:
         db_type = db_type.split('.fas')[0]
 
-    df = pd.DataFrame({'entropy':ent, 'mfe':g, 'type':db_type})
+    df = pd.DataFrame({'entropy':ent, 'mfe':g, 'joint':joint, 'type':db_type})
 
     df.to_csv(r'/sternadi/home/volume1/daniellem1/Entropy/data/Phylogeny/structure/known_structures/DBS/ent_2_g_{}.csv'.format(db_type))
 
