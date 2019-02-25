@@ -1,4 +1,4 @@
-
+#! /usr/local/python/anaconda_python-3.6.1
 
 
 import re
@@ -10,6 +10,9 @@ from Bio.Seq import Seq
 from Bio import Entrez
 from Bio import SeqIO
 import collections
+import pathlib
+import os
+
 
 
 
@@ -85,11 +88,21 @@ def find_mutation_type(freqs_file, ncbi_id):
     :param freqs_file:  The path of the relevant freqs file
     :return:DataFrame of the freqs file with mutation type column, save it into txt file
     """
+
+    #Debug
+    # freqs_file = "/Volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/180503_OST_FINAL_03052018/merged/RV-p11/q30_3UTR_new/RV-p11.freqs"
+    # ncbi_id = "NC_001490"
+
     start_time = time.time()
     file_name = freqs_file
     data = freqs_to_dataframe(freqs_file)
     data.reset_index(drop=True, inplace=True)
+    orign_data = data
     start_pos, end_pos = find_coding_region(ncbi_id)
+    # for half gene -  PAY ATTENTION!!!
+    #start_pos = 3608
+
+
     data = data.loc[data['Pos'] >= start_pos]
     data = data.loc[data['Pos'] <= end_pos]
     if check_12mer(data) != 1:
@@ -111,14 +124,28 @@ def find_mutation_type(freqs_file, ncbi_id):
         kmer_df['Mutation Type'] = kmer_df[['Ref_AA', 'Potential_AA']].apply(
             lambda protein: check_mutation_type(protein[0], protein[1]), axis=1)
     print("After a long for loop")
+    top_data = orign_data.loc[orign_data['Pos'] < start_pos]
+    top_data['Codon'] = ""
+    top_data['Ref_AA'] = ""
+    top_data['Potential_AA'] = ""
+    top_data['Mutation Type'] = ""
+    top_data['Pos'] = top_data['Pos'].astype(int)
+    bottom_data = orign_data.loc[orign_data['Pos'] > end_pos]
+    bottom_data['Codon'] = ""
+    bottom_data['Ref_AA'] = ""
+    bottom_data['Potential_AA'] = ""
+    bottom_data['Mutation Type'] = ""
+    bottom_data['Pos'] = bottom_data['Pos'].astype(int)
+    frames = [top_data, data, bottom_data]
+    data_final = pd.concat(frames)
     file_name = file_name[0:-5]
     file_name += "with.mutation.type.freqs"
-    data.to_csv(file_name, sep='\t', encoding='utf-8')
+    data_final.to_csv(file_name, sep='\t', encoding='utf-8')
     print("The File is ready in the folder")
     print("--- %s sec ---" % (time.time() - start_time))
     print("start_pos:%i" % start_pos)
     print("end_pos:%i" % end_pos)
-    return data
+    return data_final
 
 
 def freqs_to_dataframe(freqs_file):
@@ -235,3 +262,109 @@ def check_mutation_type(protein1, protein2):
     if protein2 == '*':
         Mutation_Type = "Premature Stop Codon"
     return Mutation_Type
+
+def transition_mutation(freqs_file, output_dir):
+    """
+    Plots the mutation frequencies boxplot
+    :param freqs_file: pandas DataFrame after find_mutation_type function
+    :param ax: ax location
+    :return:
+    """
+    #data = pd.read_table(freqs_file)
+    data = freqs_file
+    data.reset_index(drop=True, inplace=True)
+    flag = '-' in data.Base.values
+    if flag is True:
+        data = data[data.Ref != '-']
+        data = data[data.Base != '-']
+        data.reset_index(drop=True, inplace=True)
+        # data['abs_counts'] = data['Freq'] * data["Read_count"]  # .apply(lambda x: abs(math.log(x,10))/3.45)
+        # data['Frequency'] = data['abs_counts'].apply(lambda x: 1 if x == 0 else x) / data["Read_count"]
+        # raise Exception("This script does not support freqs file with deletions, for support please contact Maoz ;)"
+    data['Base'].replace('T', 'U', inplace=True)
+    data['Ref'].replace('T', 'U', inplace=True)
+    min_read_count = 100000
+    data = data[data['Pos'] == np.round(data['Pos'])]  # remove insertions
+    data['Pos'] = data[['Pos']].apply(pd.to_numeric)
+    data = data[data['Read_count'] > min_read_count]
+    data['mutation_type'] = data['Ref'] + data['Base']
+    data = data[data['Ref'] != data['Base']]
+    data = data[data["Base"] != "-"]
+    data['abs_counts'] = data['Freq'] * data["Read_count"]  # .apply(lambda x: abs(math.log(x,10))/3.45)
+    data['Frequency'] = data['abs_counts'].apply(lambda x: 1 if x == 0 else x) / data["Read_count"]
+    data["Mutation"] = data["Ref"] + "->" + data["Base"]
+    data.to_csv(output_dir + "data_mutation.csv", sep=',', encoding='utf-8')
+    return data
+
+
+
+# def main():
+#     sample = "RV-p71"
+#     suffix = "%s.freqs" % sample
+#     freqs_file = "/volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/RV-P7_L001-ds.32944248b7874527aa7daeed6203d1da/merged/%s/q30/%s" % \
+#                  (sample, suffix)
+#     virus = "RVB14"
+#     seq_meth = "AccuNGS"
+#
+#     if virus == "CVB3":
+#         ncbi_id ="M16572"
+#     if virus == "RVB14":
+#         ncbi_id = "NC_001490"
+#     if not os.path.isfile(freqs_file[0:-5] + "with.mutation.type.freqs"):
+#          append_mutation = find_mutation_type(freqs_file, ncbi_id)
+#     freqs_file_mutations = freqs_file[0:-5] + "with.mutation.type.freqs"
+#
+#     #freqs_mutation = find_mutation_type("/Volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/RV-P7_L001-ds.32944248b7874527aa7daeed6203d1da/merged/RV-p71/q30/RV-p71.freqs", "NC_001490")
+#     #data_mutation.csv file just for RVBp7
+#     #transition_mutation(freqs_file_mutations, "/Volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/RV-P7_L001-ds.32944248b7874527aa7daeed6203d1da/merged/RV-p71/q30/")
+#
+#     # data_mutation.csv file for p1, p7 ant control
+#     sample_file1 = "/Volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/RV-P7_L001-ds.32944248b7874527aa7daeed6203d1da/merged/RV-p71/q30/RV-p71.with.mutation.type.freqs"
+#     sample_file2 = "/Volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/180503_OST_FINAL_03052018/merged/RV-p11/q30_3UTR_new/RV-p11.with.mutation.type.freqs"
+#     sample_file3 = "/Volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/180503_OST_FINAL_03052018/merged/RV-p12/q30_3UTR_new/RV-p12.with.mutation.type.freqs"
+#     control_file = "/Volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/180503_OST_FINAL_03052018/merged/RV-IVT/q30_3UTR_new/RV-IVT.with.mutation.type.freqs"
+#
+#     label_control0 = "RNA Control"
+#     pass_sample0 = 0
+#     rep_sample0 = 1
+#     label_sample1 = "p7 Replica #1"
+#     pass_sample1 = 7
+#     rep_sample1 = 1
+#     label_sample2 = "p1 Replica #1"
+#     pass_sample2 = 1
+#     rep_sample2 = 1
+#     label_sample3 = "p1 Replica #2"
+#     pass_sample3 = 1
+#     rep_sample3 = 2
+#
+#     print("loading " + sample_file1 + " as sample")
+#     data_mutations1 = pd.read_table(sample_file1)
+#     data_mutations1["label"] = label_sample1
+#     data_mutations1["passage"] = pass_sample1
+#     data_mutations1["replica"] = rep_sample1
+#
+#     print("loading " + sample_file2 + " as sample")
+#     data_mutations2 = pd.read_table(sample_file2)
+#     data_mutations2["label"] = label_sample2
+#     data_mutations2["passage"] = pass_sample2
+#     data_mutations2["replica"] = rep_sample2
+#
+#     print("loading " + sample_file3 + " as sample")
+#     data_mutations3 = pd.read_table(sample_file3)
+#     data_mutations3["label"] = label_sample3
+#     data_mutations3["passage"] = pass_sample3
+#     data_mutations3["replica"] = rep_sample3
+#
+#     print("loading " + control_file + " as homogeneous control")
+#     data_control = pd.read_table(control_file)
+#     data_control["label"] = label_control0
+#     data_control["passage"] = pass_sample0
+#     data_control["replica"] = rep_sample0
+#
+#     data = pd.concat([data_control, data_mutations1, data_mutations2, data_mutations3])
+#     transition_mutation(data,
+#                         "/Volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/RV-P7_L001-ds.32944248b7874527aa7daeed6203d1da/merged/RV-p71/q30/")
+#
+#
+# if __name__ == "__main__":
+#     main()

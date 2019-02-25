@@ -9,6 +9,12 @@ import pathlib
 from file_utilities import *
 from optparse import OptionParser
 from cirseq_utilities import *
+import pandas as pd
+import numpy as np
+from file_utilities import *
+from optparse import OptionParser
+from cirseq_utilities import *
+import time
 sns.set_context("talk")
 start_time = time.time()
 
@@ -53,8 +59,21 @@ def main():
         ncbi_id ="M16572"
     if virus == "RVB14":
         ncbi_id = "NC_001490"
+    if virus == "RVB6":
+        ncbi_id = "JQ747748"
     if virus == "PV":
         ncbi_id ="V01149"
+    if virus == "rRNA":
+        ncbi_id = "NR_003287.4"
+    if virus == "mRNA_FB355642":
+        ncbi_id = "FB355642"
+    if virus == "mRNA_AB075490":
+        ncbi_id = "AB075490"
+    if virus == "mRNA_AK057879":
+        ncbi_id = "AK057879"
+    if virus == "mRNA_BC050745":
+        ncbi_id = "BC050745"
+
 
     """2. Analyze those file and directory to get the number of tandem repeats of the cirseq,
     repeats length and the amount of reads per repeat"""
@@ -132,7 +151,7 @@ def main():
     coverage_graph(freqs_file, ax4)
     # ax4.set_title('Coverage')
 
-    make_boxplot_mutation(freqs_file_mutations, ax5)
+    make_boxplot_mutation(freqs_file_mutations, ax5, out_plots_dir)
     # ax5.set_title(virus_name + ' Mutation Rates')
 
     # plt.show()
@@ -288,7 +307,7 @@ def make_boxplot_mutation(freqs_file, ax):
     g1.set_ylim(10 ** -6, 1)
     g1.tick_params(labelsize=7)
 
-def make_boxplot_transition_mutation(freqs_file, ax):
+def make_boxplot_transition_mutation(freqs_file, ax, output_dir):
     """
     Plots the mutation frequencies boxplot
     :param freqs_file: pandas DataFrame after find_mutation_type function
@@ -317,6 +336,7 @@ def make_boxplot_transition_mutation(freqs_file, ax):
     data['abs_counts'] = data['Freq'] * data["Read_count"]  # .apply(lambda x: abs(math.log(x,10))/3.45)
     data['Frequency'] = data['abs_counts'].apply(lambda x: 1 if x == 0 else x) / data["Read_count"]
     data["Mutation"] = data["Ref"] + "->" + data["Base"]
+    data.to_csv(output_dir + "data_mutation.csv", sep=',', encoding='utf-8')
     sns.set_palette(sns.color_palette("Paired", 12))
 
     g1 = sns.factorplot(x="Mutation Type", y="Frequency", data=data, col="Mutation",
