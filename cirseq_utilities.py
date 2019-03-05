@@ -263,15 +263,16 @@ def check_mutation_type(aa1, aa2):
         Mutation_Type = "Premature Stop Codon"
     return Mutation_Type
 
-def transition_mutation(freqs_file, output_dir):
+
+def filter_by_coverage_mutation(type_file, output_dir):
     """
-    Plots the mutation frequencies boxplot
-    :param freqs_file: pandas DataFrame after find_mutation_type function
-    :param ax: ax location
-    :return:
+    Creates DataFrame of frequencies with Mutations X->Y column
+    :param type_file: freqs file after it has ben processed with find_mutation_type func
+    :param output_dir: where to save the returned DF
+    :return: DF with Mutation and mutation_type column with minimal coverage
     """
     #data = pd.read_table(freqs_file)
-    data = freqs_file
+    data = type_file
     data.reset_index(drop=True, inplace=True)
     flag = '-' in data.Base.values
     if flag is True:
@@ -293,6 +294,8 @@ def transition_mutation(freqs_file, output_dir):
     data['abs_counts'] = data['Freq'] * data["Read_count"]  # .apply(lambda x: abs(math.log(x,10))/3.45)
     data['Frequency'] = data['abs_counts'].apply(lambda x: 1 if x == 0 else x) / data["Read_count"]
     data["Mutation"] = data["Ref"] + "->" + data["Base"]
+    data = data[["Pos", "Base", "Freq", "Ref", "Read_count", "Rank", "Prob", "Codon", "Ref_AA", "Potential_AA", "Type",
+                 "abs_counts", "Frequency", "mutation_type", "Mutation", "label", "passage", "replica"]]
     data.to_csv(output_dir + "data_mutation.csv", sep=',', encoding='utf-8')
     return data
 
