@@ -52,17 +52,20 @@ def main():
 
     #5th analyze the freqs
         # add mutation types
-    sample = "RV-p71"
+    sample = "P2.SRR1036477.V3.2"
     suffix = "%s.freqs" % sample
-    freqs_file = "/volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/RV-P7_L001-ds.32944248b7874527aa7daeed6203d1da/merged/%s/q30/%s" % \
-                 (sample, suffix)
-    virus = "RVB14"
-    seq_meth = "AccuNGS"
+    freqs_file = "/volumes/STERNADILABHOME$/volume3/okushnir/Cirseq/PV/Mahoney/P2/P2.SRR1036477.V3.2.freqs"
+    # freqs_file = "/volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/RV-P7_L001-ds.32944248b7874527aa7daeed6203d1da/merged/%s/q30/%s" % \
+    #              (sample, suffix)
+    virus = "PV"
+    seq_meth = "CirSeq"
 
     if virus == "CVB3":
         ncbi_id ="M16572"
     if virus == "RVB14":
         ncbi_id = "NC_001490"
+    if virus == "PV":
+        ncbi_id ="V01149"
     if not os.path.isfile(freqs_file[0:-5] + "with.mutation.type.freqs"):
          append_mutation = find_mutation_type(freqs_file, ncbi_id)
     freqs_file_mutations = freqs_file[0:-5] + "with.mutation.type.freqs"
@@ -75,9 +78,10 @@ def main():
     sample_file1 = "/Volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/RV-P7_L001-ds.32944248b7874527aa7daeed6203d1da/merged/RV-p71/q30/RV-p71.with.mutation.type.freqs"
     sample_file2 = "/Volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/180503_OST_FINAL_03052018/merged/RV-p11/q30_3UTR_new/RV-p11.with.mutation.type.freqs"
     sample_file3 = "/Volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/180503_OST_FINAL_03052018/merged/RV-p12/q30_3UTR_new/RV-p12.with.mutation.type.freqs"
+    sample_file4 = "/Volumes/STERNADILABHOME$/volume3/okushnir/Cirseq/PV/Mahoney/P3/20170907_q23r2_blastn/PV-p3.1036617.with.mutation.type.freqs"
     control_file = "/Volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/180503_OST_FINAL_03052018/merged/RV-IVT/q30_3UTR_new/RV-IVT.with.mutation.type.freqs"
 
-    label_control0 = "RNA Control"
+    label_control = "RNA Control"
     pass_sample0 = 0
     rep_sample0 = 1
     label_sample1 = "p7 Replica #1"
@@ -89,34 +93,35 @@ def main():
     label_sample3 = "p1 Replica #2"
     pass_sample3 = 1
     rep_sample3 = 2
+    label_sample4 = "PV Mahoney p3"
+    pass_sample4 = 3
+    rep_sample4 = 1
 
-    print("loading " + sample_file1 + " as sample")
+
+    print ("loading " + sample_file1 + " as sample")
     data_mutations1 = pd.read_table(sample_file1)
-    data_mutations1["label"] = label_sample1
-    data_mutations1["passage"] = pass_sample1
-    data_mutations1["replica"] = rep_sample1
+    data_mutations1["source"] = label_sample1
 
-    print("loading " + sample_file2 + " as sample")
+    print ("loading " + sample_file2 + " as sample")
     data_mutations2 = pd.read_table(sample_file2)
-    data_mutations2["label"] = label_sample2
-    data_mutations2["passage"] = pass_sample2
-    data_mutations2["replica"] = rep_sample2
+    data_mutations2["source"] = label_sample2
 
     print("loading " + sample_file3 + " as sample")
     data_mutations3 = pd.read_table(sample_file3)
-    data_mutations3["label"] = label_sample3
-    data_mutations3["passage"] = pass_sample3
-    data_mutations3["replica"] = rep_sample3
+    data_mutations3["source"] = label_sample3
+
+    print("loading " + sample_file4 + " as sample")
+    data_mutations4= pd.read_table(sample_file4)
+    data_mutations4["source"] = label_sample4
 
     print("loading " + control_file + " as homogeneous control")
     data_control = pd.read_table(control_file)
-    data_control["label"] = label_control0
-    data_control["passage"] = pass_sample0
-    data_control["replica"] = rep_sample0
+    data_control["source"] = label_control
 
-    data = pd.concat([data_control, data_mutations1, data_mutations2, data_mutations3])
+    data = pd.concat([data_control, data_mutations1, data_mutations2, data_mutations3, data_mutations4])
+
     transition_mutation(data,
-                        "/Volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/RV-P7_L001-ds.32944248b7874527aa7daeed6203d1da/merged/RV-p71/q30/")
+                        "/Volumes/STERNADILABHOME$/volume3/okushnir/Cirseq/PV/Mahoney/P3/20170907_q23r2_blastn/")
 
     #6th run variant_caller localy to check context mutations
 
