@@ -54,7 +54,7 @@ def association_test(args):
             temp_matrix.at[0,0] = reads_with_wt_i_wt_j
             # run association test on matrix and write results to file.
             if temp_matrix.sum(axis=0).all() > 0 and temp_matrix.sum(axis=1).all() > 0:
-                a = (scipy.stats.chi2_contingency(temp_matrix, correction=False))
+                a = (scipy.stats.chi2_contingency(temp_matrix))
                 with open(association_test_dir + str(i) + '_' + str(j), 'w') as f:
                     f.write('\n'.join([str(i) for i in a]))
                 temp_matrix.to_csv(association_test_dir + str(i) + '_' + str(j) + '.csv')
