@@ -6,10 +6,12 @@ import argparse
 
 def main(args):
     couples = []
+    # create couple for every combination of positions between start and end positions.
     for i in range(args.start_position, args.end_position + 1):
         for j in range(i, args.end_position + 1):
             couples.append((i, j))
     couples = pd.DataFrame(couples, columns=['i', 'j'])
+    # split couples into groups (number of groups == number of jobs) by using the index.
     couples['association_index'] = couples.index.astype(int) % args.number_of_jobs
     couples.to_csv(args.output_file, index=False)
     return

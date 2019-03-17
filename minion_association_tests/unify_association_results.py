@@ -6,6 +6,11 @@ import os
 import argparse
 
 def association_results_to_df(args):
+    '''
+    This function gets a directory with numbered directories, each one containing
+    the files with the association test results. It creates a new csv file with 
+    the chi square statistic and the p-value for every pair of positions.
+    '''
     data = []
     results_directories = [args.input_results_directory + '/' + d for d in os.listdir(args.input_results_directory) if d.isnumeric()]
     for file_dir in results_directories:

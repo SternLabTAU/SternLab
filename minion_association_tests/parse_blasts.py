@@ -81,11 +81,17 @@ def parse_btop(row):
 
 
 def create_blasts_and_mutations_dfs(args):
+    '''
+    This function gets an input directory with blast files (_.blast), and created
+    two new files in the output directory: a dataframe containing all of the blast 
+    output files and a dataframe containing every mutation for every read in the
+    blast outputs.
+    '''
     blast_dfs = []
     mutations_dfs = []
     for i in [args.input_dir + '/' + f for f in os.listdir(args.input_dir) if f.endswith('.blast')]:
         print(i)
-        mutations_df = blast_to_mutations_list(i, i + '.mutations_list')
+        mutations_df = blast_to_mutations_list(i)
         mutations_df['full_mutation'] = mutations_df.ref.astype(str) + mutations_df.position.astype(str) + mutations_df.base.astype(str)
         blast_df = blast_to_df(i)
         mutations_dfs.append(mutations_df)

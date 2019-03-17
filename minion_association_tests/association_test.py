@@ -9,12 +9,19 @@ import argparse
 
 
 def association_test(args):
+    '''
+    This function runs association tests for position couples with index matching
+    the job id. The function gets the blast dataframe path, the mutations dataframe
+    path, the association coupe index file and a directory to save the results to.
+    '''
     blast_df = pd.read_csv(args.input_blast_df)
     mutations_df = pd.read_csv(args.input_mutation_df)
     association_test_dir = args.output_dir + '/' + str(args.pbs_job_array_id) + '/'
+    # create directory for specific job id if does not exist already
     if not os.path.exists(association_test_dir):
         os.mkdir(association_test_dir)    
     couples = pd.read_csv(args.input_position_pairs_df)
+    # get position couples with the association index the same as the job id.
     position_tuple_list = list(couples[(couples.association_index == int(args.pbs_job_array_id))][['i','j']].itertuples(index=False, name=None))
     
     for (i, j) in position_tuple_list:
@@ -23,11 +30,17 @@ def association_test(args):
             temp_matrix = pd.DataFrame(np.zeros(shape=(2,2)), columns=[j,0], index=[i,0])
             b = blast_df.copy()
             m = mutations_df.copy()
+            # look only at mutations in positions i and j
             m = m[(m.position.isin([i,j]))]
+            # look only at alignments that contain both positions i and j
             b = b[(b.start_ref < i) & (b.end_ref > i) & (b.start_ref < j) & (b.end_ref > j)]
             b = b[['read']]
+            # keep all reads that contain positions i and j (both containing mutations in i and/or j 
+            # and not containing mutations there), and their appropriate mutations.
             relevant_mutations = pd.merge(b, m, on='read', how='left').fillna(0)
             
+            # from reads containing both positions, count reads with mutation in i, with mutation 
+            # in j, with mutations in both or with no mutations and create matrix for association test.
             reads_count = len(relevant_mutations[['read']].drop_duplicates())
             reads_with_mut_i_mut_j  = len(pd.merge(relevant_mutations[(relevant_mutations.position == i)], relevant_mutations[(relevant_mutations.position == j)], on='read', how='inner').read.drop_duplicates())
             reads_with_mut_j = len(relevant_mutations[(relevant_mutations.position == j)][['read']].drop_duplicates())
@@ -39,6 +52,7 @@ def association_test(args):
             temp_matrix.at[i,0] = reads_with_mut_i_wt_j
             temp_matrix.at[0,j] = reads_with_wt_i_mut_j
             temp_matrix.at[0,0] = reads_with_wt_i_wt_j
+            # run association test on matrix and write results to file.
             if temp_matrix.sum(axis=0).all() > 0 and temp_matrix.sum(axis=1).all() > 0:
                 a = (scipy.stats.chi2_contingency(temp_matrix, correction=False))
                 with open(association_test_dir + str(i) + '_' + str(j), 'w') as f:
