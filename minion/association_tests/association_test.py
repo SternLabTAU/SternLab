@@ -15,6 +15,10 @@ def association_test(args):
     path, the association coupe index file and a directory to save the results to.
     '''
     blast_df = pd.read_csv(args.input_blast_df)
+    # choose only reads that were mapped only once in blast
+    blast_df['read_count'] = blast_df.groupby('read')['start_ref'].transform('count')
+    blast_df = blast_df[(blast_df.read_count == 1)]
+    
     mutations_df = pd.read_csv(args.input_mutation_df)
     association_test_dir = args.output_dir + '/' + str(args.pbs_job_array_id) + '/'
     # create directory for specific job id if does not exist already
