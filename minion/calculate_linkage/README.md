@@ -1,6 +1,6 @@
 This script calculates the conditional probabilities for every mutation in list
 to appear with any other mutation in the given list, including those probabilities 
-for the WT variants for those positions. The script gets the blast dataframe path, 
+for the WT variants for those positions. The script gets the blast dataframe path 
 and the mutations dataframe path created by parse_blasts.py (see association_tests directory), 
 a csv path with the mutations to check and a directory to save the results to.
    
