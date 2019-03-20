@@ -32,7 +32,7 @@ calculate_linkage.py [-h] -b INPUT_BLAST_DF -m INPUT_MUTATION_DF -p
 
 A535.0G |
 ------ |
-**T164.0-**  |
+**T1764.0-**  |
 
 
 **Output is interpreted as follows:**
