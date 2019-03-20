@@ -21,7 +21,7 @@ results files (_.blast), and creates the two new csv files in the output directo
 
 3. Run create_couples_index_file.py to create an index file used by the association test script.
 The file is a csv containing the pairs of positions to check, and also an association index for the
-association test script to use when being run as many jobs in parallel (choose number of jobs to split to).
+association test script to use when being run as many jobs in parallel (choose number of jobs to split to). If planning to run as one job, choose 1 for -j, and on step 4 (association_test.py) choose 0 for -j (PBS_JOB_ARRAY_ID).
 
    - usage: create_couples_index_file.py [-h] [-s START_POSITION] -e END_POSITION
                                     -j NUMBER_OF_JOBS -o OUTPUT_FILE
@@ -35,7 +35,7 @@ for every pair of positions from the position couple index file for which the in
                            INPUT_POSITION_PAIRS_DF -o OUTPUT_DIR -j
                            PBS_JOB_ARRAY_ID
 
-
+   - This is the heaviest part of this code. For a genome of 3569 bases and results of 100,000 reads split into 100 jobs of 5000mb, this took 6 hours.
 5. Unite association test results by running unify_association_tests.py. This creates a csv
 with the chi square statistic value and the p-value for every pair of positions the test was performed for.
 
