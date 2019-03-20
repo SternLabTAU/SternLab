@@ -5,12 +5,10 @@ and the mutations dataframe path created by parse_blasts.py (see association_tes
 a csv path with the mutations to check and a directory to save the results to.
    
 
-usage: calculate_linkage.py [-h] -b INPUT_BLAST_DF -m INPUT_MUTATION_DF -p
+**usage:** 
+calculate_linkage.py [-h] -b INPUT_BLAST_DF -m INPUT_MUTATION_DF -p
                             INPUT_CHOSEN_MUTATION -o OUTPUT_FILE
 
-optional arguments:
-
-  -h, --help            show this help message and exit
   
   -b INPUT_BLAST_DF, --input_blast_df INPUT_BLAST_DF
                         path to blasts df csv
@@ -28,17 +26,16 @@ optional arguments:
                         a path to an output file
 
 						
-						
-Format for the csv with the mutations to check linkage for: every mutation should 
-have its own row, the csv should have no header row, and the mutations should be written 
-in the following format: "A1664.0G". For example:
 
+
+**Format for the csv with the mutations to check linkage for:** every mutation should have its own row, the csv should have no header row, and the mutations should be written in the following format: "A1664.0G". For example:
 
 A535.0G |
 ------ |
 **T164.0-**  |
 
-Output is interpreted as follows:
+
+**Output is interpreted as follows:**
 
 Each cell represents the probability of the column when row is true (P(column|row)).
 Row and column names represent either the mutation variant or the WT for that position. For example, "A535.0G" represents the mutation A to G at position 535, and "535" represents the WT base for that position.
