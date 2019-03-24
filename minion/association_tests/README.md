@@ -1,3 +1,7 @@
+### Association Tests
+This series of steps are used to run chi-square association tests between every pair of positions in the genome, in order to separate real mutations from technical errors in MinION sequencing results. The analysis is based on the assumption that real mutations have a tendency to either appear together or not appear together on the same genomes, and thus are not independent of each other, while technical sequencing errors are random and so appear to be independent of each other in the population.
+
+
 1. Run BLAST on all fastq files as described in [AccuNGS paper](https://github.com/SternLabTAU/AccuNGS).
 To do this, either use AccuNGS script or run BLAST separately as follows:
 
