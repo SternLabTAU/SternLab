@@ -15,8 +15,8 @@ Provide pandas dataframe created by unify_association_results.py.
 
 def association_scatter(df, out_png, proximity_limit=15, start_pos=False, end_pos=False):
     '''
-    For every position, plot all the log chi2 values, except for values of tests 
-    between that position and positions 15 bases away or closer (default 15).
+    For every position, plot all the chi square values, except for values of tests 
+    between that position and positions [proximity_limit] bases away or closer (default 15).
     Can use start_pos and end_pos to zoom in on part of the genome.
     '''
     df = df[(df.pos1 - df.pos2).abs() > proximity_limit]
@@ -29,7 +29,7 @@ def association_scatter(df, out_png, proximity_limit=15, start_pos=False, end_po
 
 def matrix_heatmap(df, start_pos_a, end_pos_a, start_pos_b, end_pos_b, output_png):
     '''
-    Plot the a heatmap for chi2 values between the range of positions chosen.
+    Plot a heatmap for chi square values between the range of positions chosen.
     '''
     df = df[(df.pos1 >= start_pos_a) & (df.pos1 <= end_pos_a) & (df.pos2 >= start_pos_b) & (df.pos2 <= end_pos_b)].drop_duplicates()
     df = df[(df.pos2 != df.pos1)]
@@ -42,8 +42,9 @@ def matrix_heatmap(df, start_pos_a, end_pos_a, start_pos_b, end_pos_b, output_pn
 
 def scaled_back_full_genome_heatmap(df,output_png, scale=10):
     '''
-    Plot a heatmap for the whole genome, but scale it down. Use one value for
-    every x by x square of positions, where x is defined by scale (default 10).
+    Plot a heatmap for the chi squares for the whole genome, but scale it down. 
+    Use one value for every x by x square of positions, where x is defined by 
+    scale (default 10).
     '''
     df = df.drop_duplicates()
     df['pos1_scaled'] = df.pos1 // scale * scale
