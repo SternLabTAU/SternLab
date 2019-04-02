@@ -17,19 +17,16 @@ def write_params_file(param_file, input_aln, input_tree, output_res, output_log,
     output_log = check_filename(output_log, Truefile=False)
     output_tree =  check_filename(output_tree, Truefile=False)
 
-    if gtr_output == None:
-        kappa = 2.0
-    else:
+    kappa = 2.0
+    if gtr_output != None:
         gtr_output = check_filename(gtr_output)
-        kappa = retrive_kappa_from_paml_output(gtr_output)
-
+        kappa_from_gtr = retrive_kappa_from_paml_output(gtr_output)
+        if kappa_from_gtr != None:
+            kappa = kappa_from_gtr
 
     with open(input_aln, "r") as aln_handle:
         aln_data = aln_handle.readline()
         first_seq = aln_data.split(">")[1].strip()
-
-    print(kappa)
-    print(first_seq)
 
     params = open(param_file, "w")
     params.write("# input\n")
