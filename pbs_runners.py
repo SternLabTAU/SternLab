@@ -57,7 +57,7 @@ def array_script_runner(cmds, jnum, alias = "script", load_python=False):
     :param jnum: number of jobs in the pbs array
     :return: job id
     """
-    cmdfile = pbs_jobs.get_cmdfile_dir("script", alias); gmem=7
+    cmdfile = pbs_jobs.get_cmdfile_dir("script", alias); gmem=1
     print(cmdfile, alias, jnum, gmem, cmds)
     pbs_jobs.create_array_pbs_cmd(cmdfile, jnum=jnum, alias=alias, gmem=gmem, cmds=cmds, load_python=load_python)
     job_id = pbs_jobs.submit(cmdfile)
@@ -101,7 +101,7 @@ def phyml_aa_runner(alignment, alias = "phyml", phylip=True):
     return job_id
 
 
-def fastml_runner(alignment, tree, outdir = None, alias = "fastml"):
+def fastml_runner(alignment, tree, outdir = None, alias = "fastml", additional_params=None):
     """
     run fastml from phylogenyCode on cluster
     :param alignment: alignment file path
@@ -127,6 +127,8 @@ def fastml_runner(alignment, tree, outdir = None, alias = "fastml"):
     cmds = "/sternadi/home/volume1/shared/tools/phylogenyCode/programs/fastml/fastml -s %s -t %s -mn -x %s " \
            "-y %s -j %s -k %s -d %s -e %s -qf" % (alignment, tree, newick_tree, ancestor_tree, joint_seqs,
                                                  marginal_seqs, joint_prob, marginal_prob)
+    if additional_params != None:
+        cmds += " %s" % additional_params
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, gmem=gmem, cmds=cmds)
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
@@ -165,7 +167,7 @@ def prank_runner(sequence, alignment=None, alias = "prank"):
     sequence = check_filename(sequence)
     alignment = check_filename(alignment, Truefile=False)
     cmds = "/powerapps/share/bin/prank -d=%s -o=%s -F" % (sequence, alignment)
-    cmdfile = pbs_jobs.get_cmdfile_dir("prank_alignment", alias); tnum=1; gmem=7
+    cmdfile = pbs_jobs.get_cmdfile_dir("prank_alignment", alias); tnum=1; gmem=1
     pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
@@ -236,6 +238,25 @@ def njTree_runner(alignment, tree=None, alias = "njTree"):
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
 
+def njTree_codon_runner(alignment, tree=None, alias = "njCodonTree"):
+    """
+    run neighbors-joining tree on cluster
+    :param alignment: alignment file path
+    :param tree: output tree path (default: None)
+    :param alias: job name (default: njTree)
+    :return: job id
+    """
+    if tree == None:
+        tree = alignment.split(".")[0] + ".codon_tree"
+    alignment = check_filename(alignment)
+    tree = check_filename(tree, Truefile=False)
+    cmdfile = pbs_jobs.get_cmdfile_dir("njTree", alias); tnum=1; gmem=2
+    cmds = "/sternadi/home/volume1/shared/tools/phylogenyCode/programs/treeUtil/njTreeJCdist -i %s -o %s -ac"\
+           % (alignment, tree)
+    dir = "/sternadi/home/volume1/shared/tools/phylogenyCode/programs/treeUtil/"
+    pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
+    job_id = pbs_jobs.submit(cmdfile)
+    return job_id
 
 def sampling_runner(alignment, amount, sampled_file=None, alias = "sampling", alphabet="an", random=False):
     """
@@ -529,7 +550,7 @@ def r4s_runner(tree_file, seq_file, outfile, dirname, tree_outfile=None, unormel
 
 
     cmdfile = pbs_jobs.get_cmdfile_dir("r4s_cmd.txt", alias); tnum = 1; gmem = 2
-    ref_seq_parameter = "-a " + ref_seq if ref_seq is not None else ""
+    ref_seq_parameter = " -a " + ref_seq if ref_seq is not None else ""
     if tree_file !=None:
         cmds = "/sternadi/home/volume1/shared/tools/rate4site"\
                                                             + " -t " + tree_file\
