@@ -752,3 +752,24 @@ def fits_runner(inference_type, dataset_file, param_file,alias='FITS', posterior
             script_runner(cmds, alias)
         else:
             array_script_runner(cmds, batch, alias)
+
+
+
+def dirSel_runner(dirSel_params, dirSel_path="/sternadi/home/volume1/taliakustin/software/phylogenyCode/programs/directionalSelection/directionalSelection",
+                  alias = "dirSel"):
+    """
+    run directional selection
+    :param dirSel_params: params file
+    :param dirSel_path: path of program
+    :param alias: job name (default: dirSel)
+    :return: job_id
+    """
+    dirSel_params = check_filename(dirSel_params)
+    dirSel_path = check_filename(dirSel_path)
+
+    cmdfile = pbs_jobs.get_cmdfile_dir("dirSel_cmd.txt", alias); tnum = 1; gmem = 2
+    cmd = "%s %s" % (dirSel_path, dirSel_params)
+    cmds = "echo %s \n%s" %(cmd, cmd)
+    pbs_jobs.create_pbs_cmd(cmdfile=cmdfile, alias=alias, jnum=tnum, gmem=gmem, cmds=cmds)
+    job_id = pbs_jobs.submit(cmdfile)
+    return job_id
