@@ -75,12 +75,15 @@ def return_branch_type(row):
         return "external"
     return "internal"
 
-def analyze_dirSel_mutation_map(file, ratios_output=None):
+def analyze_dirSel_mutation_map(file, ratios_output=None, overwrite = False):
     file = check_filename(file)
     if ratios_output == None:
         ratios_output = file.split(".dirSel.results.mutation.map")[0] + ".dirSel.ratios"
     else:
         ratios_output = check_filename(ratios_output, Truefile=False)
+    if os.path.isfile(ratios_output) and not overwrite:
+        print("output file %s exists" % ratios_output)
+        return
     base = file.split("/")[-1].split(".dirSel.results.mutation.map")[0]
     family = base.split("_")[0]
     baltimore = get_baltimore_classifiaction(family)
@@ -117,3 +120,27 @@ def analyze_dirSel_mutation_map(file, ratios_output=None):
                 ratios = ratios.append({"basename":base, "family":family, "baltimore":baltimore, "branch":branch,
                                         "substitution":mut, "ratio":ratio}, ignore_index=True)
     ratios.to_csv(ratios_output)
+
+
+def extract_dirSel_parameters(files, output, overwrite=False):
+    output = check_filename(output, Truefile=False)
+    df = pd.DataFrame()
+    for f in files:
+        base = f.split("/")[-1].split(".dirSel.results.mutation.map")[0]
+        family = base.split("_")[0]
+        baltimore = get_baltimore_classifiaction(family)
+        with open(f, "r") as handle:
+            data =  handle.readlines()
+            line = 3 #start from line 3
+            params = {}
+            while not "#Rate categories are" in data[line]:
+                if ":" in data[line]:
+                    name = data[line].split(":")[0].split("#")[1].strip()
+                    value = float(data[line].split(":")[1].strip())
+                else:
+                    name = data[line].split("=")[0].split("#")[1].strip()
+                    value = float(data[line].split("=")[1].strip())
+                params[name] = value
+                line += 1
+        df = df.append({"baltimore":baltimore, "family":family, "basename":base, **params}, ignore_index=True)
+    df.to_csv(output)
