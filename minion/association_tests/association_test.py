@@ -20,6 +20,7 @@ def association_test(args):
     blast_df = blast_df[(blast_df.read_count == 1)]
     
     mutations_df = pd.read_csv(args.input_mutation_df)
+    mutations_df = mutations_df[(mutations_df.ref != '-')]
     association_test_dir = args.output_dir + '/' + str(args.pbs_job_array_id) + '/'
     # create directory for specific job id if does not exist already
     if not os.path.exists(association_test_dir):
