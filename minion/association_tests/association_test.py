@@ -21,6 +21,7 @@ def association_test(args):
     
     mutations_df = pd.read_csv(args.input_mutation_df)
     mutations_df = mutations_df[(mutations_df.ref != '-')]
+    grouped = {name:group for name, group in mutations_df.groupby('position')}
     association_test_dir = args.output_dir + '/' + str(args.pbs_job_array_id) + '/'
     # create directory for specific job id if does not exist already
     if not os.path.exists(association_test_dir):
@@ -34,9 +35,8 @@ def association_test(args):
             print((i,j))
             temp_matrix = pd.DataFrame(np.zeros(shape=(2,2)), columns=[j,0], index=[i,0])
             b = blast_df.copy()
-            m = mutations_df.copy()
             # look only at mutations in positions i and j
-            m = m[(m.position.isin([i,j]))]
+            m = pd.concat([grouped[i], grouped[j]])
             # look only at alignments that contain both positions i and j
             b = b[(b.start_ref < i) & (b.end_ref > i) & (b.start_ref < j) & (b.end_ref > j)]
             b = b[['read']]
