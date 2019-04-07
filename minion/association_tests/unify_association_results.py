@@ -14,9 +14,9 @@ def association_results_to_df(args):
     '''
     data = []
     results_directories = [args.input_results_directory + '/' + d for d in os.listdir(args.input_results_directory) if d.isnumeric()]
-    for file_dir in results_directories:
+    for file_dir in tqdm(results_directories):
         files = [file_dir + '/' + f for f in os.listdir(file_dir) if '.csv' not in f]
-        for f in tqdm(files):
+        for f in files:
             [i,j] = f.split('/')[-1].split('_')
             i, j = int(i), int(j)
             with open(f) as fi:
