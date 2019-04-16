@@ -41,7 +41,7 @@ def generate_entropy_profiles_per_family(index, run_type):
         get_joint_entropy_profile(fasta, w, cur_out)
 
 
-def run_statistic_analysis_for_drop_sig(family, index, w=100):
+def run_statistic_analysis_for_drop_sig(family, index, m=10**5, w=100):
     """
     run stretch finder on each sequence in a family data frame
     :param family: the family name
@@ -53,7 +53,7 @@ def run_statistic_analysis_for_drop_sig(family, index, w=100):
     family_df = pd.read_csv(r'/sternadi/home/volume1/daniellem1/Entropy/WebDB/Entropy/{}_profile.csv'.format(family))
     col = 'seq_{}'.format(args.index - 1)
     seq = np.array(family_df[col].dropna())
-    res = stretchFinder(seq, w, args.m)
+    res = stretchFinder(seq, w, m)
     out_dir = r'/sternadi/home/volume1/daniellem1/Entropy/DropsStatistics/{}'.format(family)
 
     # create a directory per family if do not exist, if so, don't touch
