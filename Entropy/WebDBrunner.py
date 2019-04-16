@@ -8,7 +8,6 @@ This is a runner used for generating all the data for the web DB of the entropy 
 
 This runner will re-generate all the entropy profiles for k=5, both joint entropy and Shannon entropy
 
- 
 '''
 
 
@@ -51,7 +50,7 @@ def run_statistic_analysis_for_drop_sig(family, index, w=100):
     :return: saves the data frame into a file
     """
 
-    family_df = pd.read_csv(r'/sternadi/home/volume1/daniellem1/Entropy/WebDB/{}_profile.csv')
+    family_df = pd.read_csv(r'/sternadi/home/volume1/daniellem1/Entropy/WebDB/Entropy/{}_profile.csv')
     col = 'seq_{}'.format(args.index - 1)
     seq = np.array(family_df[col].dropna())
     res = stretchFinder(seq, w, args.m)
