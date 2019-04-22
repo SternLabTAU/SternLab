@@ -159,31 +159,17 @@ def get_joint_entropy_profile(fasta, w, out=None):
 
         for j in range(len(genome) - w):
             sub_genome = genome[j:j+w]
-<<<<<<< HEAD
-            try:
-                rc_sub_genome = str(get_reverse_complement(sub_genome))
-                entropy = joint_entropy(sub_genome, rc_sub_genome, 5)
-                entropies.append(entropy)
-            except:
-                print('exception', i)
-                break
-
-=======
             rc_sub_genome = str(get_reverse_complement(sub_genome))
             entropy = joint_entropy(sub_genome, rc_sub_genome, 5)
             entropies.append(entropy)
-            
->>>>>>> c3f2131a5259a0f4c92763276d2d4af5f2288112
+
         print('Done with seq {}'.format(i))
         all_entropies['seq_{}'.format(i)] = entropies
         i += 1
 
     df = pd.DataFrame(dict([(k,pd.Series(v)) for k,v in all_entropies.items()]))
-<<<<<<< HEAD
-    df.to_csv(os.path.join(out, '{}_joint_profile.csv'.format(alias)), index=False)
-=======
+
     df.to_csv(os.path.join(out, '{}_Joint_profile.csv'.format(alias)), index=False)
->>>>>>> c3f2131a5259a0f4c92763276d2d4af5f2288112
 
     return df
 
@@ -218,11 +204,12 @@ def get_entropy_profile(fasta, w, out=None, type='fasta'):
         i += 1
 
     df = pd.DataFrame(dict([(k,pd.Series(v)) for k,v in all_entropies.items()]))
+
     df.to_csv(os.path.join(out, '{}_profile.csv'.format(alias)), index=False)
 
     return df
 
-def get_entropy_profile_per_sequence(seq, w, alias, out=None):
+def get_joint_entropy_profile_per_sequence(seq, w, alias, out=None):
     """
     sliding window entropy profile of all sequences in a family
     :param fasta: a fasta file contatining viral sequences
@@ -246,7 +233,34 @@ def get_entropy_profile_per_sequence(seq, w, alias, out=None):
             break
 
     df = pd.DataFrame({'{}'.format(alias):entropies})
-    df.to_csv(os.path.join(out, '{}_profile.csv'.format(alias)), index=False)
+    if out != None:
+        df.to_csv(os.path.join(out, '{}_profile.csv'.format(alias)), index=False)
+
+    return df
+
+def get_entropy_profile_per_sequence(seq, w, alias, out=None):
+    """
+    sliding window entropy profile of all sequences in a family
+    :param fasta: a fasta file contatining viral sequences
+    :param w: the window size
+    :param out: optional. if != None a profile will be saved as a png
+    :return: the vector of profile entropy
+    """
+    all_entropies = {}
+
+    entropies = []
+    # get identifier and genomic sequence
+    genome = seq
+
+    for j in range(len(genome) - w):
+        sub_genome = genome[j:j+w]
+        entropy = entropy_by_kmer(sub_genome, 5)
+        entropies.append(entropy)
+
+
+    df = pd.DataFrame({'{}'.format(alias):entropies})
+    if out != None:
+        df.to_csv(os.path.join(out, '{}_profile.csv'.format(alias)), index=False)
 
     return df
 
@@ -483,6 +497,7 @@ def sample_from_fasta(fasta, n, out, ref_id='NC_004162'):
     with open(out, 'w') as o:
         SeqIO.write(sampled, o, "fasta")
 
+    return
 
 
 def parse_r4s_results(data, out=None):
@@ -499,6 +514,9 @@ def parse_r4s_results(data, out=None):
     pos = []
     seq = []
     score = []
+    upper = []
+    lower = []
+    std = []
 
     for i in range(df.shape[0]):
         row = df.iloc[i,0].split()
@@ -506,17 +524,42 @@ def parse_r4s_results(data, out=None):
         if len(row) < 6 :
             break
 
+        # get all floats from the row
+        p = re.compile(r'\d+\.*\d*')
+        floats = [float(i) for i in p.findall(df.iloc[i, 0])]    # pos, score, lower, upper, std
         pos.append(int(row[0]))
         seq.append(row[1])
-        score.append(float(row[2]))
+        score.append(floats[1])
+        lower.append(floats[2])
+        upper.append(floats[3])
+        std.append(floats[4])
 
-    res = pd.DataFrame({'pos':pos, 'seq':seq, 'score':score})
+
+    res = pd.DataFrame({'pos':pos, 'seq':seq, 'score':score, 'lower':lower, 'upper':upper, 'std':std})
+
+    # calculate the confidence in each positions
+    scores = np.sort(res['score'].values)
+    bins = np.array([elem[0] for elem in np.split(scores, 10)]) # get all bins
+    lower_bins = np.digitize(res['lower'].values, bins)
+    upper_bins = np.digitize(res['upper'].values, bins)
+    diff = np.abs(upper_bins - lower_bins)
+    score_bins = np.digitize(res['score'], bins)
+
+    # update data frame
+    res['lower_bin'] = lower_bins
+    res['upper_bin'] = upper_bins
+    res['diff'] = diff
+    res['score_bin'] = score_bins
+
+    res['confidence'] = res.apply(lambda row: row['score_bin'] if row['diff'] <= 4 else 20, axis=1)
+
+
     if out != None:
         res.to_csv(os.path.join(os.path.dirname(data), os.path.basename(data)+'_parsed.csv'), index=False)
     return res
 
 
-def r4s_2_heatmap(filepath):
+def r4s_2_heatmap(filepath, addition = None):
     """
     create a data frame with position to conservation by all alignments sizes
     :param filepath: an input directory with parsed csv files from r4s
@@ -524,22 +567,28 @@ def r4s_2_heatmap(filepath):
     """
 
     all_r4s = glob.glob(os.path.join(filepath, '*.csv'))
+
+    if addition != None:
+        all_r4s = glob.glob(os.path.join(filepath, '*.csv')) + glob.glob(os.path.join(addition, '*.csv'))
     num_seqs = set([os.path.basename(x).split('_')[1] for x in all_r4s])
 
     all_means = []
 
     for n in num_seqs:
         csvs = glob.glob(os.path.join(filepath, 'n_{}_*.csv'.format(n)))
+        if addition != None:
+            csvs = glob.glob(os.path.join(filepath, 'n_{}_*.csv'.format(n))) + glob.glob(os.path.join(addition, 'n_{}_*.csv'.format(n)))
         dfs = []
         for c in csvs:
             df = pd.read_csv(c)
-            df = df[['pos','score']]
+            df = df[['pos','confidence']]
             dfs.append(df)
 
         df_merged = reduce(lambda left, right: pd.merge(left, right, on=['pos'], how='outer'), dfs)
         df_merged = df_merged.dropna()
         df_merged.set_index(['pos'], inplace=True)
-        df_merged[n] = df_merged.mean(axis=1)
+
+        df_merged[n] = df_merged.median(axis=1)
 
         df_merged = df_merged[[n]]
         all_means.append(df_merged)
