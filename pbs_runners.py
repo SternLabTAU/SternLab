@@ -36,7 +36,7 @@ def codeml_runner(ctl, alias = "cml"):
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
 
-def script_runner(cmds, alias = "script", load_python=False, gmem=2):
+def script_runner(cmds, alias = "script", load_python=False, gmem=2, queue="adis"):
     """
     run script on cluster
     :param cmds: script running line
@@ -45,7 +45,7 @@ def script_runner(cmds, alias = "script", load_python=False, gmem=2):
     """
     cmdfile = pbs_jobs.get_cmdfile_dir("script", alias); tnum=1; gmem=gmem
     print(cmdfile, alias, tnum, gmem, cmds)
-    pbs_jobs.create_pbs_cmd(cmdfile, alias=alias, gmem=gmem, cmds=cmds, load_python=load_python)
+    pbs_jobs.create_pbs_cmd(cmdfile, alias=alias, queue=queue, gmem=gmem, cmds=cmds, load_python=load_python)
     job_id = pbs_jobs.submit(cmdfile)
     return job_id
 
