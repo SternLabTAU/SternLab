@@ -54,13 +54,13 @@ def run_statistic_analysis_for_drop_sig(family, index, m=10**4, w=100):
     col = 'seq_{}'.format(args.index - 1)
     seq = np.array(family_df[col].dropna())
     res = stretchFinder(seq, w, m)
-    out_dir = r'/sternadi/home/volume1/daniellem1/Entropy/DropsStatistics/{}'.format(family)
+    out_dir = r'/sternadi/home/volume1/daniellem1/Entropy/WebDB/DropsStatistics/{}'.format(family)
 
     # create a directory per family if do not exist, if so, don't touch
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
-    out = r'/sternadi/home/volume1/daniellem1/Entropy/DropsStatistics/{}/{}_seq_{}_stats.csv'.format(family, family, col)
+    out = r'/sternadi/home/volume1/daniellem1/Entropy/WebDB/DropsStatistics/{}/{}_seq_{}_stats.csv'.format(family, family, col)
 
 
     res.to_csv(out, index=False)
