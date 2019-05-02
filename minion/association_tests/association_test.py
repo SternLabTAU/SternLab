@@ -4,8 +4,8 @@
 import pandas as pd
 import numpy as np
 import os
-import scipy.stats
 import argparse
+import scipy.stats
 
 
 def association_test(args):
@@ -19,8 +19,13 @@ def association_test(args):
     blast_df['read_count'] = blast_df.groupby('read')['start_ref'].transform('count')
     blast_df = blast_df[(blast_df.read_count == 1)]
     
+    # choose only reads that are mapped from at least start_pos_read to end_pos_read
+    blast_df = blast_df[(blast_df.start_ref <= args.start_pos_read) & (blast_df.end_ref >= args.end_pos_read)]
+    blast_df = blast_df[['read', 'start_ref', 'end_ref']]
+    
     mutations_df = pd.read_csv(args.input_mutation_df)
     mutations_df = mutations_df[(mutations_df.ref != '-')]
+    mutations_df = pd.merge(mutations_df, blast_df[['read']], how='right', on='read')
     association_test_dir = args.output_dir + '/' + str(args.pbs_job_array_id) + '/'
     # create directory for specific job id if does not exist already
     if not os.path.exists(association_test_dir):
@@ -29,8 +34,10 @@ def association_test(args):
     # get position couples with the association index the same as the job id.
     position_tuple_list = list(couples[(couples.association_index == int(args.pbs_job_array_id))][['i','j']].itertuples(index=False, name=None))
     
+    chi2_data = []
+    
     for (i, j) in position_tuple_list:
-        if not os.path.isfile(association_test_dir + str(i) + '_' + str(j)) and not os.path.isfile(association_test_dir + str(j) + '_' + str(i)):
+        if not os.path.isfile(association_test_dir + str(i) + '_' + str(j) + '.csv') and not os.path.isfile(association_test_dir + str(j) + '_' + str(i) + '.csv'):
             print((i,j))
             temp_matrix = pd.DataFrame(np.zeros(shape=(2,2)), columns=[j,0], index=[i,0])
             b = blast_df.copy()
@@ -59,10 +66,15 @@ def association_test(args):
             temp_matrix.at[0,0] = reads_with_wt_i_wt_j
             # run association test on matrix and write results to file.
             if temp_matrix.sum(axis=0).all() > 0 and temp_matrix.sum(axis=1).all() > 0:
-                a = (scipy.stats.chi2_contingency(temp_matrix))
-                with open(association_test_dir + str(i) + '_' + str(j), 'w') as f:
-                    f.write('\n'.join([str(i) for i in a]))
                 temp_matrix.to_csv(association_test_dir + str(i) + '_' + str(j) + '.csv')
+                chi2, pvalue, dof, expected = scipy.stats.chi2_contingency(temp_matrix)
+                chi2_data.append((i,j,pvalue,chi2))
+                chi2_data.append((j,i,pvalue,chi2))
+            
+    df = pd.DataFrame(chi2_data, columns=['pos1', 'pos2', 'pvalue', 'chi2'])
+    df = df[(df.pos1.isin(range(args.start_pos_read, args.end_pos_read + 1))) & (df.pos2.isin(range(args.start_pos_read, args.end_pos_read + 1)))]
+    df.to_csv(association_test_dir + 'chi2_results.csv', index=False)
+                
     return
 
 
@@ -72,6 +84,8 @@ if __name__ == "__main__":
     parser.add_argument('-m', '--input_mutation_df', type=str, help='path to mutations df csv', required=True)
     parser.add_argument('-i', '--input_position_pairs_df', type=str, help='path to position pairs index df, created by create_couples_index_file.py', required=True)
     parser.add_argument("-o", "--output_dir", type=str, help="a path to an output directory", required=True)
+    parser.add_argument('-s', '--start_pos_read', type=int, help='require blast reads to start from at least this position', required=True)
+    parser.add_argument('-e', '--end_pos_read', type=int, help='require blast reads to end at least at this position', required=True)
     parser.add_argument('-j', '--pbs_job_array_id', type=int, help='pbs job array id, used to choose pairs of positions to check.', required=True)
     args = parser.parse_args()
     if not vars(args):
