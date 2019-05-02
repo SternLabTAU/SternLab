@@ -31,15 +31,18 @@ association test script to use when being run as many jobs in parallel (choose n
                                     -j NUMBER_OF_JOBS -o OUTPUT_FILE
 
 
-4. Run association_test.py scripts as a job array (for example, a pbs job array). This uses the blasts dataframe,
+4. Run association_test.py scripts, recommended as a job array. This uses the blasts dataframe,
 mutations dataframe and the position couple index file created in 2-3. Each job runs chi square association tests
-for every pair of positions from the position couple index file for which the index matches the job id.
+for every pair of positions from the position couple index file for which the index matches the job id. It saves
+both the contingency tables for every pair of positions, and a csv containing all of the chi2 results. Also recieves
+start_pos_read and end_pos_read, and only reads spanning these positions are used in the analysis.
 
    - usage: association_test.py [-h] -b INPUT_BLAST_DF -m INPUT_MUTATION_DF -i
-                           INPUT_POSITION_PAIRS_DF -o OUTPUT_DIR -j
-                           PBS_JOB_ARRAY_ID
+                           INPUT_POSITION_PAIRS_DF -o OUTPUT_DIR -s
+                           START_POS_READ -e END_POS_READ -j PBS_JOB_ARRAY_ID
 
    - This is the heaviest part of this code. For a genome of 3569 bases and results of 100,000 reads split into 100 jobs of 5000mb, this took 6 hours.
+   
 5. Unite association test results by running unify_association_tests.py. This creates a csv
 with the chi square statistic value and the p-value for every pair of positions the test was performed for.
 
