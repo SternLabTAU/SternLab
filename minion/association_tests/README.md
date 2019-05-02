@@ -49,7 +49,7 @@ with the chi square statistic value and the p-value for every pair of positions 
    - usage: unify_association_results.py [-h] -i INPUT_RESULTS_DIRECTORY -o
                                     OUTPUT_CSV
 
-6. Normalize chi square results by using the modified z-test. Gets an input path of a csv with all chi2 results and an output path to   write the z-test results to. Paramater window size determines the size of the sliding window for the test, defaults to 1, meaning       for position x uses all of the values for pairs (x, ?). (Example: window size value is 15 - uses all pairs (x+-15,?).)
+6. Normalize chi square results by using the modified z-test. Gets an input path of a csv with all chi2 results and an output path to   write the z-test results to. Paramater window size determines the size of the sliding window for the test, defaults to 1, meaning       for position x uses all of the values for pairs (i=x, j=?). (Example: window size value is 15 - uses all pairs (x-7<=i<=x+7, j=?).)
 
    - usage: chi2_modified_z_test.py [-h] -i INPUT_PATH -o OUTPUT_PATH
                                [-w WINDOW_SIZE]
