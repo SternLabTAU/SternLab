@@ -1,4 +1,4 @@
-
+#! /usr/local/python/anaconda_python-3.6.1
 
 
 import re
@@ -10,6 +10,9 @@ from Bio.Seq import Seq
 from Bio import Entrez
 from Bio import SeqIO
 import collections
+import pathlib
+import os
+
 
 
 
@@ -85,11 +88,21 @@ def find_mutation_type(freqs_file, ncbi_id):
     :param freqs_file:  The path of the relevant freqs file
     :return:DataFrame of the freqs file with mutation type column, save it into txt file
     """
+
+    #Debug
+    # freqs_file = "/Volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/180503_OST_FINAL_03052018/merged/RV-p11/q30_3UTR_new/RV-p11.freqs"
+    # ncbi_id = "NC_001490"
+
     start_time = time.time()
     file_name = freqs_file
     data = freqs_to_dataframe(freqs_file)
     data.reset_index(drop=True, inplace=True)
+    orign_data = data
     start_pos, end_pos = find_coding_region(ncbi_id)
+    # for half gene -  PAY ATTENTION!!!
+    #start_pos = 3608
+
+
     data = data.loc[data['Pos'] >= start_pos]
     data = data.loc[data['Pos'] <= end_pos]
     if check_12mer(data) != 1:
@@ -97,7 +110,7 @@ def find_mutation_type(freqs_file, ncbi_id):
     data['Codon'] = ""
     data['Ref_AA'] = ""
     data['Potential_AA'] = ""
-    data['Mutation Type'] = ""
+    data['Type'] = ""
     data['Pos'] = data['Pos'].astype(int)
     data.reset_index(drop=True, inplace=True)
     for kmer in range(data.first_valid_index(), (len(data)), 12):
@@ -108,17 +121,31 @@ def find_mutation_type(freqs_file, ncbi_id):
         print("translating codons....")
         translate_codon(kmer_df)
         print("Sets the Mutation type....")
-        kmer_df['Mutation Type'] = kmer_df[['Ref_AA', 'Potential_AA']].apply(
+        kmer_df['Type'] = kmer_df[['Ref_AA', 'Potential_AA']].apply(
             lambda protein: check_mutation_type(protein[0], protein[1]), axis=1)
     print("After a long for loop")
+    top_data = orign_data.loc[orign_data['Pos'] < start_pos]
+    top_data['Codon'] = ""
+    top_data['Ref_AA'] = ""
+    top_data['Potential_AA'] = ""
+    top_data['Type'] = ""
+    top_data['Pos'] = top_data['Pos'].astype(int)
+    bottom_data = orign_data.loc[orign_data['Pos'] > end_pos]
+    bottom_data['Codon'] = ""
+    bottom_data['Ref_AA'] = ""
+    bottom_data['Potential_AA'] = ""
+    bottom_data['Type'] = ""
+    bottom_data['Pos'] = bottom_data['Pos'].astype(int)
+    frames = [top_data, data, bottom_data]
+    data_final = pd.concat(frames)
     file_name = file_name[0:-5]
     file_name += "with.mutation.type.freqs"
-    data.to_csv(file_name, sep='\t', encoding='utf-8')
+    data_final.to_csv(file_name, sep='\t', encoding='utf-8')
     print("The File is ready in the folder")
     print("--- %s sec ---" % (time.time() - start_time))
     print("start_pos:%i" % start_pos)
     print("end_pos:%i" % end_pos)
-    return data
+    return data_final
 
 
 def freqs_to_dataframe(freqs_file):
@@ -221,17 +248,61 @@ def translate_codon(data):
     return data
 
 
-def check_mutation_type(protein1, protein2):
+def check_mutation_type(aa1, aa2):
     """
-    :param protein1: amino acid 1
-    :param protein2: amino acid 2
+    :param aa1: amino acid 1
+    :param aa2: amino acid 2
     :return: The mutation type
     """
     Mutation_Type = ""
-    if protein1 == protein2:
+    if aa1 == aa2:
         Mutation_Type = "Synonymous"
-    elif protein1 != protein2:
+    elif aa1 != aa2:
         Mutation_Type = "Non-Synonymous"
-    if protein2 == '*':
+    if aa2 == '*':
         Mutation_Type = "Premature Stop Codon"
     return Mutation_Type
+
+
+def filter_by_coverage_mutation(type_file, output_dir):
+    """
+    Creates DataFrame of frequencies with Mutations X->Y column
+    :param type_file: freqs file after it has ben processed with find_mutation_type func
+    :param output_dir: where to save the returned DF
+    :return: DF with Mutation and mutation_type column with minimal coverage
+    """
+    #data = pd.read_table(freqs_file)
+    data = type_file
+    data.reset_index(drop=True, inplace=True)
+    flag = '-' in data.Base.values
+    if flag is True:
+        data = data[data.Ref != '-']
+        data = data[data.Base != '-']
+        data.reset_index(drop=True, inplace=True)
+        # data['abs_counts'] = data['Freq'] * data["Read_count"]  # .apply(lambda x: abs(math.log(x,10))/3.45)
+        # data['Frequency'] = data['abs_counts'].apply(lambda x: 1 if x == 0 else x) / data["Read_count"]
+        # raise Exception("This script does not support freqs file with deletions, for support please contact Maoz ;)"
+    data['Base'].replace('T', 'U', inplace=True)
+    data['Ref'].replace('T', 'U', inplace=True)
+    min_read_count = 100000
+    data = data[data['Pos'] == np.round(data['Pos'])]  # remove insertions
+    data['Pos'] = data[['Pos']].apply(pd.to_numeric)
+    data = data[data['Read_count'] > min_read_count]
+    data['mutation_type'] = data['Ref'] + data['Base']
+    data = data[data['Ref'] != data['Base']]
+    data = data[data["Base"] != "-"]
+    data['abs_counts'] = data['Freq'] * data["Read_count"]  # .apply(lambda x: abs(math.log(x,10))/3.45)
+    data['Frequency'] = data['abs_counts'].apply(lambda x: 1 if x == 0 else x) / data["Read_count"]
+    data["Mutation"] = data["Ref"] + "->" + data["Base"]
+    data = data[["Pos", "Base", "Freq", "Ref", "Read_count", "Rank", "Prob", "Codon", "Ref_AA", "Potential_AA", "Type",
+                 "abs_counts", "Frequency", "mutation_type", "Mutation", "label", "passage", "replica"]]
+    data.to_csv(output_dir + "data_mutation.csv", sep=',', encoding='utf-8')
+    return data
+
+
+
+# def main():
+
+
+# if __name__ == "__main__":
+#     main()

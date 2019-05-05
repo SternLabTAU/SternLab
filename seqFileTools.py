@@ -283,7 +283,7 @@ def upper_case_seq_file(filename, in_format="fasta", outfile = None):
     return outfile
 
 
-def numerate_fasta_file(filename, in_format = "fasta", outfile = None):
+def numerate_fasta_file(filename, prefix = "", in_format = "fasta", index_file=None, outfile = None):
     """
     change seq ids to numbers in increasing order
     if output == None, overwrites  the original file
@@ -293,18 +293,26 @@ def numerate_fasta_file(filename, in_format = "fasta", outfile = None):
     :return:
     """
     filename = check_filename(filename)
+    if index_file == None:
+        index_file = filename.split(".fasta")[0] + ".numerate_index.txt"
+    else:
+        index_file = check_filename(index_file, Truefile=False)
     records = list(SeqIO.parse(filename, "fasta"))
     num = 1
+    index_data = ""
     for record in records:
+        index_data = index_data + "%i\t%s\n" % (num, record.description)
         record.description = ""
-        record.id = str(num)
-        record.name = str(num)
+        record.id = prefix + "_" + str(num)
+        record.name =  prefix + "_" + str(num)
         num += 1
     if outfile == None:
         outfile = filename
     else:
         outfile = check_filename(outfile, Truefile=False)
     SeqIO.write(records, outfile, "fasta")
+    with open(index_file, "w") as index_handle:
+        index_handle.write(index_data)
 
 
 def check_duplicate_seqs(filename, in_format="fasta"):
@@ -492,3 +500,33 @@ def replace_stop_codons_with_gapps(aln_file, in_format="fasta", output=None):
         seq.seq = new_seq
     SeqIO.write(aln, output, "fasta")
     print("%i replacments of stop codons to ---" % stop_codon_count)
+
+def reverse_complement_file(file, in_format="fasta", output=None):
+    """
+    saves a fasta file as a reverse complement
+    if no output file given - will save in the same filename
+    :param file: input seq file
+    :param in_format: input file format
+    :param output: output file (default=None)
+    :return:
+    """
+    file = check_filename(file)
+    if output == None:
+        output = file
+    else:
+        output = check_filename(output, Truefile=False)
+    seqs = list(SeqIO.parse(file, in_format))
+    for s in seqs:
+        s.seq = s.seq.reverse_complement()
+    SeqIO.write(seqs, output, "fasta")
+
+
+def count_seqs_in_fasta(file, in_format="fasta"):
+    """
+    returns the number of fasta entries in a file
+    :param file: input seq file
+    :param in_format: input file format
+    :return: number of seqs
+    """
+    file = check_filename(file)
+    return(len(list(SeqIO.parse(file, in_format))))

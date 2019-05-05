@@ -133,8 +133,8 @@ my $scripts_dir = $current_version_path;
 my $ascii_file = "$scripts_dir/ascii_table_processed.txt";
 my $blast_dir = "/sternadi/home/volume1/shared/tools/ncbi-blast-2.2.30+/bin";
 
-
-my $number_of_reads_per_fasta_file=50000;
+#25,000 reads per file for reduced memory consumption
+my $number_of_reads_per_fasta_file=25000;
 my $list_files=$out_dir."list.fastq.txt";
 my $num_fasta_files_in_this_run=-1;
 

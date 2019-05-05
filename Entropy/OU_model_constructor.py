@@ -3,7 +3,9 @@ import glob
 import seaborn as sns
 import matplotlib.pyplot as plt
 import statsmodels.stats.multitest as multi
-
+import sys
+from datetime import datetime
+import os
 
 def pre_process_files(super_folder, mapping, maxNorm=False):
     """
@@ -48,12 +50,26 @@ def pre_process_files(super_folder, mapping, maxNorm=False):
 
     print('Preprocess is done successfully')
 
-def run_OU_model(super_folder, features):
+
+def BM_OU_runner(super_folder, features, out_dir, MC=False, log=False):
     """
-    run the OU model R script sequentially for all phylogenies on all numerical traits
-    :param super_folder:
-    :return:
+    run the OU model R script sequentially for all phylogenys on all numerical traits
+    :param super_folder: a folder contaning information about trees. can be canonical
+    :param features: a list of features for simulating\running
+    :param out: output folder to save results
+    :param MC: whether or not to run monte carlo simulations. default is false - checking the model on a given tree.
+    :param log: print to screen or write to log
+    :return: saves for each tree and for each feature a csv with simulation results
     """
+
+    if log:
+        today = datetime.now()
+        cur_log = r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/logs/' + today.strftime('%Y%m%d') \
+                  + '{}:{}'.format(today.hour, today.minute) + '_BM_OU_runner'
+        if not os.path.exists(cur_log):
+            os.mkdir(cur_log)
+        log_file = os.path.join(cur_log, 'running_log.txt')
+        sys.stdout = open(log_file, 'w')
 
     # get all tree files
     all_trees = []
@@ -61,24 +77,35 @@ def run_OU_model(super_folder, features):
     for root, dirs, files in tqdm(os.walk(super_folder)):
         tree = [f for f in files if 'phyml_tree' in f]
 
+        if len(tree) != 1:
+            tree = [t for t in tree if 'sampled_50' in t]
+
         if tree != []:
             all_trees.append(os.path.join(root, tree[0]))
 
     for t in tqdm(all_trees):
         if tree_2_string(t) == '':
             continue
-        alias = os.path.basename(t).split('.')[0].strip()
+        alias = os.path.basename(t).split('.')[0].split('_')[0].strip()
+
         print(alias)
         data = os.path.join(os.path.dirname(t), 'entropies_{}.csv'.format(alias))
 
 
-        # run separately for each feature
+        #run separately for each feature
         for f in tqdm(features):
-            out = os.path.join(os.path.dirname(t), 'OU_summary_{}_{}.csv'.format(f,alias))
+            output = os.path.join(out_dir, 'OU_summary_{}_{}.csv'.format(f,alias))
             try:
-                os.system('Rscript OU_model.R -f {} -t {} -v {} -o {}'.format(data, t, f, out))
+                if not MC:
+                    os.system('Rscript OU_model.R -f {} -t {} -v {} -o {}'.format(data, t, f, output))
+                else:
+                    print('Running {}\n\n'.format(alias))
+                    os.system('Rscript monte_carlo.R -f {} -t {} -v {} -o {}'.format(data, t, f, output))
             except:
                 print(alias)
+
+
+
 
 
 def get_family(x):
@@ -140,57 +167,68 @@ def fdr_correct_by_features(df, features=None):
 
 def test_simulate_bm():
 
-    simulations_data = r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/OU_model/simulations'
-    real_data = r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/OU_model/BM-OU_sampled_trees'
+    #simulations_data = r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/OU_model/simulations'
+    simulations_data = r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/OU_model/MonteCarlo'
+    #real_data = r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/OU_model/BM-OU_sampled_trees'
+    real_data = r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/OU_model/filtered_pruned'
 
-    simulated_files = glob.glob(os.path.join(simulations_data,'*.csv'))
+    simulated_files = glob.glob(os.path.join(simulations_data,'*k5*.csv'))
     real_data_files = glob.glob(os.path.join(real_data, '*k5*.csv'))
 
     dfs = []
     for f in tqdm(simulated_files):
 
         family = f.split('_')[-1].split('.')[0].strip()
-        family_real_data = glob.glob(os.path.join(real_data, '*frame*{}*.csv'.format(family)))
+        family_real_data = glob.glob(os.path.join(real_data, '*k5*{}*.csv'.format(family)))
         if family_real_data ==[]:
             print(family)
             continue
 
         simulation = pd.read_csv(f)
         real = pd.read_csv(family_real_data[0])
-
-        lower_cutoff = np.percentile(simulation['chi_sqr'].values, 5)
-        upper_cutoff = np.percentile(simulation['chi_sqr'].values, 95)
+        lower_cutoff = np.percentile(simulation['lr_bm'].values, 5)
+        upper_cutoff = np.percentile(simulation['lr_bm'].values, 95)
 
         real_value = real[real['statistics'] == 'chiSquare']['values'].values[0]
 
-        significance = lower_cutoff <= real_value <= upper_cutoff
+        significance_bm = real_value < upper_cutoff
 
         pvalue = real[real['statistics'] == 'Pvalue']['values'].values[0]
 
-        df = pd.DataFrame({'isBM':significance, 'family':family, 'pvalue':pvalue}, index=[0])
+        lower_cutoff = np.percentile(simulation['lr_ou'].values, 5)
+        upper_cutoff = np.percentile(simulation['lr_ou'].values, 95)
+
+
+        significance_ou = real_value > upper_cutoff
+
+        isbm_pvalue = len([x for x in simulation['lr_bm'].values if x > real_value]) /  simulation.shape[0]
+
+
+        df = pd.DataFrame({'isBM': significance_bm, 'family': family, 'pvalue': pvalue, 'isBM_Pvalue':isbm_pvalue}, index=[0])
 
         dfs.append(df)
 
     result = pd.concat(dfs)
 
     result['corrected_pvalue'] = multi.fdrcorrection(result['pvalue'])[1]
-    result['model'] = result['corrected_pvalue'].apply(lambda x: 'BM' if x > 0.05 else 'OU')
+    result['corrected_isBM_pvalue'] = multi.fdrcorrection(result['isBM_Pvalue'])[1]
+    result['model'] = result['corrected_isBM_pvalue'].apply(lambda x: 'BM' if x > 0.05 else 'OU')
 
-    result['significance'] = result.apply(lambda row: True if (row['isBM'] == True and row['model'] == 'BM') or
-                                                              (row['isBM'] == False and row['model'] == 'OU') else False, axis=1)
+    # result['significance'] = result.apply(lambda row: True if (row['isBM'] == True and row['model'] == 'BM') or
+    #                                                           (row['isBM'] == False and row['model'] == 'OU') else False, axis=1)
     return result
 
 
 
-
-
-
-
-
-
-
-
-
+def plot_distribution(simulation, lower_cutoff, upper_cutoff, real_value, family, feature,out):
+    sns.distplot(simulation['lr_bm'], color='#2FA3BD', hist=False, kde_kws={'shade': True})
+    plt.axvline(x=lower_cutoff, color='#DF2115')
+    plt.axvline(x=upper_cutoff, color='#DF2115')
+    plt.axvline(x=real_value, color='olive')
+    sns.despine()
+    plt.title('{} BM simulations distribution {}'.format(family, feature), fontsize=22)
+    plt.xlabel('Chi Square statistic', fontsize=20)
+    plt.savefig(out, dpi=400, bbox_inches='tight')
 
 # call for pre-process data for each viral family
 # mapping = pd.read_csv(r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/entropies.csv')
@@ -748,8 +786,8 @@ wanted_rows = [c for c in set(df['feature']) if 'shift' not in c]
 
 
 x = test_simulate_bm()
-x['feature'] = 'reading_frame'
-x.to_csv(r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/OU_model/simulations_significance_bm_rf.csv', index=False)
+x['feature'] = 'k5'
+x.to_csv(r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/OU_model/k5_MC.csv', index=False)
 
 
 

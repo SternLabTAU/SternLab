@@ -8,10 +8,11 @@ import os.path
 import pathlib
 from file_utilities import *
 from optparse import OptionParser
-from cirseq_utilities import *
+import pandas as pd
+import numpy as np
 from scipy.stats import ttest_ind
 sns.set_context("talk")
-start_time = time.time()
+
 
 
 
@@ -28,19 +29,19 @@ def main():
     # freqs_file = check_filename(freqs_file)
 
     #for Local
-    sample1 = "RV-p11"
-    suffix1 = "%s.with.mutation.type.freqs" % sample1
+    source1 = "RV-p11"
+    suffix1 = "%s.with.mutation.type.freqs" % source1
     freqs_file1 = "/Volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/180503_OST_FINAL_03052018/merged/%s/q30_3UTR_new/%s" % \
-                 (sample1, suffix1)
+                 (source1, suffix1)
 
-    sample2 = "RV-p12"
-    suffix2 = "%s.with.mutation.type.freqs" % sample2
+    source2 = "RV-p12"
+    suffix2 = "%s.with.mutation.type.freqs" % source2
     freqs_file2 = "/Volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/180503_OST_FINAL_03052018/merged/%s/q30_3UTR_new/%s" % \
-                 (sample2, suffix2)
-    sample3 = "RV-IVT"
-    suffix3 = "%s.with.mutation.type.freqs" % sample3
+                 (source2, suffix2)
+    source3 = "RV-IVT"
+    suffix3 = "%s.with.mutation.type.freqs" % source3
     freqs_file3 = "/Volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/180503_OST_FINAL_03052018/merged/%s/q30_3UTR_new/%s" % \
-                 (sample3, suffix3)
+                 (source3, suffix3)
     virus = "RVB14"
     seq_meth = "AccuNGS"
     freqs_list = [freqs_file1, freqs_file2, freqs_file3]
@@ -69,11 +70,11 @@ def main():
     #          append_mutation = find_mutation_type(i, ncbi_id)
     #     freqs_file_mutations = i[0:-5] + "with.mutation.type.freqs"
 
-    fig2 = plt.figure(figsize=(16, 9))
-    gs = gridspec.GridSpec(4, 1)
-    ax0 = plt.subplot(gs[0, 0])
+    fig2 = plt.figure()
+    # gs = gridspec.GridSpec(2, 2)
+    ax0 = plt.subplot()
 
-    gs.tight_layout(fig2)
+    # gs.tight_layout(fig2)
     # ax = plt.subplot()
 
     make_boxplot_sample_control(freqs_list, ax0)
@@ -113,7 +114,7 @@ def arrange_freqs_file(freqs_file):
     data['abs_counts'] = data['Freq'] * data["Read_count"]  # .apply(lambda x: abs(math.log(x,10))/3.45)
     data['Frequency'] = data['abs_counts'].apply(lambda x: 1 if x == 0 else x) / data["Read_count"]
     data["Mutation"] = data["Ref"] + "->" + data["Base"]
-    data["Sample"] = freqs_file.split('/')[-1].split('.')[0]
+    data["Source"] = freqs_file.split('/')[-1].split('.')[0]
     return data
 
 
@@ -125,8 +126,9 @@ def make_boxplot_sample_control(freqs_list, ax):
     #
     data.to_csv("/Volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/180503_OST_FINAL_03052018/merged/RV-p11/q30_3UTR_new/data.csv", sep=',', encoding='utf-8')
 
-    g1 = sns.factorplot(x="Mutation Type", y="Frequency", data=data, col="Mutation", hue="Sample", order=["Synonymous",
-                        "Non-Synonymous", "Premature Stop Codon"], col_order=["C->U", "U->C", "G->A", "A->G"], kind="box")
+    g1 = sns.factorplot(x="Mutation Type", y="Frequency", data=data, col="Mutation", hue="Source", order=["Synonymous",
+                        "Non-Synonymous", "Premature Stop Codon"], col_order=["C->U", "U->C", "G->A", "A->G"], kind="box", col_wrap=2)
+
     g1.set_xticklabels(["Synonymous", "Non\nSynonymous", "Premature\nStop Codon"], fontsize=10)
     g1.set(yscale="log", ylim=(0.00001, 0.01))
     g1.set_xlabels('')
@@ -142,11 +144,11 @@ def make_boxplot_sample_control(freqs_list, ax):
     data_AG_syn.to_csv(
         "/Volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/180503_OST_FINAL_03052018/merged/RV-p11/q30_3UTR_new/data_AG_syn.csv",
         sep=',', encoding='utf-8')
-    cat1 = data_AG_syn[data_AG_syn['Sample'] == 'RV-IVT']
-    cat2 = data_AG_syn[data_AG_syn['Sample'] == 'RV-p12']
+    cat1 = data_AG_syn[data_AG_syn['Source'] == 'RV-IVT']
+    cat2 = data_AG_syn[data_AG_syn['Source'] == 'RV-p12']
     print("A->G Synonymous", ttest_ind(cat1['Frequency'], cat2['Frequency']))
-    cat3 = data_UC_syn[data_UC_syn['Sample'] == 'RV-IVT']
-    cat4 = data_UC_syn[data_UC_syn['Sample'] == 'RV-p12']
+    cat3 = data_UC_syn[data_UC_syn['Source'] == 'RV-IVT']
+    cat4 = data_UC_syn[data_UC_syn['Source'] == 'RV-p12']
     print("U->C Synonymous", ttest_ind(cat3['Frequency'], cat4['Frequency']))
     # Non-Synonymous mutations
     data_AG_nonsyn = data[data['Mutation'] == 'A->G']
@@ -156,11 +158,11 @@ def make_boxplot_sample_control(freqs_list, ax):
     data_AG_nonsyn.to_csv(
         "/Volumes/STERNADILABHOME$/volume3/okushnir/AccuNGS/180503_OST_FINAL_03052018/merged/RV-p11/q30_3UTR_new/data_AG_nonsyn.csv",
         sep=',', encoding='utf-8')
-    cat1 = data_AG_nonsyn[data_AG_nonsyn['Sample'] == 'RV-IVT']
-    cat2 = data_AG_nonsyn[data_AG_nonsyn['Sample'] == 'RV-p12']
+    cat1 = data_AG_nonsyn[data_AG_nonsyn['Source'] == 'RV-IVT']
+    cat2 = data_AG_nonsyn[data_AG_nonsyn['Source'] == 'RV-p12']
     print("A->G Non-Synonymous", ttest_ind(cat1['Frequency'], cat2['Frequency']))
-    cat3 = data_UC_nonsyn[data_UC_nonsyn['Sample'] == 'RV-IVT']
-    cat4 = data_UC_nonsyn[data_UC_nonsyn['Sample'] == 'RV-p12']
+    cat3 = data_UC_nonsyn[data_UC_nonsyn['Source'] == 'RV-IVT']
+    cat4 = data_UC_nonsyn[data_UC_nonsyn['Source'] == 'RV-p12']
     print("U->C Non-Synonymous", ttest_ind(cat3['Frequency'], cat4['Frequency']))
 
 if __name__ == "__main__":

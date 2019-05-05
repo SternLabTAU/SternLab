@@ -1,0 +1,645 @@
+import numpy as np
+import pandas as pd
+import random
+from tqdm import tqdm
+import statsmodels.stats.multitest as multi
+import argparse
+from Bio import SeqIO
+import os
+from math import floor, ceil
+from typing import AnyStr
+from utils import joint_entropy, entropy_by_kmer, get_reverse_complement
+from sklearn.model_selection import train_test_split
+from sklearn import metrics
+from sklearn.naive_bayes import GaussianNB
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import LinearSVC
+from sklearn.calibration import calibration_curve
+import matplotlib.pyplot as plt
+from copy import deepcopy
+from scipy import stats
+from sklearn.mixture import GaussianMixture
+from sklearn.metrics.cluster import adjusted_rand_score
+import glob
+import seaborn as sns
+from sklearn.metrics import roc_curve, auc
+from collections import Counter
+
+
+
+
+def get_critical_points(profile):
+    """
+    this method calculates the gradient of each one of the points in profile and returns a list of tuples containing all
+    critical points (x,y)
+    :param profile: a vector of numbers
+    :return: a vector of the gradients of each data point
+    """
+
+    gradients = np.gradient(profile)
+    critical_pts = [(x+1, profile[x]) for x, y in enumerate(gradients) if y ==0]    # add 1 to x to fit the relevant position (indices starts from 0!
+    return critical_pts
+
+
+
+def codon_scrambler(seq):
+    """
+    scramble the codons in seq. this method assumes that the given seq is of coding region and contains triplets.
+    :param seq: a cds sequence
+    :return: the scrambled codon sequence
+    """
+
+    if seq %3 != 0:
+        print('seq should be a multiple of 3!')
+        return
+
+    codons = [seq[i:i+3] for i in range(0, len(seq), 3)]
+    random.shuffle(codons)
+    return ''.join(codons)
+
+
+def stretchFinder(profile, l, m=10**4):
+    """
+    implementation of strechFinder as described in : "Synonymous site conservation in the HIV-1 genome"
+    :param profile: a vector of entropy values
+    :param l: the window size
+    :param m: number of permutations
+    :return:
+    """
+    start_index = []
+    p_values = []
+
+    #create a per-profile distribution of averages, then sample
+    avgs = np.array([])
+    for j in range(m):
+        new_profile = profile
+        cur_avg = np.mean(new_profile[np.random.choice(len(new_profile), size=l, replace=False)])
+        avgs = np.insert(avgs, avgs.searchsorted(cur_avg), cur_avg)
+
+    for i in tqdm(range(0,len(profile) - l)):
+        # get the current window and its average value
+        w = profile[i:i+l]
+        avg = np.mean(w)
+
+        # sort average in order to get the p value
+        idx = np.searchsorted(avgs, avg)
+        p_value = idx/m
+        p_values.append(p_value)
+        start_index.append(i)
+
+    data =  pd.DataFrame({'start':start_index, 'p_value':p_values, 'l':l})
+
+    # correct for multiple tests
+    data['corrected_pvalue'] = multi.fdrcorrection(data['p_value'])[1]
+
+    return data
+
+
+###### utils for the detection of repetitive strings #####
+
+
+# taken from: https://gist.github.com/BertrandBordage/611a915e034c47aa5d38911fc0bc7df9
+ASCII_TO_INT: dict = {i.to_bytes(1, 'big'): i for i in range(256)}
+INT_TO_ASCII: dict = {i: b for b, i in ASCII_TO_INT.items()}
+
+
+def compress(data: AnyStr):
+    """
+    this method compresses a string and returns its representation in bits.
+    notice that one can compare between length of compressed sequences iff the sequences have the same length.
+    :param data: a string
+    :return: bits representing the string compressed.
+    """
+    if isinstance(data, str):
+        data = data.encode()
+    keys: dict = ASCII_TO_INT.copy()
+    n_keys: int = 256
+    compressed: list = []
+    start: int = 0
+    n_data: int = len(data)+1
+    while True:
+        if n_keys >= 512:
+            keys = ASCII_TO_INT.copy()
+            n_keys = 256
+        for i in range(1, n_data-start):
+            w: bytes = data[start:start+i]
+            if w not in keys:
+                compressed.append(keys[w[:-1]])
+                keys[w] = n_keys
+                start += i-1
+                n_keys += 1
+                break
+        else:
+            compressed.append(keys[w])
+            break
+    bits: str = ''.join([bin(i)[2:].zfill(9) for i in compressed])
+    in_bytes = int(bits, 2).to_bytes(ceil(len(bits) / 8), 'big')
+
+    return bits
+
+
+def p_generator():
+    """
+    this method generates different distributions length 4 for each one of the nucleotides
+    :param n: number of probabilities to define
+    :return: list of multiple p's
+    """
+    ps = []
+
+    # random
+    for i in range(10**4):
+        rand_a = np.random.rand(4)
+        rand_a /= rand_a.sum()
+
+        ps.append(rand_a)
+
+    # uniforms
+    for i in range(10**4):
+        ps.append(np.array([0.25,0.25,0.25,0.25]))
+
+    random.shuffle(ps)
+
+    return ps
+
+def sequences_generator(alphabet, w, m=10**4):
+    """
+    this method generates sequences by a known distribution on the alphabet content.
+    :param alphabet:a list containing the wanted alphabet
+    :param w: the size of the sequence generated
+    :param m: number of iterations
+    :return: a generator of sequences.
+    """
+    # get probabilities
+    ps = p_generator()
+
+    for i in range(m):
+        yield ''.join(np.random.choice(alphabet,size=w, p=ps[i])), ps[i]
+
+
+def create_data_matrix(alphabet, w):
+    """
+    create a matrix of the input data
+    :param alphabet: a list containing the wanted alphabet
+    :param w: the size of the sequence generated
+    :return: a data frame with the input data
+    """
+
+    dfs = []
+    for seq, p in sequences_generator(alphabet, w):
+        entropy = entropy_by_kmer(seq, 5)
+        lzw = len(compress(seq))
+        df = pd.DataFrame({'entropy':entropy, 'lzw':lzw, 'a':[0], 'c':p[1], 'g':p[2], 't':p[3]}, index=[0])
+        dfs.append(df)
+
+    result = pd.concat(dfs)
+    return result
+
+def add_labels_to_matrix(X):
+    """
+    this method adds a label vector to the data frame X
+    :param X: a data frame with the models features
+    :return: a data frame with a y column describing the label of the entry - 1 is for repetitive and 0 ow
+    """
+
+    # get the threshold for the top 5 %
+    p = np.percentile(X['lzw'], 10)
+
+    # label the entries
+    X['y'] = X['lzw'].apply(lambda x: 1 if x <= p else 0)
+    return X
+
+
+def random_forest_classifier(data):
+    """
+    bulid a random forest classifier and test its accuracuy
+    :param data: input data frame with features and labels
+    :return:
+    """
+
+    X = data[['entropy', 'lzw', 'a', 'c', 'g', 't']]  # Features
+    y = data['y']  # Labels
+
+    # Split dataset into training set and test set
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)  # 70% training and 30% test
+
+    # Create a Gaussian Classifier
+    clf = RandomForestClassifier(n_estimators=100)
+
+    # Train the model using the training sets y_pred=clf.predict(X_test)
+    clf.fit(X_train, y_train)
+    y_pred = clf.predict(X_test)
+
+    # Model Accuracy
+    print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
+
+
+    # analysis of multiple classification models taken from:
+    # https://scikit-learn.org/stable/auto_examples/calibration/plot_compare_calibration.html#sphx-glr-auto-examples-calibration-plot-compare-calibration-py
+    # Create classifiers
+    lr = LogisticRegression(solver='lbfgs')
+    gnb = GaussianNB()
+    svc = LinearSVC(C=1.0)
+    rfc = RandomForestClassifier(n_estimators=100)
+
+    # #############################################################################
+    # Plot calibration plots
+
+    plt.figure(figsize=(10, 10))
+    ax1 = plt.subplot2grid((3, 1), (0, 0), rowspan=2)
+    ax2 = plt.subplot2grid((3, 1), (2, 0))
+
+    ax1.plot([0, 1], [0, 1], "k:", label="Perfectly calibrated")
+    for clf, name in [(lr, 'Logistic'),
+                      (gnb, 'Naive Bayes'),
+                      (svc, 'Support Vector Classification'),
+                      (rfc, 'Random Forest')]:
+        clf.fit(X_train, y_train)
+        if hasattr(clf, "predict_proba"):
+            prob_pos = clf.predict_proba(X_test)[:, 1]
+        else:  # use decision function
+            prob_pos = clf.decision_function(X_test)
+            prob_pos = \
+                (prob_pos - prob_pos.min()) / (prob_pos.max() - prob_pos.min())
+        fraction_of_positives, mean_predicted_value = \
+            calibration_curve(y_test, prob_pos, n_bins=10)
+
+        ax1.plot(mean_predicted_value, fraction_of_positives, "s-",
+                 label="%s" % (name,))
+
+        ax2.hist(prob_pos, range=(0, 1), bins=10, label=name,
+                 histtype="step", lw=2)
+
+    ax1.set_ylabel("Fraction of positives", fontsize=14)
+    ax1.set_ylim([-0.05, 1.05])
+    ax1.legend(loc="lower right")
+    ax1.set_title('Calibration plots  (reliability curve)', fontsize=14)
+
+    ax2.set_xlabel("Mean predicted value", fontsize=14)
+    ax2.set_ylabel("Count", fontsize=14)
+    ax2.legend(loc="upper center", ncol=2)
+
+    plt.tight_layout()
+    plt.show()
+
+
+def test_real_data_per_seq(seq, data, w, index):
+    """
+    predict for each sequence in fasta its label
+    :param fasta: sequence
+    :param data: the data used to build the classifier
+    :param w: the size of the sequence in the genome profile
+    :param index: an index for the sequence. this will be used in the output df
+    :return:
+    """
+    seq = seq.lower()
+    # fit a random forest model
+    X = data[['entropy', 'lzw', 'a', 'c', 'g', 't']]  # Features
+    y = data['y']  # Labels
+
+    clf = RandomForestClassifier(n_estimators=100)
+
+    # Train the model using the training sets y_pred=clf.predict(X_test)
+    clf.fit(X, y)
+
+    # iterate over the sequences and get all features needed for prediction
+    dfs = []
+    for j in tqdm(range(len(seq) - w)):
+        sub_genome = seq[j:j + w]
+        n = len(sub_genome)
+        entropy = entropy_by_kmer(sub_genome, 5)
+        lzw = len(compress(sub_genome))
+        df = pd.DataFrame({'entropy':entropy, 'lzw':lzw, 'a':sub_genome.count('a') / n,'c':sub_genome.count('c') / n,
+                           'g': sub_genome.count('g') / n,'t':sub_genome.count('t') / n}, index=[j])
+        dfs.append(df)
+
+    result =  pd.concat(dfs)
+
+    # predict new labels
+    y_pred = clf.predict(result)
+    return pd.DataFrame({'predicted_{}'.format(index):y_pred})
+
+
+def generate_all_predictions(fasta, data):
+    """
+    this method predicts the labels of all sequences in a fasta file
+    :param fasta: a fasta file containing sequences
+    :param data: a data which a model in train by
+    :return: a data frame with all predictions
+    """
+
+    dfs = []
+    # iteratively get all sequences and their predictions
+    i = 0
+    for rec in SeqIO.parse(fasta, "fasta"):
+        seq = str(rec.seq)
+        pred = test_real_data_per_seq(seq, data, 200, i)
+        dfs.append(pred)
+        i += 1
+
+    result = pd.concat(dfs, axis=1)
+    return result
+
+
+# Euclidean Distance Calculator
+def dist(a, b, ax=1):
+    return np.linalg.norm(a - b, axis=ax)
+
+# Residuals squares
+def RS(a,b,ax=1):
+    return np.array([(a[1] - (c[1] + a[0] * c[0])) ** 2 for c in b])
+
+
+def lines_k_means(x, y, k=3):
+    """
+    implementation of a line based kmeans (instead of centroids)
+    :param k: number of clusters
+    :param x: vector of points
+    :param y: vector of points (corresponds to x)
+    :return: division to clusters
+    """
+
+    # store all the points in a 2d array.
+    X = np.array(list(zip(x, y)))
+    C_x = []
+    # intercept of random centroids
+    C_y = []
+
+    init_C = np.random.choice(list(range(k)), size = len(X))
+    for i in range(k):
+        curX = [X[j] for j in range(len(X)) if init_C[j] == i]
+        slope, intercept, r_value, p_value, std_err = stats.linregress([p[0] for p in curX], [p[1] for p in curX])
+        C_x.append(slope)
+        C_y.append(intercept)
+
+    # slope of random centroids
+    C = np.array(list(zip(C_x, C_y)), dtype=np.float32)
+
+    # To store the value of centroids when it updates
+    C_old = np.zeros(C.shape)
+    # Cluster Lables(0, 1, 2)
+    clusters = np.zeros(len(X))
+    # Error func. - Distance between new centroids and old centroids
+    error = dist(C, C_old, None)
+    # Loop will run till the error becomes zero
+    while error != 0:
+        # Assigning each value to its closest cluster
+        for i in range(len(X)):
+            distances = RS(X[i], C)
+            cluster = np.argmin(distances)
+            clusters[i] = cluster
+        # Storing the old centroid values
+        C_old = deepcopy(C)
+        # Finding the new centroids by re calculating the slope and the
+        for i in range(k):
+            points = [X[j] for j in range(len(X)) if clusters[j] == i]
+            slope, intercept, r_value, p_value, std_err = stats.linregress([p[0] for p in points], [p[1] for p in points])
+            C[i] = slope, intercept
+        error = dist(C, C_old, None)
+
+    return clusters
+
+
+
+def simulate_dataset(n, size):
+    """
+    simulate sequences from different classes ( up to 4 : repetitive, repetitive with stem loops, random, only stem loop
+    :param n: number of sequences to simulate
+    :param size: the size of each sequence
+    :return: a data frame containing a sequence, entropy and joint entropy, together with a type indicating the class
+    """
+
+    sequences = []
+    cluster = []
+
+    # repetitive sequences
+    for i in tqdm(range(n)):
+        cluster_name = 'Repetitive'
+        seq = ''.join(np.random.choice(['a', 'c', 'g', 't'], p=[0.6, 0.2, 0.1, 0.1], size=size))
+        sequences.append(seq)
+        cluster.append(cluster_name)
+
+    # create a data frame with all information
+    df_rep = pd.DataFrame({'sequence':sequences, 'cluster':cluster})
+    df_rep['entropy'] = df_rep['sequence'].apply(lambda x: entropy_by_kmer(x,5))
+    df_rep['joint_entropy'] = df_rep['sequence'].apply(lambda x: joint_entropy(x, str(get_reverse_complement(x)), 5))
+
+    # normalize bpth entropy and joint entropy to 0-1
+    df_rep['entropy'] = df_rep['entropy'] /  df_rep['entropy'].max()
+    df_rep['joint_entropy'] = df_rep['joint_entropy'] / df_rep['joint_entropy'].max()
+
+
+    sequences = []
+    cluster = []
+    # repetitive sequences + structure - generate a perfect stem loop
+    for i in tqdm(range(n)):
+        cluster_name = 'Repetitive + Stem loop'
+        seq = ''.join(np.random.choice(['a', 'c', 'g', 't'], p=[0.6, 0.2, 0.1, 0.1], size=size//2))
+        seq = seq + str(get_reverse_complement(seq))
+        sequences.append(seq)
+        cluster.append(cluster_name)
+
+    # create a data frame with all information
+    df_rep_st = pd.DataFrame({'sequence':sequences, 'cluster':cluster})
+    df_rep_st['entropy'] = df_rep_st['sequence'].apply(lambda x: entropy_by_kmer(x,5))
+    df_rep_st['joint_entropy'] = df_rep_st['sequence'].apply(lambda x: joint_entropy(x, str(get_reverse_complement(x)), 5))
+
+    # normalize bpth entropy and joint entropy to 0-1
+    df_rep_st['entropy'] = df_rep_st['entropy'] /  df_rep_st['entropy'].max()
+    df_rep_st['joint_entropy'] = df_rep_st['joint_entropy'] / df_rep_st['joint_entropy'].max()
+
+    sequences = []
+    cluster = []
+    # only structure - generate a perfect stem loop
+    for i in tqdm(range(n)):
+        cluster_name = 'Stem loop'
+        seq = ''.join(np.random.choice(['a', 'c', 'g', 't'], p=[0.25, 0.25, 0.25, 0.25], size=size//2))
+        seq = seq + str(get_reverse_complement(seq))
+        sequences.append(seq)
+        cluster.append(cluster_name)
+
+    # create a data frame with all information
+    df_st = pd.DataFrame({'sequence':sequences, 'cluster':cluster})
+    df_st['entropy'] = df_st['sequence'].apply(lambda x: entropy_by_kmer(x,5))
+    df_st['joint_entropy'] = df_st['sequence'].apply(lambda x: joint_entropy(x, str(get_reverse_complement(x)), 5))
+
+    # normalize bpth entropy and joint entropy to 0-1
+    df_st['entropy'] = df_st['entropy'] /  df_st['entropy'].max()
+    df_st['joint_entropy'] = df_st['joint_entropy'] / df_st['joint_entropy'].max()
+
+    sequences = []
+    cluster = []
+
+    # random
+    for i in tqdm(range(n)):
+        cluster_name = 'Random'
+        seq = ''.join(np.random.choice(['a', 'c', 'g', 't'], p=[0.25, 0.25, 0.25, 0.25], size=size))
+        seq = seq + str(get_reverse_complement(seq))
+        sequences.append(seq)
+        cluster.append(cluster_name)
+
+    # create a data frame with all information
+    df_rand = pd.DataFrame({'sequence': sequences, 'cluster': cluster})
+    df_rand['entropy'] = df_rand['sequence'].apply(lambda x: entropy_by_kmer(x, 5))
+    df_rand['joint_entropy'] = df_rand['sequence'].apply(lambda x: joint_entropy(x, str(get_reverse_complement(x)), 5))
+
+    # normalize bpth entropy and joint entropy to 0-1
+    df_rand['entropy'] = df_rand['entropy'] /  df_rand['entropy'].max()
+    df_rand['joint_entropy'] = df_rand['joint_entropy'] / df_rand['joint_entropy'].max()
+
+
+    # combine all inputs to one df, and return it
+
+    result = pd.concat([df_rep, df_rep_st, df_st, df_rand])
+    return result
+
+
+
+def GMM_clustering(data, k):
+    """
+    This method clusters 'data' using a gaussian mixture model. the motivation is that each cluster was generated from
+    from a different distribution.
+    :param data: data frame containing entropy and joint entropy columns
+    :param k: the number of clusters
+    :return: a data frame with cluster assignment for each row.
+    """
+
+    X = data[['entropy', 'joint_entropy']]
+    # init model params, fit and predict
+
+    gmm = GaussianMixture(n_components=k)
+    gmm.fit(X)
+    y_cluster_gmm = gmm.predict(X)
+
+    data['GMM_cluster'] = y_cluster_gmm
+
+    return data
+
+
+def GMM_model_selection(data):
+    """
+    This method clusters 'data' using a gaussian mixture model. the motivation is that each cluster was generated from
+    from a different distribution.
+    :param data: data frame containing entropy and joint entropy columns
+    :return: a data frame with clustering measurements
+    """
+
+    X = data[['entropy', 'joint_entropy']]
+
+    n_cluster = [2,3,4,5,6]
+    cov = ['full', 'tied', 'diag', 'spherical']
+
+    dfs = []
+    for k in n_cluster:
+        for c in cov:
+            gmm = GaussianMixture(n_components=k, covariance_type=c)
+            gmm.fit(X)
+            y_cluster_gmm = gmm.predict(X)
+
+            bic = gmm.bic(X)
+            score = adjusted_rand_score(data['cluster'], y_cluster_gmm)
+            df = pd.DataFrame({'k':k, 'covariance':c, 'bic':bic, 'score':score}, index=[0])
+            dfs.append(df)
+
+    result = pd.concat(dfs)
+    return result
+
+
+def clustering_performance_evaluation(X, y_pred, y_true):
+    """
+    this function implement multiple evaluation metrics for clustering analysis.
+    this method will be used in order to asses the quality of a clustering solution based on multiple criteria
+    :param X: input matrix
+    :param y_pred: predicted vector
+    :param y_true: ground truth - if none - one do not have this knowledge
+    :return: a dictionary with all measures
+    """
+
+    result = {}
+    result['ARI'] = metrics.adjusted_rand_score(y_true, y_pred)
+    result['AMI'] = metrics.adjusted_mutual_info_score(y_true, y_pred)
+    result['NMI'] = metrics.normalized_mutual_info_score(y_true, y_pred)
+    h,c,v = metrics.homogeneity_completeness_v_measure(y_true, y_pred)
+    result['Homo'] = h
+    result['Comp'] = c
+    result['V'] = v
+    result['FM'] = metrics.fowlkes_mallows_score(y_true, y_pred)
+
+    result['Sil'] = metrics.silhouette_score(X[['entropy', 'joint_entropy']], y_pred, metric='euclidean')
+
+    return result
+
+
+def generate_scores(data, model='gmm'):
+    """
+    run multiple models and get the score foe each one
+    :param data: input data matrix
+    :param model: the type of model tested
+    :return: a matrix with all scores information by model type
+    """
+
+    n_clusters = [1,2,3,4,5,6]
+    dfs = []
+
+    for k in tqdm(n_clusters):
+        if model =='gmm':
+            model = 'GMM'
+            X = GMM_clustering(data, k)
+            y_pred = X['GMM_cluster']
+            y_true = X['cluster']
+
+        else:
+            model = 'K-MEANS'
+            y_pred = lines_k_means(data['entropy'], data['joint_entropy'], k)
+            y_true = data['cluster']
+
+        scores = clustering_performance_evaluation(data, y_pred, y_true)
+        df = pd.DataFrame({'score':list(scores.keys()), 'value':list(scores.values()), 'k':k, 'model':model})
+        dfs.append(df)
+
+    result = pd.concat(dfs)
+    return result
+
+
+
+
+
+
+
+
+
+
+#
+# def main(args):
+#
+#     # df = pd.read_csv(args.data)
+#     #
+#     # c = 'seq_{}'.format(args.index - 1)
+#     # seq = np.array(df[c].dropna())
+#     # res = stretchFinder(seq, args.window, args.m)
+#     # out= r'/sternadi/home/volume1/daniellem1/Entropy/stats/{}_stats.csv'.format(c)
+#     # res.to_csv(out, index=False)
+#
+#     data = pd.read_csv(r'/volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/stats/repetitive_seqs_matrix.csv')
+#     data = add_labels_to_matrix(data)
+#
+#     fasta = r'/volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/Phylogeny/family/Togaviridae/Togaviridae.fasta'
+#
+#     result = generate_all_predictions(fasta, data)
+#     result.to_csv(r'/volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/stats/repetitive_predictions.csv')
+#
+#
+#
+#
+#
+#
+# if __name__ == "__main__":
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument("-i", "--index", type=int, help="array index", required=False)
+#     parser.add_argument("-w", "--window", type=int, help="window size", default=100)
+#     parser.add_argument("-m", "--m", type=int, help="total number of iterations", default=10**5)
+#     parser.add_argument("-d", "--data", type=str, help="file path to an input profile", required=False)
+#
+#     args = parser.parse_args()
+#
+#     main(args)

@@ -135,4 +135,47 @@ def label_leaf_nodes(tree_file, outfile):
     with open(outfile, "w") as f:
         f.write(tree3)
 
+def label_internal_nodes(tree_file, outfile):
+    tree_file = check_filename(tree_file)
+    outfile = check_filename(outfile, Truefile=False)
+    tree = open(tree_file, 'r').read()
+    tree2= tree.replace("):", ") #1 :")
+    with open(outfile, "w") as f:
+        f.write(tree2)
 
+
+def remove_dots_from_node_names(tree_file, outfile=None):
+    """
+    change dots (.) to underscore (_) in node names
+    :param tree_file: input tree path
+    :param outfile: output tree path to save (default: None)
+    :return: saves the new tree in outfile
+    """
+    tree_file = check_filename(tree_file)
+    if outfile == None:
+        outfile = tree_file
+    else:
+        outfile = check_filename(outfile, Truefile=False)
+    tree = Phylo.read(tree_file, "newick")
+    clades = list(tree.find_clades())
+    for c in clades:
+        if c.name != None:
+            c.name = c.name.replace(".", "_")
+    Phylo.write([tree], outfile, "newick")
+
+def get_average_tip_to_root_distance(tree_file):
+    """
+    get average distance of tip to root ditance
+    :param tree_file: input tree path
+    :return: average root to tips distance
+    """
+    tree_file = check_filename(tree_file)
+    tree = Phylo.read(tree_file, "newick")
+    clades = list(tree.find_clades())
+    sum = 0
+    count = 0
+    for c in clades:
+        if c.name != None:
+            sum += tree.distance(c)
+            count += 1
+    return(sum/count)

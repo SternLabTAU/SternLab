@@ -96,12 +96,11 @@ def mlbs_to_df(output, mlbs = [], dirname = None):
 
     output = check_filename(output, Truefile=False)
 
-    df = pd.DataFrame(columns = ["mlb_file_name", "family", "group", "model", "lnL",
+    df = pd.DataFrame(columns = ["mlb_file_name",  "basename", "family", "protein", "group", "model", "lnL",
                                  "freq_T", "freq_C", "freq_A", "freq_G",
                                  "TC", "TA", "TG", "CT", "CA", "CG", "AT",
                                  "AC", "AG", "GT", "GC", "GA"])
                         
-
     lnL_1 = re.compile("lnL.*")
     lnL_2 = re.compile("\-?\d*\.\d*")
     base_1 = re.compile("Base frequencies.*")
@@ -109,13 +108,15 @@ def mlbs_to_df(output, mlbs = [], dirname = None):
     rate_1 = re.compile("Rate matrix Q.*\n.*\n.*\n.*\n.*", re.IGNORECASE)
     rate_2 = re.compile("\d+.\d+")
     for mlb_file_name in mlbs:
+        basename = mlb_file_name.split("/")[-1].split(".mlb")[0]
         print(mlb_file_name)
-        family = mlb_file_name.split("/")[-2]
-        filename = mlb_file_name.split("/")[-1]
-        if "_gtr" in filename or "_unrest" in filename:
-            filename = filename.split("_gtr")[0]
-            filename = filename.split("_unrest")[0]
-        model = mlb_file_name.split(".mlb")[0].split("_")[-1]
+        family = mlb_file_name.split("/")[-1].split("_")[0]
+        protein = mlb_file_name.split("/")[-1].split(family+"_")[1].split(".")[0]
+        filename = mlb_file_name.split("/")[-1].split(family+"_")[-1].split(".mlb")[0]
+        #if "_gtr" in filename or "_unrest" in filename:
+        #    filename = filename.split("_gtr")[0]
+        #    filename = filename.split("_unrest")[0]
+        model = mlb_file_name.split(".mlb")[-1]
         
 
         mlb = open(mlb_file_name, "r").read()
@@ -169,7 +170,7 @@ def mlbs_to_df(output, mlbs = [], dirname = None):
             GT = fourth[0]; GC = fourth[1]; GA = fourth[2]
             
          
-        df = df.append({"mlb_file_name":mlb_file_name, "family":family, "group":filename, "model":model, "lnL":L,
+        df = df.append({"mlb_file_name":mlb_file_name, "basename":basename, "family":family, "protein":protein, "group":filename, "model":model, "lnL":L,
                                  "freq_T":freq_T, "freq_C":freq_C, "freq_A":freq_A,
                                  "freq_G":freq_G, "TC":TC, "TA":TA, "TG":TG, 
                                  "CT":CT, "CA":CA, "CG":CG, "AT":AT,
@@ -587,7 +588,7 @@ def retrive_codeml_delitirious_restults(files, output="./codeml_1-2ratio_results
     """
     files = [check_filename(f) for f in files]
     output = check_filename(output, Truefile=False)
-    dir = os.path.dirname(files[0])
+    dir = os.path.dirname(files[0]).split("codon_aln")[0]
     # regex patterns for retrieving results
     omega_1ratio_pattern = re.compile("omega.*")
     dN_length_pattern = re.compile("tree length for dN:.*")
@@ -600,11 +601,11 @@ def retrive_codeml_delitirious_restults(files, output="./codeml_1-2ratio_results
     for f in files:
         if "unaligned" in f:
             continue
-        basename = f.split("/")[-1].split(".fasta")[0].split(".phy")[0]
-        print("%s/1ratio/%s*.mlc" % (dir, basename))
-        print("%s/2ratio/%s*.mlc" % (dir, basename))
-        mlc_1ratio = glob.glob("%s/1ratio/%s*.mlc" % (dir, basename))[0]
-        mlc_2ratio = glob.glob("%s/2ratio/%s*.mlc" % (dir, basename))[0]
+        basename = f.split("/")[-1].split(".fasta")[0].split(".phy")[0].split(".aln")[0]
+        print("%s/1ratio/%s*.cml" % (dir, basename))
+        print("%s/2ratio/%s*.cml" % (dir, basename))
+        mlc_1ratio = glob.glob("%s/1ratio/%s*.cml" % (dir, basename))[0]
+        mlc_2ratio = glob.glob("%s/2ratio/%s*.cml" % (dir, basename))[0]
         omega = None
         dN_length_1ratio = None
         dS_length_1ratio = None
@@ -644,6 +645,23 @@ def retrive_codeml_delitirious_restults(files, output="./codeml_1-2ratio_results
              "w": omega, "wi": internal_branchs, "we": external_branchs,
              "dN_length_1ratio": dN_length_1ratio, "dS_length_1ratio": dS_length_1ratio,
              "dN_length_2ratio": dN_length_2ratio, "dS_length_2ratio": dS_length_2ratio}, ignore_index=True)
-
+    print(output)
     codeml_results.to_csv(output)
     return codeml_results
+
+
+def retrive_kappa_from_paml_output(mlb):
+    """
+    return kappa
+    :param mlb: mlb file
+    :return: kappa
+    """
+    mlb = check_filename(mlb)
+    with open(mlb, "r") as mlb_handle:
+        mlb_data = mlb_handle.read()
+        loc = mlb_data.find("Average Ts/Tv")
+        try:
+            kappa = float(mlb_data[loc:loc+50].split("=")[1].split("\n")[0].strip())
+            return kappa
+        except:
+            return None

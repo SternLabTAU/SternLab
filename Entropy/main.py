@@ -1,59 +1,61 @@
-from utils import *
-from entropy_selection import *
+
+
+# from OU_model_constructor import *
+from selection_model_analysis import *
 import argparse
 
-
-def main():
-
-    cds = r'/sternadi/home/volume1/daniellem1/Entropy/data/virushostdb.cds.fna'
-    genomics = r'/sternadi/home/volume1/daniellem1/Entropy/data/virushostdb.genomic.fna'
+def main(args):
 
 
-    main_dir = r'/sternadi/home/volume1/daniellem1/Entropy/data/Phylogeny/family'
-    # entropies = r'/sternadi/home/volume1/daniellem1/Entropy/data/entropies.csv'
-    entropies = r'/sternadi/home/volume1/daniellem1/Entropy/data/codon_and_joint_integrated.csv'
-    selection = r'/sternadi/home/volume1/daniellem1/Entropy/data/control/entropy_selection_test.csv'
-    # selection = r'/sternadi/home/volume1/daniellem1/Entropy/data/normalization/entropy_selection_test.csv'
+    # run the MC simulation and wrute results to log.
+
+    # super_folder = r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/Phylogeny/family'
+    # features = ['k5']
+    # out= r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/OU_model/MonteCarlo'
+
+    #BM_OU_runner(super_folder, features, out, MC=True, log=False)
+
+    # run the analysis of the families that are ou significant
+    fasta = r'/sternadi/home/volume1/daniellem1/Entropy/data/Phylogeny/family/Caliciviridae/Caliciviridae.fasta'
+    # out = r'/Users/daniellemiller/Google Drive/Msc Bioinformatics/Projects/entropy/most_updated/OU_significant/k5'
+    out = r'/sternadi/home/volume1/daniellem1/Entropy/data/profile'
+    # out = r'/sternadi/home//volume1/daniellem1/Entropy/data/ecoli'
 
 
-    mapping = pd.read_csv(entropies)
-    selection_stats = pd.read_csv(selection)
+    df = pd.read_csv(r'/sternadi/home/volume1/daniellem1/Entropy/data/OU_model/simulations_significance_bm_k5.csv')
+    #df = pd.read_csv(r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/OU_model/simulations_significance_bm_k5.csv')
+    families = df['family'].values
+    family = families[args.index -1]
+    # print(family)
+    fasta = r'/sternadi/home/volume1/daniellem1/Entropy/data/Phylogeny/family/{}/{}.fasta'.format(family, family)
+    # # get_kmers_distribution(fasta, 1, out)
+    get_entropy_profile(fasta, 200, out)
+    deltaG_profile(fasta, 200, out)
 
-    out = r'/sternadi/home/volume1/daniellem1/Entropy/data/control'
+    # sns.set_style('white')
+    # # run the kmers test for all families regardless their model significance
+    # families = df['family'].values
+    # for family in tqdm(families):
+    #     fasta = r'/Volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/data/Phylogeny/family/{}/{}.fasta'.format(family, family)
+    #     get_kmers_distribution(fasta, 5, out)
 
-    #normalize mapping by each family maximum value
-    # features = [c for c in mapping.columns if c not in ['virus_name', 'family', 'refseq_id']]
-    # for f in features:
-    #     mapping[f] = mapping[f] / mapping.groupby('family')[f].transform(np.max)
-
-
-    # run_entropy_selection_test(main_dir, mapping, out)
-    # f1 = 'codon_position_3'
-    f1 = 'third codon position'
-    f2 = 'k5'
-    # f2 = 'codon_position_2'
-    test_selection_validity(selection_stats, f1, f2, out)
-    
-
-#     k = args.kmer
-#     coding = args.coding
-#     if coding == 1:
-#         mapping = refseq_2_cds(cds)
-#         cds_mapping = entropy_by_cds(mapping, out)
-#     else:
-#         basic_genome_entropy = genome_2_entropy(genomics,k, out=out, rc_joint=True)
+    # description_2_seq = []
+    # for rec in SeqIO.parse("/sternadi/home/volume1/daniellem1/Entropy/data/ecoli/sequence.gb", "genbank"):
+    #     description_2_seq.append((rec.description, str(rec.seq)))
+    #
+    # idx = args.index
+    #
+    # description = description_2_seq[idx][0]
+    # seq = description_2_seq[idx][1]
+    #
+    # get_entropy_profile_per_sequence(seq, 10000, description, out=out)
 
 
-# if __name__ == "__main__":
-#     parser = argparse.ArgumentParser()
-#     parser.add_argument("-k", "--kmer", type=int,
-#                         help="the kmer size", required=True)
-#     parser.add_argument("-c", "--coding", type=int,
-#                         help="lthe type of file", default=0)
-
-#     args = parser.parse_args()
-
-#     main(args)
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i", "--index", type=int, help="array index")
+
+    args = parser.parse_args()
+
+    main(args)
