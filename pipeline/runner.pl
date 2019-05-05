@@ -117,6 +117,14 @@ if (defined $ARGV[10]) {
 }
 
 
+# defnie optional number of reprats, if provided
+if (defined $ARGV[11]) {
+
+    $min_num_repeats=$ARGV[11]; 
+}
+
+
+
 
 die "unexpected error, start stage $start_stage is larger than end stage $end_stage\n" if ($start_stage>$end_stage);
 
