@@ -6,10 +6,10 @@ from time import sleep
 import getpass
 import datetime
 
-def create_pbs_cmd(cmdfile, alias, gmem=2, cmds="", dir = "", load_python=True, jnum=False):
+def create_pbs_cmd(cmdfile, alias, queue="adis", gmem=2, cmds="", dir = "", load_python=True, jnum=False):
     with open(cmdfile, 'w') as o:
         o.write("#!/bin/bash\n#PBS -S /bin/bash\n#PBS -j oe\n#PBS -r y\n")
-        o.write("#PBS -q adis\n")
+        o.write("#PBS -q %s\n" % queue)
         o.write("#PBS -v PBS_O_SHELL=bash,PBS_ENVIRONMENT=PBS_BATCH \n")
         o.write("#PBS -N "+ alias+"\n")
         if alias in cmdfile and datetime.datetime.today().strftime('%Y-%m') in cmdfile:

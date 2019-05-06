@@ -59,7 +59,7 @@ def codon_scrambler(seq):
     return ''.join(codons)
 
 
-def stretchFinder(profile, l, m):
+def stretchFinder(profile, l, m=10**4):
     """
     implementation of strechFinder as described in : "Synonymous site conservation in the HIV-1 genome"
     :param profile: a vector of entropy values
@@ -70,19 +70,19 @@ def stretchFinder(profile, l, m):
     start_index = []
     p_values = []
 
+    #create a per-profile distribution of averages, then sample
+    avgs = np.array([])
+    for j in range(m):
+        new_profile = profile
+        cur_avg = np.mean(new_profile[np.random.choice(len(new_profile), size=l, replace=False)])
+        avgs = np.insert(avgs, avgs.searchsorted(cur_avg), cur_avg)
+
     for i in tqdm(range(0,len(profile) - l)):
         # get the current window and its average value
         w = profile[i:i+l]
         avg = np.mean(w)
 
-        # permutation test
-        avgs = []
-        for j in range(m):
-            new_profile = profile
-            avgs.append(np.mean(new_profile[np.random.choice(len(new_profile), size=l, replace=False)]))
-
         # sort average in order to get the p value
-        avgs.sort()
         idx = np.searchsorted(avgs, avg)
         p_value = idx/m
         p_values.append(p_value)
