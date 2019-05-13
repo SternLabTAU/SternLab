@@ -50,12 +50,12 @@ def count_haplotypes(args):
     recognized_dict = {}
     for i in recognized_mutations:
         recognized_dict[i] = df_counts[df_counts.mutations_on_read.str.contains(i)].read_percentage.sum()
-    df_counts[['critical_variant_total_precent', 'critical_variant']] = df_counts.mutations_on_read.apply(lambda x: get_min_freq(x, recognized_dict)).apply(pd.Series)
+    df_counts[['critical_variant_total_precent', 'critical_variant']] = df_counts.mutations_on_read.apply(lambda x: get_critical_variant_freq(x, recognized_dict)).apply(pd.Series)
     df_counts['percent_for_error_cutoff'] = df_counts.read_percentage / df_counts.critical_variant_total_precent
     df_counts.to_csv(args.output_file, index=False)
     return
 
-def get_min_freq(mutations_on_read, recognized_dict):
+def get_critical_variant_freq(mutations_on_read, recognized_dict):
     mutations_on_read = mutations_on_read.split(', ')
     smallest_variant = None
     smallest_freq = 100
