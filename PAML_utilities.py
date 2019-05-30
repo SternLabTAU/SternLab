@@ -5,6 +5,9 @@ import glob
 from file_utilities import check_dirname, check_filename
 import pandas as pd
 import re
+from phyVirus.get_baltimore import get_baltimore_classifiaction
+from pbs_runners import baseml_runner
+
 
 
 def write_ctl_file(ctl, seq, tree, out, model, fix_alpha="1", alpha="0"):
@@ -75,7 +78,7 @@ def write_ctl_file(ctl, seq, tree, out, model, fix_alpha="1", alpha="0"):
     return ctl
 
 
-def mlbs_to_df(output, mlbs = [], dirname = None):
+def mlbs_to_df(output, mlbs = [], dirname = None, baltimore=True):
     """
     analyzes mlb file to dataframe - extracts lnL, base frequencies and substiution matrics
     :param output: output csv file path
@@ -169,13 +172,22 @@ def mlbs_to_df(output, mlbs = [], dirname = None):
             fourth = rate_2.findall(fourth)
             GT = fourth[0]; GC = fourth[1]; GA = fourth[2]
             
-         
-        df = df.append({"mlb_file_name":mlb_file_name, "basename":basename, "family":family, "protein":protein, "group":filename, "model":model, "lnL":L,
-                                 "freq_T":freq_T, "freq_C":freq_C, "freq_A":freq_A,
-                                 "freq_G":freq_G, "TC":TC, "TA":TA, "TG":TG, 
-                                 "CT":CT, "CA":CA, "CG":CG, "AT":AT,
-                                 "AC":AC, "AG":AG, "GT":GT, "GC":GC, "GA":GA},
-                                    ignore_index = True)
+        if baltimore==True:
+            balt = get_baltimore_classifiaction(family)
+            df = df.append({"mlb_file_name":mlb_file_name, "baltimore":balt, "basename":basename, "family":family, "protein":protein, "group":filename, "model":model, "lnL":L,
+                                     "freq_T":freq_T, "freq_C":freq_C, "freq_A":freq_A,
+                                     "freq_G":freq_G, "TC":TC, "TA":TA, "TG":TG,
+                                     "CT":CT, "CA":CA, "CG":CG, "AT":AT,
+                                     "AC":AC, "AG":AG, "GT":GT, "GC":GC, "GA":GA},
+                                        ignore_index = True)
+        else:
+            df = df.append({"mlb_file_name": mlb_file_name, "basename": basename, "family": family, "protein": protein,
+                            "group": filename, "model": model, "lnL": L,
+                            "freq_T": freq_T, "freq_C": freq_C, "freq_A": freq_A,
+                            "freq_G": freq_G, "TC": TC, "TA": TA, "TG": TG,
+                            "CT": CT, "CA": CA, "CG": CG, "AT": AT,
+                            "AC": AC, "AG": AG, "GT": GT, "GC": GC, "GA": GA},
+                           ignore_index=True)
 
     df.to_csv(output)
     return(output)
@@ -665,3 +677,22 @@ def retrive_kappa_from_paml_output(mlb):
             return kappa
         except:
             return None
+
+
+def run_baseml_on_aln_files(f, alias="cml"):
+    f = check_filename(f)
+    t = f + "_phyml_tree.txt"
+    t_rooted = f + "_phyml_rooted_tree.txt"
+    t = check_filename(t)
+    t_rooted = check_filename(t_rooted)
+    ctl7 = f.split(".aln.best.phy")[0] + ".ctl7"
+    ctl8 = f.split(".aln.best.phy")[0] + ".ctl8"
+    mlb7 = f.split(".aln.best.phy")[0] + ".mlb7"
+    mlb8 = f.split(".aln.best.phy")[0] + ".mlb8"
+    write_ctl_file(ctl7, f, t, mlb7, 7)
+    write_ctl_file(ctl8, f, t_rooted, mlb8, 8)
+    baseml_runner(ctl7, alias=alias +"7")
+    baseml_runner(ctl8, alias=alias +"8")
+
+
+
