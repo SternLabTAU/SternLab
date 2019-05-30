@@ -79,7 +79,7 @@ def merge_stats_by_family(family, joint=False):
     if joint:
         family_folder = r'/sternadi/home/volume1/daniellem1/Entropy/WebDB/DropsStatisticsJoint/{}'.format(family)
 
-    stats = glob.glob(os.path.join(family_folder, '*stats.csv'))
+    stats = glob.glob(os.path.join(family_folder, '*seq*stats.csv'))
     mapping = {}
     for f in stats:
         print(f)
