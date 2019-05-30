@@ -50,7 +50,7 @@ def run_statistic_analysis_for_drop_sig(family, index, m=10**4, w=100):
     :return: saves the data frame into a file
     """
 
-    family_df = pd.read_csv(r'/sternadi/home/volume1/daniellem1/Entropy/WebDB/JointEntropy/{}_profile.csv'.format(family))
+    family_df = pd.read_csv(r'/sternadi/home/volume1/daniellem1/Entropy/WebDB/JointEntropy/{}_Joint_profile.csv'.format(family))
     col = 'seq_{}'.format(args.index - 1)
     seq = np.array(family_df[col].dropna())
     res = stretchFinder(seq, w, m)
