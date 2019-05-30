@@ -82,6 +82,7 @@ def merge_stats_by_family(family, joint=False):
     stats = glob.glob(os.path.join(family_folder, '*stats.csv'))
     mapping = {}
     for f in stats:
+        print(f)
         df = pd.read_csv(f)
         seq_id = re.findall(r'seq_\d+', f)[0]
         mapping[seq_id] = df['corrected_pvalue']
@@ -90,8 +91,10 @@ def merge_stats_by_family(family, joint=False):
     stats_by_seq = pd.DataFrame(dict([(k, pd.Series(v)) for k, v in mapping.items()]))
 
     output = os.path.join(family_folder, 'all_stats.csv')
-    stats_by_seq.to_csv(output, index=False)
 
+    stats_by_seq.to_csv(output, index=False)
+    print('Done!')
+    return stats_by_seq
 
 
 
@@ -115,6 +118,7 @@ def main(args):
         df = pd.read_csv(r'/sternadi/home/volume1/daniellem1/Entropy/data/OU_model/simulations_significance_bm_k5.csv')
         families = df['family'].values
         family = families[args.index - 1]
+        print(family)
         merge_stats_by_family(family)
         merge_stats_by_family(family, joint=True)
 
