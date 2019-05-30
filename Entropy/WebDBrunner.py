@@ -112,6 +112,9 @@ def main(args):
         run_statistic_analysis_for_drop_sig(family, index)
 
     else:
+        df = pd.read_csv(r'/sternadi/home/volume1/daniellem1/Entropy/data/OU_model/simulations_significance_bm_k5.csv')
+        families = df['family'].values
+        family = families[args.index - 1]
         merge_stats_by_family(family)
         merge_stats_by_family(family, joint=True)
 
@@ -120,7 +123,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--index", type=int, help="array index", required=True)
     parser.add_argument("-t", "--type", type=int, help="indicator for the function to execute", required=True)
-    parser.add_argument("-f", "--family", type=str, help="family name", required=True)
+    parser.add_argument("-f", "--family", type=str, help="family name", required=False)
     args = parser.parse_args()
 
     main(args)
