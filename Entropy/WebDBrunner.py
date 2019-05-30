@@ -66,6 +66,37 @@ def run_statistic_analysis_for_drop_sig(family, index, m=10**4, w=100):
     res.to_csv(out, index=False)
 
 
+def merge_stats_by_family(family, joint=False):
+    """
+    the method merges all stats csv files into a single file
+    :param family: the family name
+    :param joint: indicator for joint entropy. if true run the analysis on joint entropy
+    :return: saves a csv with all p values
+    """
+
+    # define the folder from which all stats are going to be generated
+    family_folder = r'/sternadi/home/volume1/daniellem1/Entropy/WebDB/DropsStatistics/{}'.format(family)
+    if joint:
+        family_folder = r'/sternadi/home/volume1/daniellem1/Entropy/WebDB/DropsStatisticsJoint/{}'.format(family)
+
+    stats = glob.glob(os.path.join(family_folder, '*stats.csv'))
+    mapping = {}
+    for f in stats:
+        df = pd.read_csv(f)
+        seq_id = re.findall(r'seq_\d+', f)[0]
+        mapping[seq_id] = df['corrected_pvalue']
+
+    # create a complete dataframe with all p values
+    stats_by_seq = pd.DataFrame(dict([(k, pd.Series(v)) for k, v in mapping.items()]))
+
+    output = os.path.join(family_folder, 'all_stats.csv')
+    stats_by_seq.to_csv(output, index=False)
+
+
+
+
+
+
 
 def main(args):
 
@@ -77,8 +108,13 @@ def main(args):
     if run_type in [1,2]:   # entropy profile calculation
         generate_entropy_profiles_per_family(run_type, index)
 
-    else:   #statistical analysis
+    elif run_type == 3:   #statistical analysis
         run_statistic_analysis_for_drop_sig(family, index)
+
+    else:
+        merge_stats_by_family(family)
+        merge_stats_by_family(family, joint=True)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
