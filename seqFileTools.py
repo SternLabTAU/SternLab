@@ -454,6 +454,23 @@ def change_X_characters_to_gap(input, output=None):
         new_fasta.append(f)
     SeqIO.write(new_fasta, output, "fasta")
 
+def change_N_characters_to_gap(input, output=None):
+    input = check_filename(input)
+    if output == None:
+        output = input
+    else:
+        output = check_filename(output, Truefile=False)
+    fasta = list(SeqIO.parse(input, "fasta"))
+    new_fasta = []
+    ambiguity_chars = ["N"]
+    for f in fasta:
+        seq = str(f.seq)
+        for i in ambiguity_chars:
+            seq = seq.replace(i, "-")
+        f.seq = Seq(seq)
+        new_fasta.append(f)
+    SeqIO.write(new_fasta, output, "fasta")
+
 def get_longest_sequence_name_in_fasta(aln_file, in_format="fasta"):
     """
     returns the longest sequence name in the alignment

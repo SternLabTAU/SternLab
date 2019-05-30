@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import sys
-sys.path.append('/sternadi/home/volume2/noam/SternLab')
-sys.path.append(r'X:\volume2\noam\Sternlab')
 import pandas as pd
 import itertools
 import os
