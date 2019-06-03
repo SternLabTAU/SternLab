@@ -76,7 +76,7 @@ def simulation_runner():
 
 def main(args):
     # calculate entropy values and profiles for each file
-    output_dir = r'/sternadi/home/volume1/daniellem1/Entropy/Simulations/Classofication'
+    output_dir = r'/sternadi/home/volume1/daniellem1/Entropy/Simulations/Classofications'
     files = glob.glob(output_dir)
     fasta = files[args.index - 1]
 
