@@ -69,3 +69,11 @@ an output path to write the most significant scores to, and a modified_zscore_cu
                                 MODIFIED_ZSCORE_CUTOFF
 
 We also provide visualization tools to help identify positions with real mutations in the association test results. Helpful functions are provided in tools_to_visualize_association_results.py.
+
+To transform the identified positions into specific variants, use variant_association_test.py. The script uses the blasts dataframe and mutations dataframe created in steps 2-3. The script also gets
+the positions to analyze by one of two options: either using the output file created by peaks_modified_zscore (option z), or by providing a csv with no header where every row is a position to analyze (option p). The script
+writes the results and the final variant list in chosen_variants.csv to the output directory.
+   - usage: variant_association_test.py [-h] -b INPUT_BLAST_DF -m INPUT_MUTATION_DF
+                                   [-p INPUT_CHOSEN_POSITIONS]
+                                   [-z INPUT_PEAKS_ZSCORE_OUTPUT] -o
+                                   OUTPUT_DIR
