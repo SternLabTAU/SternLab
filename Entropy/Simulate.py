@@ -80,14 +80,17 @@ def main(args):
     files = glob.glob(output_dir)
     fasta = files[args.index - 1]
 
-    ent = get_entropy_profile(fasta, 200, output_dir)
-    joint = get_joint_entropy_profile(fasta, 200, output_dir)
+    if args.mode == 1:
+        ent = get_entropy_profile(fasta, 200, output_dir)
+    else:
+        joint = get_joint_entropy_profile(fasta, 200, output_dir)
 
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--index", type=int, help="array index")
+    parser.add_argument("-m", "--mode", type=int, help="mode of running - entropy or join")
 
     args = parser.parse_args()
 
