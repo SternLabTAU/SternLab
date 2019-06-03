@@ -10,13 +10,15 @@ def count_haplotypes(args):
     of the mutations or lack of mutations that are provided to the function.
     
     Format for the csv with the mutations to check strains for: every mutation should 
-    have its own row, the csv should have no header row, and the mutations should be written 
-    in the following format: "A1664.0G". For example:
-    "A1664.0G
+    have its own row, the csv should have a header row titled "variant", and the mutations 
+    should be written in the following format: "A1664.0G". For example:
+    "variant
+    A1664.0G
     A535.0G
     T1764.0-"
+    The output file variants_chosen.csv from association_test_variant.py can be used here.
     '''
-    recognized_mutations = pd.read_csv(args.input_chosen_mutation, header=None)[0].tolist()
+    recognized_mutations = pd.read_csv(args.input_chosen_mutation)['variant'].tolist()
     recognized_positions = [float(p[1:-1]) for p in recognized_mutations]
     blast_df = pd.read_csv(args.input_blast_df)
     # choose only reads that were mapped only once in blast
@@ -75,7 +77,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-b", "--input_blast_df", type=str, help="path to blasts df csv", required=True)
     parser.add_argument('-m', '--input_mutation_df', type=str, help='path to mutations df csv', required=True)
-    parser.add_argument('-p', '--input_chosen_mutation', type=str, help='path to csv file with mutations to check linkage of. Every mutation should have its own row, no header row, and the mutations should be written in the following format: "A1664.0G"', required=True)
+    parser.add_argument('-p', '--input_chosen_mutations', type=str, help='path to csv file with mutations to separate into strains. Every mutation should have its own row, the header row titled "variant", and the mutations should be written in the following format: "A1664.0G". The output file variants_chosen.csv from association_test_variant.py can be used here.', required=True)
     parser.add_argument("-o", "--output_file", type=str, help="a path to an output file", required=True)
     args = parser.parse_args()
     if not vars(args):
