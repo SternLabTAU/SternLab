@@ -52,7 +52,7 @@ def to_fasta_file(output_path, sequences, names):
             o.write('>' + names[i] + '\n' + sequences[i] + '\n')
 
 
-def simulation_runner()
+def simulation_runner():
     # run all simulations
     p_rep = [0.6,0.2,0.1,0.1]
     p_random = [0.25,0.25,0.25,0.25]
