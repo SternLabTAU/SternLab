@@ -42,7 +42,7 @@ def count_haplotypes(args):
     # simple frequencies for every mutation, keep only mutations over 0.05 frequency
     mutations_for_downstream = []
     for m in df.full_mutation.drop_duplicates().tolist():
-        if len(df[df.full_mutation == m].read.drop_duplicates()) / len(df.read_drop_duplicates()) >= 0.05:
+        if len(df[df.full_mutation == m].read.drop_duplicates()) / len(df.read.drop_duplicates()) >= 0.05:
             mutations_for_downstream.append(m)
     
     mutations_df = mutations_df[mutations_df.full_mutation.isin(mutations_for_downstream)]
