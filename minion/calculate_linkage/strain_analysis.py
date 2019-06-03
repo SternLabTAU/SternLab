@@ -18,7 +18,7 @@ def count_haplotypes(args):
     T1764.0-"
     The output file variants_chosen.csv from association_test_variant.py can be used here.
     '''
-    recognized_mutations = pd.read_csv(args.input_chosen_mutation)['variant'].tolist()
+    recognized_mutations = pd.read_csv(args.input_chosen_mutations)['variant'].tolist()
     recognized_positions = [float(p[1:-1]) for p in recognized_mutations]
     blast_df = pd.read_csv(args.input_blast_df)
     # choose only reads that were mapped only once in blast
