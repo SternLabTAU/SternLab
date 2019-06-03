@@ -13,7 +13,7 @@ Provide pandas dataframe created by unify_association_results.py.
 
 #df = pd.read_csv([unify_association_results.py output file])
 
-def association_scatter(df, out_png, proximity_limit=15, start_pos=False, end_pos=False):
+def association_scatter_chi2(df, out_png, proximity_limit=15, start_pos=False, end_pos=False):
     '''
     For every position, plot all the chi square values, except for values of tests 
     between that position and positions [proximity_limit] bases away or closer (default 15).
@@ -23,6 +23,20 @@ def association_scatter(df, out_png, proximity_limit=15, start_pos=False, end_po
     if start_pos and end_pos:
         df = df[df.pos1.isin(range(start_pos, end_pos))]
     plot = df.plot(x='pos1', y='chi2', kind='scatter')
+    fig = plot.get_figure()
+    fig.savefig(out_png)
+    return
+
+def association_scatter_modifed_zscore(df, out_png, proximity_limit=15, start_pos=False, end_pos=False):
+    '''
+    For every position, plot all the modified_zscore values, except for values of tests 
+    between that position and positions [proximity_limit] bases away or closer (default 15).
+    Can use start_pos and end_pos to zoom in on part of the genome.
+    '''
+    df = df[(df.pos1 - df.pos2).abs() > proximity_limit]
+    if start_pos and end_pos:
+        df = df[df.pos1.isin(range(start_pos, end_pos))]
+    plot = df.plot(x='pos1', y='modified_zscore', kind='scatter')
     fig = plot.get_figure()
     fig.savefig(out_png)
     return
