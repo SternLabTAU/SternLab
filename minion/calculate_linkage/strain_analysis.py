@@ -38,6 +38,16 @@ def count_haplotypes(args):
     
     mutations_df = mutations_df[mutations_df.full_mutation.isin(recognized_mutations)]
     df = pd.merge(mutations_df, blast_df[['read']], how='right', on='read')
+    
+    # simple frequencies for every mutation, keep only mutations over 0.05 frequency
+    mutations_for_downstream = []
+    for m in df.full_mutation.drop_duplicates().tolist():
+        if len(df[df.full_mutation == m].read.drop_duplicates()) / len(df.read_drop_duplicates()) >= 0.05:
+            mutations_for_downstream.append(m)
+    
+    mutations_df = mutations_df[mutations_df.full_mutation.isin(mutations_for_downstream)]
+    df = pd.merge(mutations_df, blast_df[['read']], how='right', on='read')
+    
     df = df.sort_values('position')
     df['full_mutation'] = df.full_mutation.astype(str)
     df['mutations_on_read'] = df.groupby('read')['full_mutation'].transform(', '.join)
