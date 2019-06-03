@@ -51,7 +51,21 @@ with the chi square statistic value and the p-value for every pair of positions 
 
 6. Normalize chi square results by using the modified z-test. Gets an input path of a csv with all chi2 results and an output path to   write the z-test results to. Paramater window size determines the size of the sliding window for the test, defaults to 1, meaning       for position x uses all of the values for pairs (i=x, j=?). (Example: window size value is 15 - uses all pairs (x-7<=i<=x+7, j=?).)
 
-   - usage: chi2_modified_z_test.py [-h] -i INPUT_PATH -o OUTPUT_PATH
+   - usage: chi2_modified_ztest.py [-h] -i INPUT_PATH -o OUTPUT_PATH
                                [-w WINDOW_SIZE]
+
+							   
+If this is a control sample used to find a cutoff for the association, use modified_zscore_find_cutoff.py. This script gets a csv with the pos1, pos2 and modified zscores created by chi2_modified_ztest.py, 
+and a confidence percentile. For example, for a cutoff percentile of 99.9, the cutoff is determined as the score that identifies 0.1 percent of the positions as having significant associations. The cutoff
+printed to the screen. 
+
+   - usage: modifed_zscore_find_cutoff.py [-h] -i INPUT_CSV -o OUTPUT_CSV -c
+                                     CONFIDENCE_PERCENTILE		   
+
+If this is not a control sample, use peaks_modified_zscore.py to find the most signifcant associations that also answer to being a peak in their surroundings. This script gets a csv with the pos1, pos2 and modified zscores created by chi2_modified_ztest.py, 
+an output path to write the most significant scores to, and a modified_zscore_cutoff to use. If using the script without a set cutoff, set a cutoff by eye that is higher than 0, because a cutoff of 0 will result in an incredibly long run time.
+					 
+   - usage: peaks_modified_zscore.py [-h] -i INPUT_CSV -o OUTPUT_CSV -z
+                                MODIFIED_ZSCORE_CUTOFF
 
 We also provide visualization tools to help identify positions with real mutations in the association test results. Helpful functions are provided in tools_to_visualize_association_results.py.
