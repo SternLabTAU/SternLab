@@ -39,10 +39,10 @@ def count_haplotypes(args):
     mutations_df = mutations_df[mutations_df.full_mutation.isin(recognized_mutations)]
     df = pd.merge(mutations_df, blast_df[['read']], how='right', on='read')
     
-    # simple frequencies for every mutation, keep only mutations over 0.05 frequency
+    # simple frequencies for every mutation, keep only mutations over mininmal mutation frequency (default 0)
     mutations_for_downstream = []
     for m in df.full_mutation.drop_duplicates().tolist():
-        if len(df[df.full_mutation == m].read.drop_duplicates()) / len(df.read.drop_duplicates()) >= 0.05:
+        if (len(df[df.full_mutation == m].read.drop_duplicates()) / len(df.read.drop_duplicates())) >= args.minimal_mutation_frequency:
             mutations_for_downstream.append(m)
     
     mutations_df = mutations_df[mutations_df.full_mutation.isin(mutations_for_downstream)]
@@ -89,6 +89,7 @@ if __name__ == "__main__":
     parser.add_argument('-m', '--input_mutation_df', type=str, help='path to mutations df csv', required=True)
     parser.add_argument('-p', '--input_chosen_mutations', type=str, help='path to csv file with mutations to separate into strains. Every mutation should have its own row, the header row titled "variant", and the mutations should be written in the following format: "A1664.0G". The output file variants_chosen.csv from association_test_variant.py can be used here.', required=True)
     parser.add_argument("-o", "--output_file", type=str, help="a path to an output file", required=True)
+    parser.add_argument('-f', '--minimal_mutation_frequency', type=float, required=False , default=0, help='frequency cutoff for a single mutation. Only mutations that are on the list and appear at least in this frequency in the population will be included in the strain analysis.')
     args = parser.parse_args()
     if not vars(args):
         parser.print_help()
