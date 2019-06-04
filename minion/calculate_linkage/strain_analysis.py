@@ -53,7 +53,7 @@ def count_haplotypes(args):
     df['mutations_on_read'] = df.groupby('read')['full_mutation'].transform(', '.join)
     df = df[['mutations_on_read', 'read']].drop_duplicates()
     df_counts = df.groupby('mutations_on_read').read.count().reset_index().rename(columns={'read':'read_count'}).sort_values('read_count', ascending=False)
-    df_counts['read_percentage'] = df_counts.read_count * 100 / df_counts.read_count.sum()
+    df_counts['read_percentage'] = df_counts.read_count / df_counts.read_count.sum()
     df_counts['mutations_on_read'] = df_counts.mutations_on_read.str.replace('nan', 'WT')
     
     # For every strain, calculate its percentage out of all the population containing the 
@@ -64,23 +64,53 @@ def count_haplotypes(args):
         recognized_dict[i] = df_counts[df_counts.mutations_on_read.str.contains(i)].read_percentage.sum()
     df_counts[['critical_variant_total_precent', 'critical_variant']] = df_counts.mutations_on_read.apply(lambda x: get_critical_variant_freq(x, recognized_dict)).apply(pd.Series)
     df_counts['percent_for_error_cutoff'] = df_counts.read_percentage / df_counts.critical_variant_total_precent
+    df_counts = choose_believable_strains(df_counts.reset_index(drop=True), args.substitution_error_cutoff, args.deletion_error_cutoff)
     df_counts.to_csv(args.output_file, index=False)
     return
 
 def get_critical_variant_freq(mutations_on_read, recognized_dict):
     mutations_on_read = mutations_on_read.split(', ')
     smallest_variant = None
-    smallest_freq = 100
+    smallest_freq = 1.0
     for m in recognized_dict:
         if m in mutations_on_read:
             if recognized_dict[m] < smallest_freq:
                 smallest_freq = recognized_dict[m]
                 smallest_variant = m
         else:
-            if (100 - recognized_dict[m]) < smallest_freq:
-                smallest_freq = (100 - recognized_dict[m])
+            if (1.0 - recognized_dict[m]) < smallest_freq:
+                smallest_freq = (1.0 - recognized_dict[m])
                 smallest_variant = m[:-1] + m[0]
     return (smallest_freq, smallest_variant)
+
+
+def choose_believable_strains(df, substitution_error_cutoff, deletion_error_cutoff):
+    df['believable'] = False
+    df['closest_strain'] = None
+    df['smallest_diff'] = None
+    df.at[0, 'believable'] = True
+    for i in range(1, len(df)):
+        strain1 = df.at[i, 'mutations_on_read']
+        df1 = df[:i].copy()
+        strains1 = df1[df1.believable == True].mutations_on_read.tolist()
+        closest_strain = None
+        smallest_diff = None
+        for s in strains1:
+            diffs = list(set.symmetric_difference(set(s.split(', ')), set(strain1.split(', '))))
+            if 'WT' in diffs:
+                diffs.remove('WT')
+            if closest_strain == None or len(smallest_diff) > len(diffs):
+                closest_strain = s
+                smallest_diff = diffs
+            elif len(smallest_diff) == len(diffs):
+                if [i[-1] for i in smallest_diff].count('-') >= [i[-1] for i in diffs].count('-'):
+                    smallest_diff = diffs
+        df.at[i, 'closest_strain'] = closest_strain
+        df.at[i, 'smallest_diff'] = smallest_diff
+        if ((substitution_error_cutoff**(len(smallest_diff) - [i[-1] for i in smallest_diff].count('-'))) * (deletion_error_cutoff**([i[-1] for i in smallest_diff].count('-')))) <= df.at[i, 'percent_for_error_cutoff']:
+            df.at[i, 'believable'] = True
+    return df
+
 
     
 if __name__ == "__main__":
@@ -90,6 +120,8 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--input_chosen_mutations', type=str, help='path to csv file with mutations to separate into strains. Every mutation should have its own row, the header row titled "variant", and the mutations should be written in the following format: "A1664.0G". The output file variants_chosen.csv from association_test_variant.py can be used here.', required=True)
     parser.add_argument("-o", "--output_file", type=str, help="a path to an output file", required=True)
     parser.add_argument('-f', '--minimal_mutation_frequency', type=float, required=False , default=0, help='frequency cutoff for a single mutation. Only mutations that are on the list and appear at least in this frequency in the population will be included in the strain analysis.')
+    parser.add_argument('-d', '--deletion_error_cutoff', type=float, required=True)
+    parser.add_argument('-s', '--substitution_error_cutoff', type=float, required=True)
     args = parser.parse_args()
     if not vars(args):
         parser.print_help()
