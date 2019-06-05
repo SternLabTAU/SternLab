@@ -53,7 +53,7 @@ def count_haplotypes(args):
     df['mutations_on_read'] = df.groupby('read')['full_mutation'].transform(', '.join)
     df = df[['mutations_on_read', 'read']].drop_duplicates()
     df_counts = df.groupby('mutations_on_read').read.count().reset_index().rename(columns={'read':'read_count'}).sort_values('read_count', ascending=False)
-    df_counts['read_percentage'] = df_counts.read_count / df_counts.read_count.sum()
+    df_counts['read_frequency'] = df_counts.read_count / df_counts.read_count.sum()
     df_counts['mutations_on_read'] = df_counts.mutations_on_read.str.replace('nan', 'WT')
     
     # For every strain, calculate its percentage out of all the population containing the 
@@ -61,11 +61,17 @@ def count_haplotypes(args):
     # using the 90th percentile error frequency for example.
     recognized_dict = {}
     for i in recognized_mutations:
-        recognized_dict[i] = df_counts[df_counts.mutations_on_read.str.contains(i)].read_percentage.sum()
-    df_counts[['critical_variant_total_precent', 'critical_variant']] = df_counts.mutations_on_read.apply(lambda x: get_critical_variant_freq(x, recognized_dict)).apply(pd.Series)
-    df_counts['percent_for_error_cutoff'] = df_counts.read_percentage / df_counts.critical_variant_total_precent
+        recognized_dict[i] = df_counts[df_counts.mutations_on_read.str.contains(i)].read_frequency.sum()
+    df_counts[['critical_variant_total_frequency', 'critical_variant']] = df_counts.mutations_on_read.apply(lambda x: get_critical_variant_freq(x, recognized_dict)).apply(pd.Series)
+    df_counts['frequency_for_error_cutoff'] = df_counts.read_frequency / df_counts.critical_variant_total_frequency
     df_counts = choose_believable_strains(df_counts.reset_index(drop=True), args.substitution_error_cutoff, args.deletion_error_cutoff)
     df_counts.to_csv(args.output_file, index=False)
+    
+    # create results with only believable strains, and recalculate frequencies so they add up to 1.
+    b = df_counts[df_counts.believable == True][['mutations_on_read', 'read_count']].copy()
+    b['frequency'] = b.read_count / b.read_count.sum()
+    b = b.rename(columns={'mutations_on_read':'strain'})
+    b.to_csv(args.output_file + '.believable.csv', index=False)
     return
 
 def get_critical_variant_freq(mutations_on_read, recognized_dict):
@@ -107,7 +113,7 @@ def choose_believable_strains(df, substitution_error_cutoff, deletion_error_cuto
                     smallest_diff = diffs
         df.at[i, 'closest_strain'] = closest_strain
         df.at[i, 'smallest_diff'] = smallest_diff
-        if ((substitution_error_cutoff**(len(smallest_diff) - [i[-1] for i in smallest_diff].count('-'))) * (deletion_error_cutoff**([i[-1] for i in smallest_diff].count('-')))) <= df.at[i, 'percent_for_error_cutoff']:
+        if ((substitution_error_cutoff**(len(smallest_diff) - [i[-1] for i in smallest_diff].count('-'))) * (deletion_error_cutoff**([i[-1] for i in smallest_diff].count('-')))) <= df.at[i, 'frequency_for_error_cutoff']:
             df.at[i, 'believable'] = True
     return df
 
