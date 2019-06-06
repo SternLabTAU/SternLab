@@ -13,6 +13,15 @@ T1764.0-  |
 
 ### Strain Analysis
 
+For a given list of variants, we calcualte the frequency of every combination of occurence or lack of occurence of variants, defined as strains. Our method also classifies these combinations as either believable or not. We do this by using the inferred error threshold to infer the probability of two or more mutations residing erroneously on the same genome, while utilizing an iterative approach in which we compare a given strain to strains we’ve already classified as being believable. This logic is described in depth in our article. 
+The script gets the blast dataframe path and the mutations dataframe path created by parse_blasts.py (see association_tests directory), 
+a csv path with the mutations to check and the name of an output file. The script also gets the substitution and deletion error cutoff to use. We used the 95th percetile for these error types as calculated in our article, 0.214 and 0.237, respectively. The user can also provide a cutoff to use per variant, where only variants that appear in the population at a frequency higher than the cutoff will be included in the analysis (default 0).
+
+The script creates two files:
+1. Csv with all the variant combinations observed and their frequencies, together with the strain classification as believable or not and the calcualtions determining it. 
+2. Csv with the strains classified as believable, with their frequencies recalcualted appropriately.
+
+
 
 **usage:** 
 strain_analysis.py [-h] -b INPUT_BLAST_DF -m INPUT_MUTATION_DF -p
@@ -46,6 +55,7 @@ strain_analysis.py [-h] -b INPUT_BLAST_DF -m INPUT_MUTATION_DF -p
   -d DELETION_ERROR_CUTOFF, --deletion_error_cutoff DELETION_ERROR_CUTOFF
   
   -s SUBSTITUTION_ERROR_CUTOFF, --substitution_error_cutoff SUBSTITUTION_ERROR_CUTOFF
+
 
 
 ### Calculate Linkage
