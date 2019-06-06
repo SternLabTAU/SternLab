@@ -17,15 +17,17 @@ def mutation_pairings_statistics(args):
     save the results to.
     
     Foramt for the csv with the mutations to check linkage for: every mutation should 
-    have its own row, the csv should have no header row, and the mutations should be written 
+    have its own row, the csv should have a header row titled "variant", and the mutations should be written 
     in the following format: "A1664.0G". For example:
-    "A1664.0G
+    "variant
+    A1664.0G
     A535.0G
     T1764.0-"
     '''
     blast_df = pd.read_csv(args.input_blast_df)
     mutations_df = pd.read_csv(args.input_mutation_df)
-    recognized_mutations = pd.read_csv(args.input_chosen_mutation, header=None)[0].tolist()
+    recognized_mutations = pd.read_csv(args.input_chosen_mutations)['variant'].tolist()
+
     
     # choose only reads that were mapped only once in blast
     blast_df['read_count'] = blast_df.groupby('read')['start_ref'].transform('count')
@@ -75,7 +77,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-b", "--input_blast_df", type=str, help="path to blasts df csv", required=True)
     parser.add_argument('-m', '--input_mutation_df', type=str, help='path to mutations df csv', required=True)
-    parser.add_argument('-p', '--input_chosen_mutation', type=str, help='path to csv file with mutations to check linkage of. Every mutation should have its own row, no header row, and the mutations should be written in the following format: "A1664.0G"', required=True)
+    parser.add_argument('-p', '--input_chosen_mutation', type=str, help='path to csv file with mutations to check linkage of. Every mutation should have its own row, a header row titled "variant", and the mutations should be written in the following format: "A1664.0G"', required=True)
     parser.add_argument("-o", "--output_file", type=str, help="a path to an output file", required=True)
     args = parser.parse_args()
     if not vars(args):
