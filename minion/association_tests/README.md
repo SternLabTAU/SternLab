@@ -34,7 +34,7 @@ association test script to use when being run as many jobs in parallel (choose n
 4. Run association_test.py scripts, recommended as a job array. This uses the blasts dataframe,
 mutations dataframe and the position couple index file created in 2-3. Each job runs chi square association tests
 for every pair of positions from the position couple index file for which the index matches the job id. It saves
-both the contingency tables for every pair of positions, and a csv containing all of the chi2 results. Also recieves
+the contingency tables for every pair of positions, and a csv containing all of the chi2 results. Also recieves
 start_pos_read and end_pos_read, and only reads spanning these positions are used in the analysis.
 
    - usage: association_test.py [-h] -b INPUT_BLAST_DF -m INPUT_MUTATION_DF -i
