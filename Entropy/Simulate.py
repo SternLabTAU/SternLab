@@ -7,7 +7,7 @@ from utils import joint_entropy, entropy_by_kmer, get_reverse_complement
 import os
 import glob
 import argparse
-from selection_model_analysis import get_entropy_profile, get_joint_entropy_profile
+from selection_model_analysis import get_entropy_profile, get_joint_entropy_profile, deltaG_profile, deltaG_calculator
 from stats_utils import find_sequential_drops, stretchFinder
 import re
 
@@ -210,9 +210,10 @@ def main(args):
     fasta = r'/sternadi/home/volume1/daniellem1/Entropy/Simulations/Drops/simulated.fasta'
     if args.mode == 1:
         ent = get_entropy_profile(fasta, 200, output_dir)
-    else:
+    elif args.mode == 2:
         joint = get_joint_entropy_profile(fasta, 200, output_dir)
-
+    else:
+        delta_g = deltaG_profile(fasta, 200, output_dir)
 
 
 if __name__ == "__main__":
