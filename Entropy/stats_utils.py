@@ -25,6 +25,7 @@ import glob
 import seaborn as sns
 from sklearn.metrics import roc_curve, auc
 from collections import Counter
+import networkx as nx
 
 
 
@@ -600,12 +601,115 @@ def generate_scores(data, model='gmm'):
     result = pd.concat(dfs)
     return result
 
+def find_sequential_drops(shannon, joint, output, t=0.05):
+    """
+    given a family generate a table of all sequential drops
+    :param shannon: shannon entropy matrix
+    :param joint: joint entropy matrix
+    :param t: p value threshold
+    :return: data frame with stat and end points of every significant drop
+    """
+
+    col_dfs = []
+
+    # for each feature in the matrix calculate the number of drops. locations and sizes
+
+    for c in tqdm(shannon):
+        if c not in joint.columns:
+            continue
+        x = shannon[c].dropna()
+        y = joint[c].dropna()
+
+        # get only significant drops
+        x = x[x <= t]
+        y = y[y <= t]
+
+        # remember index as a new column - had bugs with splitting by index later...
+        x = x.reset_index()
+        y = y.reset_index()
+
+        dx = np.diff(x['index'])
+        dy = np.diff(y['index'])
+
+        x_pos = [i + 1 for i in np.where(dx > 1)[0]]
+        y_pos = [i + 1 for i in np.where(dy > 1)[0]]
+
+        x_mod = [0] + x_pos + [len(x) + 1]
+        y_mod = [0] + y_pos + [len(y) + 1]
+
+        x_splits = [x.iloc[x_mod[n]:x_mod[n + 1]] for n in range(len(x_mod) - 1)]
+        y_splits = [y.iloc[y_mod[n]:y_mod[n + 1]] for n in range(len(y_mod) - 1)]
+
+        # fil start and end positions creating a dataframe for each column
+        x_starts = []
+        x_ends = []
+
+        for s in x_splits:
+            x_starts.append(s['index'].iloc[0])
+            x_ends.append(s['index'].iloc[-1])
+
+        y_starts = []
+        y_ends = []
+
+        for s in y_splits:
+            y_starts.append(s['index'].iloc[0])
+            y_ends.append(s['index'].iloc[-1])
+
+        shannon_drops = pd.DataFrame({'start': x_starts, 'end': x_ends, 'type': 'shannon', 'seq': c})
+        joint_drops = pd.DataFrame({'start': y_starts, 'end': y_ends, 'type': 'joint', 'seq': c})
+
+        col_dfs.append(shannon_drops)
+        col_dfs.append(joint_drops)
+
+    drops = pd.concat(col_dfs)
+    drops['size'] = drops['end'] - drops['start'] + 1
+
+    if output != None:
+        drops.to_csv(output, index=False)
+
+    return drops
 
 
+def drop_Graphs(drops, out=None):
+    """
+    plots a graph of shannon vs. joint drops
+    :param drops: a drops data frame for a given sequence
+    :return:
+    """
 
+    shannon = drops[drops['type']=='shannon']
+    joint = drops[drops['type'] == 'joint']
 
+    ss = shannon['start'].values
+    se = shannon['end'].values
 
+    js = joint['start'].values
+    je = joint['end'].values
 
+    # create two graphs, one for each measurment
+
+    G = nx.Graph()
+    G2 = nx.Graph()
+
+    # create the two graphs
+    for i in range(len(ss)):
+        G.add_node(ss[i], pos=(i,10))
+        G.add_node(se[i], pos=(i, 10))
+
+    for i in range(len(js)):
+        G2.add_node(js[i], pos=(i, 10.005))
+        G2.add_node(je[i], pos=(i, 10.005))
+
+    # get locations
+    pos = nx.get_node_attributes(G, 'pos')
+    pos2 = nx.get_node_attributes(G2, 'pos')
+
+    # draw graph
+    nx.draw(G, with_labels=True, node_size=500, node_color="skyblue", node_shape="o", alpha=0.5, linewidths=4,
+            font_size=8, font_color="grey", font_weight="bold", width=2, edge_color="black", pos=pos)
+
+    nx.draw(G2, with_labels=True, node_size=500, node_color="pink", node_shape="o", alpha=0.5, linewidths=4,
+            font_size=8, font_color="grey", font_weight="bold", width=2, edge_color="black", pos=pos2)
 
 
 
