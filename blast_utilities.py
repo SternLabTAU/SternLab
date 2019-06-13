@@ -75,3 +75,19 @@ def parse_btop(row):
             deletions.append((float(math.ceil(location)), b))
             location = float(math.ceil(location) + 1) 
     return {'mutations':mutations, 'deletions':deletions, 'insertions':insertions}
+
+
+def get_unaligned_reads(blast_file, fasta_file, out_file):
+    '''
+    Gets a fasta file and the matching blast results file and
+    creates a fasta file only with the unaligned reads.
+    '''
+    blast = blast_to_df(blast_file)
+    with open(fasta_file, 'r') as f:
+        fasta = f.read()
+    fasta = pd.DataFrame([i.split('\n')[:2] for i in fasta[1:].split('\n>')], columns=['read', 'sequence'])
+    unaligned = fasta[~(fasta.read.isin(blast.read.drop_duplicates().tolist()))].copy()
+    unaligned_str = '\n'.join(('>' + unaligned.read + '\n' + unaligned.sequence).tolist())
+    with open(out_file, 'w') as f:
+        f.write(unaligned_str)
+    return

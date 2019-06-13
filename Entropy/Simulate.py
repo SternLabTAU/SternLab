@@ -32,8 +32,8 @@ def simulate_genome_by_composition(p, n, size, mode):
 
     else:
         # only structure - generate a perfect stem loop
-        for i in tqdm(range(n)):
-            seq = ''.join(np.random.choice(['a', 'c', 'g', 't'], p=p, size=size // 2))
+        for i in tqdm(range(size)):
+            seq = ''.join(np.random.choice(['a', 'c', 'g', 't'], p=p, size=n // 2))
             seq = seq + 'aaaaaa' + str(get_reverse_complement(seq))
             sequences.append(seq)
             names.append('mode_{}_seq_{}'.format(mode, i))
@@ -201,10 +201,11 @@ def analyse_simulations(data_dir, type):
 
 
 def main(args):
-    # calculate entropy values and profiles for each file
     output_dir = r'/sternadi/home/volume1/daniellem1/Entropy/Simulations/Drops'
     #files = glob.glob(output_dir)
     #fasta = files[args.index - 1]
+
+
 
     fasta = r'/volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/Simulations/Drops/simulated.fasta'
     if args.mode == 1:
