@@ -207,7 +207,7 @@ def main(args):
 
 
 
-    fasta = r'/volumes/STERNADILABHOME$/volume1/daniellem1/Entropy/Simulations/Drops/simulated.fasta'
+    fasta = r'/sternadi/home/volume1/daniellem1/Entropy/Simulations/Drops/simulated.fasta'
     if args.mode == 1:
         ent = get_entropy_profile(fasta, 200, output_dir)
     else:
