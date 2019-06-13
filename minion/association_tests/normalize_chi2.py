@@ -28,4 +28,5 @@ if __name__ == "__main__":
     df['is_peak'] = ((df.temp1 > 0) & (df.temp2 > 0))
     df = df.drop(['temp1', 'temp2'], axis=1)
     
+    df = df.sort_values('modified_zscore', ascending=False)
     df.to_csv(args.output_path, index=False)
