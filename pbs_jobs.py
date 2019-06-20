@@ -6,7 +6,7 @@ from time import sleep
 import getpass
 import datetime
 
-def create_pbs_cmd(cmdfile, alias, queue="adis", gmem=2, cmds="", dir = "", load_python=True, jnum=False):
+def create_pbs_cmd(cmdfile, alias, queue="adis", gmem=2, cmds="", dir = "", load_python=True, jnum=False, run_after_job=None):
     with open(cmdfile, 'w') as o:
         o.write("#!/bin/bash\n#PBS -S /bin/bash\n#PBS -j oe\n#PBS -r y\n")
         o.write("#PBS -q %s\n" % queue)
@@ -20,6 +20,8 @@ def create_pbs_cmd(cmdfile, alias, queue="adis", gmem=2, cmds="", dir = "", load
         if jnum:
            if jnum != 1:
                o.write("#PBS -J 1-"+str(jnum)+"\n\n")
+        if run_after_job != None:
+            o.write("#PBS -W depend=afterok:" + str(run_after_job)+"\n\n")
        # #o.write("#PBS -J 3-4 \n")
         if dir != "":
             o.write("ls -land %s\n" % dir)
