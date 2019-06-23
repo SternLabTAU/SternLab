@@ -58,8 +58,9 @@ def pis_calc(data, pivot_cols=[], min_read_count = 0, freq_threshold = 0, interv
     filtered_data = filtered_data[(filtered_data["Base"] != "-") & (filtered_data["Ref"] != "-")]
     # remove low coverage
     filtered_data = filtered_data[filtered_data["Read_count"] > min_read_count]
-    # remove low frequency
-    filtered_data = filtered_data[filtered_data["Freq"] >= freq_threshold]
+    # set low frequency to 0
+    # filtered_data = filtered_data[filtered_data["Freq"] >= freq_threshold]
+    filtered_data["Freq"] = np.where(filtered_data["Freq"] >= freq_threshold, filtered_data["Freq"], 0)
     # choose interval
     filtered_data = filtered_data[(filtered_data["Pos"] >= interval[0]) & (filtered_data["Pos"] <= interval[1])]
 
@@ -101,10 +102,10 @@ def pis_calc(data, pivot_cols=[], min_read_count = 0, freq_threshold = 0, interv
 
 
 def pi_rates_summary():
-    freq_files = glob.glob('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/freq_files_ZA04_2/*')
-    # freq_files = glob.glob('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/ET86_2s/*.freqs')
+    # freq_files = glob.glob('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/freq_files_ZA04_2/*')
+    freq_files = glob.glob('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/ET86_2s/*.freqs')
     pi_diversity_rates = pd.DataFrame(
-        columns=['sample_id', 'pi_diversity_global', 'pi_diversity_gag', 'pi_diversity_pol', 'pi_diversity_env'])
+        columns=['sample_id', 'global', 'gag', 'pol', 'env'])
     gag_ET86_interval = (170, 1684)
     pol_ET86_interval = (1456, 4488)
     env_ET86_interval = (5637, 8196)
@@ -120,34 +121,31 @@ def pi_rates_summary():
         print('Handling sample: ' + sample_id)
 
         freq_df = pd.read_csv(file, sep='\t')
-        global_pi_rate = pis_calc(data=freq_df, min_read_count= 1000, freq_threshold= 0)
+        global_pi_rate = pis_calc(data=freq_df, min_read_count= 1000, freq_threshold= 0.01)
 
-        hxb2_file = glob.glob('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/freq_files_HXB2_2/{}/*.freqs'.format(sample_id))[0]
-        freq_df_hxb2 = pd.read_csv(hxb2_file, sep='\t')
-        global_pi_rate2 = pis_calc(data=freq_df_hxb2, min_read_count= 1000, freq_threshold= 0)
+        # hxb2_file = glob.glob('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/freq_files_HXB2_2/{}/*.freqs'.format(sample_id))[0]
+        # freq_df_hxb2 = pd.read_csv(hxb2_file, sep='\t')
+        # et86_file = glob.glob('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/ET86_2s/{}.freqs'.format(sample_id))[0]
+        # freq_df_et86 = pd.read_csv(et86_file, sep='\t')
+        # global_pi_rate2 = pis_calc(data=freq_df_et86, min_read_count= 1000, freq_threshold= 0)
 
-        # global_pi_rate2 = pis_calc(data=freq_df, min_read_count= 100, freq_threshold= 0.01)
-        # global_pi_rate3 = pis_calc(data=freq_df, min_read_count= 100, freq_threshold= 0.01)
-        # global_pi_rate4 = pis_calc(data=freq_df, min_read_count= 1000, freq_threshold= 0.01)
-        # gag_pi_rate = pis_calc(data=freq_df, min_read_count= 100, freq_threshold= 0.01, interval= gag_ET86_interval)
-        # pol_pi_rate = pis_calc(data=freq_df, min_read_count= 100, freq_threshold= 0.01, interval= pol_ET86_interval)
-        # env_pi_rate = pis_calc(data=freq_df, min_read_count= 100, freq_threshold= 0.01, interval= env_ET86_interval)
+        gag_pi_rate = pis_calc(data=freq_df, min_read_count= 1000, freq_threshold= 0.01, interval= gag_ET86_interval)
+        pol_pi_rate = pis_calc(data=freq_df, min_read_count= 1000, freq_threshold= 0.01, interval= pol_ET86_interval)
+        env_pi_rate = pis_calc(data=freq_df, min_read_count= 1000, freq_threshold= 0.01, interval= env_ET86_interval)
 
-        # row = [sample_id] + [global_pi_rate] + [gag_pi_rate] + [pol_pi_rate] + [env_pi_rate]
-        # row = [sample_id] + [global_pi_rate] + [global_pi_rate2] + [global_pi_rate3] + [global_pi_rate4]
-        row = [sample_id] + [global_pi_rate] + [global_pi_rate2] + [0] + [0]
+        row = [sample_id] + [global_pi_rate] + [gag_pi_rate] + [pol_pi_rate] + [env_pi_rate]
         # print(row)
         pi_diversity_rates.loc[i] = row
         i = i + 1
 
     pi_diversity_rates = pi_diversity_rates.sort_values(by='pi_diversity_global', ascending=False)
     print(pi_diversity_rates)
-    pi_diversity_rates.to_csv('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/pi_rates_ZA04_check.csv', index=False)
+    pi_diversity_rates.to_csv('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/pi_rates_ET86_2.csv', index=False)
     return pi_diversity_rates
 
 def main1():
-    pi_rates_summary()
-    # pi_diversity_plots()
+    # pi_rates_summary()
+    pi_diversity_plots()
 
 
 def mergre_summary_tables():
@@ -174,38 +172,61 @@ def mergre_summary_tables():
 
 
 def pi_diversity_plots():
+    pd.set_option('display.width', 600)  # TODO- remove
+    pd.set_option('display.max_columns', 16)  # TODO- remove
+
+    # joining diversity values with patient & date info
     samples_to_patient_and_dates = pd.read_csv('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/final_ZA04.csv',
-                                sep=',').set_index('sample_id')[['sample_id', 'ind_id', 'sample_date']]
-    pi_rates = pd.read_csv('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/pi_rates_ET86.csv', sep=',').set_index('sample_id')
+                                sep=',')[['sample_id', 'ind_id', 'sample_date']]
+    samples_to_patient_and_dates = samples_to_patient_and_dates.set_index('sample_id')
+    pi_rates = pd.read_csv('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/pi_rates_ET86_2.csv', sep=',').set_index('sample_id')
 
-    pis_with_dates = samples_to_patient_and_dates.join(pi_rates)
+    pis_by_ind = samples_to_patient_and_dates.join(pi_rates)
 
-    pis_with_dates['sample_date'] = pd.to_datetime(pis_with_dates['sample_date'], format='%d/%m/%Y')
-    pis_with_dates = pis_with_dates.sort_values(by=['ind_id', 'sample_date'])
+    # sorting by patient + sampling date
+    pis_by_ind['sample_date'] = pd.to_datetime(pis_by_ind['sample_date'], format='%d/%m/%Y')
+    ordered_pis_by_ind = pis_by_ind.sort_values(by=['ind_id', 'sample_date'])
 
-    # TODO- switch "sample_date" to "time_since_infection"
-    # pis_with_dates["time_since_infection"] = pis_with_dates.groupby('ind_id')['sample_date'].aggregate(min).unstack()
+    # coverting "sample_date" to "time_since_infection"
+    first_samples_dates = ordered_pis_by_ind.groupby('ind_id').first().reset_index()
+    first_samples_dates = first_samples_dates[['ind_id', 'sample_date']]
+    # print(first_samples_dates)
 
-    pis_with_dates.melt(id_vars= ('ind_id', 'sample_date'),
-                        value_vars= ('pi_diversity_global', 'pi_diversity_gag', 'pi_diversity_pol', 'pi_diversity_env'),
-                        var_name='regions',  value_name='Pi diversity'
+    ordered_pis_by_ind = ordered_pis_by_ind.merge(first_samples_dates,
+                                        on='ind_id',
+                                        how='left',
+                                        sort=False,
+                                        suffixes= ('','_r'))
+    ordered_pis_by_ind['years_since_infection'] = (ordered_pis_by_ind['sample_date'] - ordered_pis_by_ind['sample_date_r']) / np.timedelta64(1, 'Y')
+    print(ordered_pis_by_ind)
+
+    # generating plot
+    ordered_pis_by_ind = ordered_pis_by_ind.melt(id_vars= ('ind_id', 'years_since_infection'),
+                        value_vars= ('global', 'gag', 'pol', 'env'),
+                        var_name='regions',  value_name='pi_diversity'
                         )
-    pis_with_dates = pis_with_dates.sort_values(by=['ind_id', 'sample_date'])
+    ordered_pis_by_ind = ordered_pis_by_ind.sort_values(by=['ind_id', 'years_since_infection'])
+    # print(ordered_pis_by_ind[ordered_pis_by_ind['ind_id'] == 16207])
 
+    # TODO- fix the incorrect x-axis issue (using 'sharey': False resolves)
     g = sns.relplot(
-        x='sample_date',
+        x='years_since_infection',
         y='pi_diversity',
         col='ind_id',
         hue='regions',
-        data=pis_with_dates,
+        data=ordered_pis_by_ind,
         col_wrap=5,
-        facet_kws={'sharex': False},
-        kind='line')
+        kind='line',
+        facet_kws={'sharex': False, 'legend_out':True},
+        )
     g.set(yscale="log")
+    g.set_ylabels("Pi diversity")
     g.set_xticklabels(rotation=45, fontsize=14)
 
-    # plt.savefig(fname= '/Users/omer/PycharmProjects/SternLab/RG_data_analysis/pi_trends_ET86.pdf')
-    plt.show()
+    # extracting plot
+    # plt.show()
+    plt.savefig(fname= '/Users/omer/PycharmProjects/SternLab/RG_data_analysis/pi_trends_ET86_2.pdf')
+    # g.savefig('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/pi_rates_ET86_2.png')
 
 def aggregation_tries():
     summary_table = pd.read_csv('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/final_ZA04.csv',
