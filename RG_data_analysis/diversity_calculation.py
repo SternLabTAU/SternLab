@@ -208,7 +208,6 @@ def pi_diversity_plots():
     ordered_pis_by_ind = ordered_pis_by_ind.sort_values(by=['ind_id', 'years_since_infection'])
     # print(ordered_pis_by_ind[ordered_pis_by_ind['ind_id'] == 16207])
 
-    # TODO- fix the incorrect x-axis issue (using 'sharey': False resolves)
     g = sns.relplot(
         x='years_since_infection',
         y='pi_diversity',
@@ -217,11 +216,12 @@ def pi_diversity_plots():
         data=ordered_pis_by_ind,
         col_wrap=5,
         kind='line',
-        facet_kws={'sharex': False, 'legend_out':True},
+        facet_kws={'sharex': True, 'legend_out':True},
         )
     g.set(yscale="log")
     g.set_ylabels("Pi diversity")
-    g.set_xticklabels(rotation=45, fontsize=14)
+    g.set_xlabels("ET first sample (Years)")
+    # g.set_xticklabels(rotation=45, fontsize=14)
 
     # extracting plot
     # plt.show()
