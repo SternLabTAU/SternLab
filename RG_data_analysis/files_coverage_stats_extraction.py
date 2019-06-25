@@ -1,6 +1,8 @@
 import pandas as pd
 import glob
 import os
+from RG_data_analysis.coordinates import gag_ET86_start, gag_ET86_end, pol_ET86_start, pol_ET86_end, env_ET86_start, \
+    env_ET86_end
 
 
 def create_coverage_stats_table():
@@ -37,18 +39,6 @@ def extract_long_cov(freq_file):
     df = df.loc[df['Read_count'] > 1000]
     long_cov = df['Pos'].count()
 
-    gag_HXB2_start = 790
-    gag_HXB2_end = 2292
-    gag_ET86_start = 170
-    gag_ET86_end = 1684
-    pol_HXB2_start = 2085
-    pol_HXB2_end = 5096
-    pol_ET86_start = 1456
-    pol_ET86_end = 4488
-    env_HXB2_start = 6225
-    env_HXB2_end = 8795
-    env_ET86_start = 5637
-    env_ET86_end = 8196
     gag_cov = df['Pos'].loc[(df['Pos'] > gag_ET86_start) & (df['Pos'] < gag_ET86_end)].count()
     pol_cov = df['Pos'].loc[(df['Pos'] > pol_ET86_start) & (df['Pos'] < pol_ET86_end)].count()
     env_cov = df['Pos'].loc[(df['Pos'] > env_ET86_start) & (df['Pos'] < env_ET86_end)].count()
