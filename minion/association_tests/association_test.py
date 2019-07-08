@@ -22,7 +22,7 @@ def association_test(args):
     if args.start_pos_read is None:
         args.start_pos_read = couples.i.min()
     if args.end_pos_read is None:
-        args.start_pos_read = couples.i.max()
+        args.end_pos_read = couples.i.max()
 
     blast_df = pd.read_csv(args.input_blast_df)
     # choose only reads that were mapped only once in blast
