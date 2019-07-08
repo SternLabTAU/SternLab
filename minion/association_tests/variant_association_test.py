@@ -12,7 +12,7 @@ import os
 def variant_association_test(args):
     '''
     '''    
-    position_list = [float(p) for p in pd.read_csv(args.input_chosen_positions, header=None)[0].tolist()] 
+    recognized_positions = [float(p) for p in pd.read_csv(args.input_chosen_positions, header=None)[0].tolist()] 
 
     os.mkdir(args.output_dir + '/' + 'extras/')
     blast_df = pd.read_csv(args.input_blast_df)
