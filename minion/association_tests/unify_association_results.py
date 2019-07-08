@@ -4,7 +4,7 @@
 import pandas as pd
 import os
 import argparse
-from tqdm import
+from tqdm import tqdm
 
     
 if __name__ == "__main__":
