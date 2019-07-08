@@ -4,7 +4,7 @@
 import pandas as pd
 import os
 import argparse
-from tqdm import tqdm
+from tqdm import
 
     
 if __name__ == "__main__":
@@ -21,7 +21,12 @@ if __name__ == "__main__":
         parser.print_help()
         parser.exit(1)
     dfs = []
-    files = [args.input_results_directory + '/' + d  + '/chi2_results.csv' for d in os.listdir(args.input_results_directory) if d.isnumeric()]
+    files = []
+    # r=root, d=directories, f = files
+    for r, d, f in os.walk(path):
+        for file in f:
+            if 'chi2_results.csv' in file:
+                files.append(os.path.join(r, file))
     for f in tqdm(files):
         dfs.append(pd.read_csv(f))
     df = pd.concat(dfs)
