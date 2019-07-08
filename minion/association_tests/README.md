@@ -14,16 +14,16 @@ To do this, either use AccuNGS script or run BLAST separately as follows:
 
    - BLAST (v2.7.1+) the merged fastq against the reference.
 Parameters:
-ref_genome - reference genome (FASTA format)
-in_fastq - fastq file
-max_num_alignments - maximum number of alignments (typically 10x of the length of the input file)
-pcID_blast - percents identity of each alignment to the reference. suggested for minion: 60.
-out_blast - blast output file
+     - ref_genome - reference genome (FASTA format)
+     - in_fastq - fastq file
+     - max_num_alignments - maximum number of alignments (typically 10x of the length of the input file)
+     - pcID_blast - percents identity of each alignment to the reference. suggested for minion: 60.
+     - out_blast - blast output file
 
    - Typical use case:
-   sed '/^@/!d;s//>/;N' ${in_fastq} > ${in_fastq} # fastq to fasta
-   makeblastdb -in ${in_fasta} -dbtype nucl
-   blastn -query ${ref_genome} -taskblastn -db ${in_fasta} -outfmt "6 sseqid qstart qend qstrand sstart send sstrand length btop" -num_alignments ${max_num_alignments} -dust no -soft_masking F -perc_identity ${pcID_blast} -evalue 1e-7 -out ${out_blast}
+     - sed '/^@/!d;s//>/;N' ${in_fastq} > ${in_fasta} # fastq to fasta
+     - makeblastdb -in ${in_fasta} -dbtype nucl
+     - blastn -query ${ref_genome} -taskblastn -db ${in_fasta} -outfmt "6 sseqid qstart qend qstrand sstart send sstrand length btop" -num_alignments ${max_num_alignments} -dust no -soft_masking F -perc_identity ${pcID_blast} -evalue 1e-7 -out ${out_blast}
 
 
 2. Run parse_blasts.py to create two output files: a dataframe of all blast outputs and a dataframe
@@ -93,10 +93,8 @@ output path to write the positions to, and a modified_zscore_cutoff to use.
 
 
 To transform the identified **positions** into specific **variants**, use variant_association_test.py. The script uses the
-blasts dataframe and mutations dataframe created in steps 2-3. The script also gets the positions to analyze in the
-format of csv with no header where every row is a position to analyze (option p) as created by
-normalized_chi2_get_positions.py. The script writes the chi-square results and the final variant list to the output
-directory in chosen_variants.csv.
+blasts dataframe and mutations dataframe created in steps 2-3. The script also gets the positions to analyze as created by normalized_chi2_get_positions.py. The script writes the chi-square results to the output
+directory, as well as the final variant list in chosen_variants.csv.
    - usage: variant_association_test.py [-h] -b INPUT_BLAST_DF -m INPUT_MUTATION_DF
                                    -p INPUT_CHOSEN_POSITIONS -o
                                    OUTPUT_DIR
