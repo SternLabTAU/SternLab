@@ -6,6 +6,7 @@ import numpy as np
 import os
 import argparse
 import scipy.stats
+from tqdm import tqdm
 
 
 def association_test(args):
@@ -43,9 +44,8 @@ def association_test(args):
 
     chi2_data = []
     
-    for (i, j) in position_tuple_list:
+    for (i, j) in tqdm(position_tuple_list):
         if not os.path.isfile(association_test_dir + str(i) + '_' + str(j) + '.csv') and not os.path.isfile(association_test_dir + str(j) + '_' + str(i) + '.csv'):
-            print((i,j))
             temp_matrix = pd.DataFrame(np.zeros(shape=(2,2)), columns=[j,0], index=[i,0])
             b = blast_df.copy()
             m = mutations_df.copy()
