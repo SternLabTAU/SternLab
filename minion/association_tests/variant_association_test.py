@@ -63,7 +63,7 @@ def variant_association_test(args, recognized_positions):
         temp_matrix.at[0,0] = reads_with_wt_i_wt_j
         # run association test on matrix and write results to file.
         if temp_matrix.sum(axis=0).all() > 0 and temp_matrix.sum(axis=1).all() > 0:
-            temp_matrix.to_csv(args.output_dir + '/extras/' + str(i) + '_' + str(j) + '.csv')
+            #temp_matrix.to_csv(args.output_dir + '/extras/' + str(i) + '_' + str(j) + '.csv')
             chi2, pvalue, dof, expected = scipy.stats.chi2_contingency(temp_matrix)
             chi2_data.append((i,j,pvalue,chi2))
             chi2_data.append((j,i,pvalue,chi2))
