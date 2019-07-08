@@ -35,8 +35,8 @@ results file/s (_.blast), and creates the two new csv files in the output direct
 
 3. Run create_couples_index_file.py to create an index file used by the association test script.
 The file is a csv containing the pairs of positions to check, and also an association index for the
-association test script to use when being run as many jobs in parallel which is recommended (choose number of jobs to split to).
-If planning to run as one job, choose 1 for -j, and on step 4 (association_test.py) choose 0 for -j (PBS_JOB_ARRAY_ID).
+association test script to use when being run as more than one job in parallel (choose number of jobs to split to).
+If planning to run as one job, choose 1 for -j, and on the next step (association_test.py) choose 0 for -j (PBS_JOB_ARRAY_ID).
 Start and end positions to test associations for are recommended as 30 positons away from the start and end of the
 reference sequence.
 
@@ -93,8 +93,7 @@ output path to write the positions to, and a modified_zscore_cutoff to use.
 
 
 To transform the identified **positions** into specific **variants**, use variant_association_test.py. The script uses the
-blasts dataframe and mutations dataframe created in steps 2-3. The script also gets the positions to analyze as created by normalized_chi2_get_positions.py. The script writes the chi-square results to the output
-directory, as well as the final variant list in chosen_variants.csv.
+blasts dataframe and mutations dataframe created in steps 2-3. The script also gets the positions to analyze as created by normalized_chi2_get_positions.py. The script writes the chi-square results and the final variant list to the output directory in variant_association_results.csv and chosen_variants.csv, respectively.
    - usage: variant_association_test.py [-h] -b INPUT_BLAST_DF -m INPUT_MUTATION_DF
                                    -p INPUT_CHOSEN_POSITIONS -o
                                    OUTPUT_DIR
