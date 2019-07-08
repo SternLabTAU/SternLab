@@ -14,7 +14,6 @@ def variant_association_test(args):
     '''    
     recognized_positions = [float(p) for p in pd.read_csv(args.input_chosen_positions, header=None)[0].tolist()] 
 
-    os.mkdir(args.output_dir + '/' + 'extras/')
     blast_df = pd.read_csv(args.input_blast_df)
     # choose only reads that were mapped only once in blast
     blast_df['read_count'] = blast_df.groupby('read')['start_ref'].transform('count')
@@ -69,7 +68,7 @@ def variant_association_test(args):
             chi2_data.append((j,i,pvalue,chi2))
             
     df = pd.DataFrame(chi2_data, columns=['variant1', 'variant2', 'pvalue', 'chi2'])
-    df.to_csv(args.output_dir  + '/extras/variant_association_results.csv', index=False)
+    df.to_csv(args.output_dir  + '/variant_association_results.csv', index=False)
     
     a = df.groupby('variant1').chi2.mean().reset_index().sort_values('chi2')
     a['pos1'] = a.variant1.str[1:-1].astype(float)
