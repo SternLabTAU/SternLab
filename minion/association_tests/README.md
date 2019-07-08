@@ -80,9 +80,11 @@ results exceeding the cutoff are written to output_csv.
                                      CONFIDENCE_PERCENTILE
 
 ### Choosing a cutoff without a control sample:
-We provide visualization tools to help assess your data and choose an appropriate cutoff. Helpful functions are
-provided in tools_to_visualize_association_results.py.
+Use visualize_association_results.py to visualize the normalized association scores created by normalize_chi2.py and choose an appropriate cutoff. The script creates a scatter plot of all the associations per position, where different colors signify
+whether the association is a local maximum or not (associations are required to be a local maximum in order to be considered associations between two real mutations).
 
+   - usage: visualize_association_results.py [-h] -i INPUT_ASSOCIATION_RESULTS -o
+                                        OUTPUT_PNG
 ## Getting the true variants
 Use normalized_chi2_get_positions.py to get the **positions** that are identified as having real variants by AssociVar.
 This script gets a csv with the pos1, pos2, modified zscores and is_peak column created by normalize_chi2.py, an
