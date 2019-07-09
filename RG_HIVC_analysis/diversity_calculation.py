@@ -4,7 +4,11 @@ import pandas as pd
 import glob
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns; sns.set_context("poster")
+import seaborn as sns;
+
+from RG_HIVC_analysis.coordinates import gag_ET86_interval, pol_ET86_interval, env_ET86_interval, excluded_samples
+
+sns.set_context("poster")
 import sys
 
 
@@ -56,6 +60,7 @@ def pis_calc(data, pivot_cols=[], min_read_count = 0, freq_threshold = 0, interv
     filtered_data = data[data["mutation_type"].isin(['GA','AG','GG','AA','CT','TC','CC','TT'])]
     # remove indels
     filtered_data = filtered_data[(filtered_data["Base"] != "-") & (filtered_data["Ref"] != "-")]
+    # TODO- remove insertions
     # remove low coverage
     filtered_data = filtered_data[filtered_data["Read_count"] > min_read_count]
     # set low frequency to 0
@@ -106,10 +111,6 @@ def pi_rates_summary():
     freq_files = glob.glob('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/ET86_2s/*.freqs')
     pi_diversity_rates = pd.DataFrame(
         columns=['sample_id', 'global', 'gag', 'pol', 'env'])
-    gag_ET86_interval = (170, 1684)
-    pol_ET86_interval = (1456, 4488)
-    env_ET86_interval = (5637, 8196)
-    excluded_samples = ('X84335_S20','504214_S58','504184_S28','504186_S30','84864_S47','504206_S50','504190_S34','504191_S35','504192_S36','504198_S42','X84434_S3','X145364-R_S95')
 
     # TODO- use append instead of loc[i]
     i = 0
