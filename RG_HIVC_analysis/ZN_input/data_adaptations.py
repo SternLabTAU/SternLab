@@ -4,6 +4,9 @@ import os
 import numpy as np
 import pandas as pd
 
+from RG_HIVC_analysis import constants
+
+
 def convert_freqs_to_zn_input_format():
     # freq_files = glob.glob('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/ET86_2s/*.freqs')
     freq_files = glob.glob('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/ET86_2s/100888_S14.freqs')
@@ -40,6 +43,8 @@ def generate_samples_tables():
 
     # fetching all patients data
     summary_table = pd.read_csv('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/final_ZA04.csv', sep=',')
+    # ** FILTERING low quality SAMPLES **
+    summary_table = summary_table[~summary_table['sample_id'].isin(constants.excluded_samples)]
     # sorting by patient + sampling date
     summary_table['sample_date'] = pd.to_datetime(summary_table['sample_date'], format='%d/%m/%Y')
     summary_table = summary_table.sort_values(by=['ind_id', 'sample_date'])
@@ -55,8 +60,8 @@ def generate_samples_tables():
         print('Patient: ' + str(patient_id))
         samples_table = summary_table.loc[summary_table.ind_id == patient_id][['sample_id', 'ind_id', 'days since infection', 'sample_VL']]
         samples_table.rename({'sample_id': 'id', 'ind_id': 'patient', 'sample_VL': 'viral load'}, axis='columns', inplace = True)
-        print(samples_table)
-        # samples_table.to_csv(f'/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/ZN_input/tables/samples_{patient_id}.tsv',index=False, sep='\t')
+        # print(samples_table)
+        samples_table.to_csv(f'/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/ZN_input/tables/samples_{patient_id}.tsv',index=False, sep='\t')
 
         # for sample_id in samples_table.sample_id:
 
