@@ -1,7 +1,7 @@
 import pandas as pd
 import glob
 import os
-from RG_HIVC_analysis.coordinates import gag_ET86_start, gag_ET86_end, pol_ET86_start, pol_ET86_end, env_ET86_start, \
+from RG_HIVC_analysis.constants import gag_ET86_start, gag_ET86_end, pol_ET86_start, pol_ET86_end, env_ET86_start, \
     env_ET86_end
 
 
