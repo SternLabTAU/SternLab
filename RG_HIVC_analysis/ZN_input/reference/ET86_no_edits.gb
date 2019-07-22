@@ -22,34 +22,164 @@ REFERENCE   2  (bases 1 to 9031)
             Epidemiology, Henry M. Jackson Foundation, 1600 East Gude Drive,
             Rockville, MD 20850, USA
 FEATURES             Location/Qualifiers
+     source          1..9031
+                     /organism="Human immunodeficiency virus 1"
+                     /mol_type="genomic DNA"
+                     /strain="C2220 (ETH2220)"
+                     /db_xref="taxon:11676"
+                     /clone="pNOTA/C2220/C3.6.4"
+                     /note="subtype C from Ethiopia; isolated by short term
+                     co-culture on normal human PBMC"
      gene            170..1684
-                     /note="gag"
-     protein         173..563
-                     /note="p17"
+                     /gene="gag"
+     CDS             170..1684
+                     /gene="gag"
+                     /note="GAG p17/p24/NCp7/p6"
+                     /codon_start=1
+                     /product="matrix, capsid and core proteins"
+                     /protein_id="AAB36500.1"
+                     /translation="MGARASILRGEKLDAWEKIKLRPGGKKHYMLKHLVWANRELEKF
+                     ALNPDLLDTSAGCKQIIKQLQPALQTGTEELKSLFNTVATLYCVHQKIEIKDTKEALD
+                     KIEEEQNESQQKTQQAGAADRGKDSQNYPIVQNMQGQMVHQPISARTLNAWVKVVEEK
+                     AFSPEVIPMFTALSEGATPQDLNTMLNTVGGHQAAMQMLKDTINEEAAEWDRLHPVHA
+                     GPVAPGQMRDPRGSDIAGTTSTLQEQIAWMTGNPPVPVGDIYKRWIILGLNKIVRMYS
+                     PVSILDIKQGPKEPFRDYVDRFFKTLRAEQATQDVKNWMTDTLLVQNANPDCKTILRA
+                     LGPGASLEEMMTACQGVGGPAHKARVLAEAMSQVNNTTIMMQKSNFKGPKRAIKCFNC
+                     GKEGHLARNCRAPRKKGCWKCGKEGHQMKDCTERQANFLGRLWPSNKGRPGNFLQSRP
+                     EPTAPPESLRPEPTAPPPESFRFEEATPSPKQELKDREALTSLKSLFGNDHLLQ"
      gene            1456..4488
-                     /note="pol"
-     protein         1939..2629
-                     /note="RT"
+                     /gene="pol"
+     CDS             <1456..4488
+                     /gene="pol"
+                     /note="initiation codon is unknown"
+                     /codon_start=1
+                     /product="protease/RT/RNAseH/integrase"
+                     /protein_id="AAB36501.1"
+                     /translation="FFRETLAFQQGKAREFPSEQTRANSPTRESQTRANSPTTRELQV
+                     RGSNTFSEAGAERQGSLNFPQITLWQRPLVTIKIGGQLKEALLDTGADDTVLEEINLP
+                     GKWKPKMIGGIGGFIKVRQYDQIIIEICGKKAIGTVLVGPTPVNIIGRNMLTQLGRTL
+                     NFPISPIETVPVKLKPGMDGPKVKQWPLTEEKIKALTAICEEMEQEGKISRIGPENPY
+                     NTPVFAIKKKDSTKWRKLVDFRELNKRTQDFWEVQLGIPHPAGLKKKKSVTVLDVGDA
+                     YFSVPLDEGFRKYTAFTIPSTNNETPGIRYQYNVLPQGWKGSPPIFQSSMPQILEPFR
+                     APNPEIVIYQYMDDLYVGSDLEIGQHRAPIEELREHLLKWGFTTPDKKHQKEPPFLWM
+                     GYELHPDKWTVQPIQLPEKDSWTVNDIQKLVGKLNWASQIYPGIKVRQLCKLLRGAKA
+                     LTDIVTLTEEAELELAENREILKEPVHGVFYDPSKDLIAEIQKQGNDQWTFQFYQEPF
+                     KNLKTGKFAKRGTAHTNDVKQLTAVVQKIALESIVIWGKTPKFRLPIQKETWEAWWTD
+                     YWQATWIPEWEFVNTPPLVKLWYQLEKEPIAGVETFYVDGAANRETKIGKAGYVTDRG
+                     RQKIVSLTETTNQKTELQAIQLALQDSGSEVNIVTDSQYALGIILAQPDKSESEIVNQ
+                     IIEQLISKERVYLSWVPAHKGIGGNEQVDKLVSSGIRKVLFLDGIDKAQEEHEKYHSN
+                     WRAMANEFNIPPVVPKEIVACCDKCQLKGEAIHGQVNCSPGIWQLDCTHLEGKIILVA
+                     VHVASGYIEAEVIPAETGQETAYFLLKLAGRWPVRVIHTDNGSNFTSNAVKAACWWAG
+                     IQQEFGIPYNPQSQGVVESMNKELKKIIGQVREQAEHLKTAVQMAVFIHNFKRRGGIG
+                     GYSAGERIIDIIASDIQTKELQNQILKIQNFRVYYRDSRDPIWKGPAKLLWKGEGAVV
+                     IQDNSDIKVVPRRKAKIIRDYGKQMAGADCVAGRQDED"
      gene            4433..5011
-                     /note="vif"
+                     /gene="vif"
+     CDS             4433..5011
+                     /gene="vif"
+                     /note="infectivity factor"
+                     /codon_start=1
+                     /product="VIF"
+                     /protein_id="AAB36502.1"
+                     /translation="MENRWQVLIVWQVDRMKIRTWNSLVKHHMHISRRANGWVYRHHY
+                     DSRHPKVSSEVHIPLGEARLIIKTYWGLQTGERDWHLGHGVSIEWRLRSYNTQVDPGL
+                     ADHLIHMHYFDCFAESAIRKAILGYRVSPRCDYQAGHNKVGSLQYLALTALIKPKKAK
+                     PPLPSVSKLVEDKWNKPQKTRGRRGNHTMNGH"
      gene            4951..5241
-                     /note="vpr"
+                     /gene="vpr"
+     CDS             4951..5241
+                     /gene="vpr"
+                     /codon_start=1
+                     /product="VPR"
+                     /protein_id="AAB36503.1"
+                     /translation="MEQAPEDQGPQREPYNEWALELLEELKQEAVRHFPRPWLHNLGQ
+                     YIYETYGDTWSGVEALIRTLQQLMFIHFRIGCQHSRIGILRQRRARNGASRS"
      gene            5222..5350
-                     /note="tat"
-     gene            join(5360..5435,7755..8002)
-                     /note="rev"
+                     /gene="tat"
+     CDS             5222..5350
+                     /gene="tat"
+                     /note="transactivating factor; prematurely truncated at nt
+                     5350 due to a deletion at nt 5344; second exon not
+                     expressed"
+                     /codon_start=1
+                     /product="TAT"
+                     /protein_id="AAB36504.1"
+                     /translation="MEPVDPNLEPWNHPGSQPKTACNQCYCKKCSYHCLVCFLTKA"
+     gene            5360..8002
+                     /gene="rev"
+     CDS             join(5360..5435,7755..8002)
+                     /gene="rev"
+                     /note="regulator of protein expression; prematurely
+                     truncated at nt 8002"
+                     /codon_start=1
+                     /product="REV"
+                     /protein_id="AAB36505.1"
+                     /translation="MAGRSGDSDEELLKAVRIIKILYQSNPYPTPEGTRQARRNRRRR
+                     WRARQRQIHTLSERILSNFLGRPAEPVPLQLPPLERLNLDCSEDSGTSGTQQSQGTTE
+                     GVGNP"
      gene            5459..5719
-                     /note="vpu"
+                     /gene="vpu"
+     CDS             5459..5719
+                     /gene="vpu"
+                     /function="promotes extracellular release of virions"
+                     /codon_start=1
+                     /product="VPU"
+                     /protein_id="AAB36506.1"
+                     /translation="MVDLLAKVDYRIVIVAFIVALIIAIVVWTIAYIEYRKLLRQRRI
+                     DRLIKRTRERAEDSGNESDGDTEELSTMVDMGNLRLLDVNDL"
      gene            5637..8192
-                     /note="env"
+                     /gene="env"
+     CDS             5637..8192
+                     /gene="env"
+                     /note="viral envelope gene; contains external and
+                     transmembrane glycoproteins; cleaved to gp120 & gp41"
+                     /codon_start=1
+                     /product="gp160"
+                     /protein_id="AAB36507.1"
+                     /translation="MKVMGIQRNCQQWWIWGILGFWMLMICNGMGNLWVTVYYGVPVW
+                     KDASPTLFCASDAKAYDTEVHNVWGTFACVPTDPSPQELGLENVTENFNMWKNDMVEQ
+                     MHQDIISLWDQGLKPCVKLTPLCVTLNCNAIKNNTKVTNNSINSANDEMKNCSFNITT
+                     ELRDKKRKAYALFYKLDIVPLNNGSTDYRLINCNTSTITQACPKVSLDPIPIHYCAPA
+                     GYAILKCRDKTFTGTGPCHNVSTVQCTHGIKPVVSTQLLLNGSIAEGETIIRFENLTN
+                     NAKIIIVQLNESVEITCTRPSNNTRESIRIGPGQTFYATGDIIGDIRQAHCNISEEKW
+                     NKTLQKVKEKLQKHFPNKTIEFKPSSGGDLEITTHSFNCGGEFFYCNTSNLFNSTKLE
+                     LFNSSTNLNITLQCRIKQIINMWQGVGRAMYAPPIEGIIMCRSNITGLLLTRDGAKEP
+                     HSTKEIFRPEGGDMRDNWRSELYKYKVVEIKPLGVAPTKPKRRVVEREKRAALGALFL
+                     GFLGAAGSTMGAASITLTVQARQLLSGIVQQQSNLLKAIEAQQHMLQLTVWGIKQLQT
+                     RVLAIERHLRDQQLLGIWGCSGKLICTTAVPWNSSWSNKSQEEIWDNMTWMQWDREIS
+                     NYTDIIYNLLEVSQNQQDKNEKDLLALDKWENLWNWFNITNWLWYIKIFIMIVGGVIG
+                     LRIIFAVLSIVNRVRQGYSPLSFQTLIPHPRGPDRLGGIEEEGGEQGRDRSIRLVNGF
+                     LAIFWDDLRSLCLFSYHRLRDLILIAARTVELLGRSSLKGLQRGWETLKYLGSLVQYW
+                     GLELKKSAINLLNTTAIVVGEGTDRFIELIQRIWRAFCNIPRRIRQGLEAALQ"
      misc_RNA        7145..7378
-                     /note="RRE"
+                     /gene="env"
+                     /note="RRE region of mRNA; viral envelope gene"
      gene            8194..8817
-                     /note="nef"
+                     /gene="nef"
+     CDS             8194..8817
+                     /gene="nef"
+                     /note="regulatory protein"
+                     /codon_start=1
+                     /product="NEF"
+                     /protein_id="AAB36508.1"
+                     /translation="MGGTMSKCSPVGWPAIRERIRRAAPAAEGVGAASRDLDKYGALT
+                     SSNTPANNPDCAWLEAQEEEEEVGFPVRPQVPLRPMTYKAAFDLSLFLKEKGGLEGLI
+                     YSKKRQEILDLWVYNTQGFFPDWQNYTPGPGVRYPLTFGWCFKLVPVDPSEVEEINEG
+                     ENNCLLHPASLHGMEDEDREVLKWKFDSHLARRHMARELHPEYYKDC"
      repeat_region   8486..>9031
-                     /note="LTR3"
+                     /note="3', U3 and R regions only"
+                     /rpt_type=long_terminal_repeat
+     protein_bind    8825..8834
+                     /note="extra NFkB site III"
+                     /bound_moiety="NFkb"
+     protein_bind    8838..8847
+                     /note="NFkB site II"
+                     /bound_moiety="NFkb"
+     protein_bind    8851..8860
+                     /note="NFkB site I"
+                     /bound_moiety="NFkb"
      misc_RNA        8939..8997
-                     /note="TAR"
+                     /note="TAR region of mRNA"
 ORIGIN      
         1 aaatctctag cagtggcgcc cgaacagggg acctgaaagc gaaagtgaga ccagaggaga
        61 tctctcgacg caggactcgg cttgctgaag tgcactcggc aagaggcgag agcggcgact

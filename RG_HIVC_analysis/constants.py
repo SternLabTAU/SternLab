@@ -13,7 +13,12 @@ env_ET86_end = 8196
 
 gag_ET86_interval = (170, 1684)
 pol_ET86_interval = (1456, 4488)
+RT_ET86_interval = (1939, 3619)
+RT_short_ET86_interval = (1939, 2629) # 230 aa's
 env_ET86_interval = (5637, 8196)
+
+ET86_length= 9031
+
 excluded_samples = (
 'X84335_S20', '504214_S58', '504184_S28', '504186_S30', '84864_S47', '504206_S50', '504190_S34', '504191_S35',
 '504192_S36', '504198_S42', 'X84434_S3', 'X145364-R_S95')

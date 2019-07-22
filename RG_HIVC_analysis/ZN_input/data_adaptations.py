@@ -8,8 +8,8 @@ from RG_HIVC_analysis import constants
 
 
 def convert_freqs_to_zn_input_format():
-    # freq_files = glob.glob('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/ET86_2s/*.freqs')
-    freq_files = glob.glob('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/ET86_2s/100888_S14.freqs')
+    freq_files = glob.glob('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/ET86_2s/*.freqs')
+    # freq_files = glob.glob('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/ET86_2s/100888_S14.freqs')
 
     for file in freq_files:
         freq_df = pd.read_csv(file, sep='\t')
@@ -19,21 +19,33 @@ def convert_freqs_to_zn_input_format():
         freq_df.reset_index(drop=True, inplace=True)
 
         df = freq_df.pivot(index='Pos', columns='Base', values='counts_for_position')
-        # re-order (although not necessarily needed)
+
+        # re-order columns
         cols = df.columns.tolist()
         cols = cols[1:] + cols[:1]
         df = df[cols]
+        # add N column
         df['N'] = 0.0
-        # print(len(df))
         # print(df.iloc[-1])
-        counts_array = df.to_numpy().astype(int).transpose()
+        # print(df)
+
+        # filling missing indices (with zeros)
+        idx_reference = pd.DataFrame({'Pos': range(1, constants.ET86_length + 1)})
+        complete_idx = idx_reference.merge(df, on='Pos', how='left', sort=False,suffixes=('', '_r'))
+        complete_idx.fillna(0)
+        # print(complete_idx)
+        cols = complete_idx.columns.tolist()
+        counts_df = complete_idx[cols[1:]]
+
+        # convert to numpy
+        counts_array = counts_df.to_numpy().astype(int).transpose()
         # print(counts_array.shape)
 
         output_folder = '/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/ZN_input/single_nucleotide_variants/'
         npy_file_name = os.path.splitext(os.path.basename(file))[0] + '.npy'
         path = output_folder + npy_file_name
         print(path)
-        # np.save(path, counts_array)
+        np.save(path, counts_array)
 
 
 def generate_samples_tables():
@@ -67,7 +79,7 @@ def generate_samples_tables():
 
 
 if __name__ == "__main__":
-    # convert_freqs_to_zn_input_format()
+    convert_freqs_to_zn_input_format()
     # aft = np.load('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/ZN_input/single_nucleotide_variants/100888_S14.npy')
     # print(len(aft.argmax(axis=0)))
-    generate_samples_tables()
+    # generate_samples_tables()
