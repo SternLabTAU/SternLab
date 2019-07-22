@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns;
 
-from RG_HIVC_analysis.coordinates import gag_ET86_interval, pol_ET86_interval, env_ET86_interval, excluded_samples
+from RG_HIVC_analysis.constants import gag_ET86_interval, pol_ET86_interval, env_ET86_interval, excluded_samples
 
 sns.set_context("poster")
 import sys
