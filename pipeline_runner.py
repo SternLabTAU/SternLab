@@ -83,6 +83,8 @@ def main(args):
 
     # number of reads that were mapped only once
     only_once_reads = subprocess.getoutput("grep -P '^1\t' *stats  -h | awk '{sum+=$2}END{print sum}'")
+    # number of reads that were mapped exactly twice
+    twice_mapped_reads = subprocess.getoutput("grep -P '^2\t' *stats  -h | awk '{sum+=$2}END{print sum}'")
     #number of reads that are "contributing to frequency counts”
     freq_contr = subprocess.getoutput("grep 'reads contributing to frequency counts' -h *stats | awk '{sum+=$1}END{print sum}'")
     #number of bases called
@@ -91,6 +93,9 @@ def main(args):
     #number of reads that were mapped to reference
     num_reads_mapped = subprocess.getoutput(
         "cat *blast | awk '{print $1}' | sort | uniq | wc -l")
+    #total number of reads
+    num_reads = subprocess.getoutput(
+        "cat *fasta | grep '^>' | wc -l")
 
 
 
@@ -100,10 +105,13 @@ def main(args):
         o.write("Pipeline command used:\n{}\n\n".format(cmd))
         o.write("Blast parameters: %id for blast = {}, E value = {}\n".format(blast_id, evalue))
         o.write("Number of repeats used: {}\n".format(repeats))
+        o.write("Number of reads: {}\n".format(int(num_reads)))
+        o.write("Number of reads mapped to reference: {}\n".format(int(num_reads_mapped)))
         o.write("Number of reads that were mapped only once: {}\n".format(int(only_once_reads)))
+        o.write("Number of reads that were mapped exactly twice: {}\n".format(int(twice_mapped_reads)))
         o.write("Number of reads that are contributing to frequency count: {}\n".format(int(freq_contr)))
         o.write("Number of bases called: {}\n".format(int(num_based_called)))
-        o.write("Number of reads mapped to reference: {}\n".format(int(num_reads_mapped)))
+
 
     #get back to the freq file directory
 
@@ -115,7 +123,7 @@ def main(args):
 
     df = pd.read_csv(freq_file_path, sep='\t')
 
-    df = df.drop_duplicates("Pos")
+    df = df[(df.Ref != '-') & (df.Ref == df.Base)].drop_duplicates("Pos")
     plt.plot(df['Pos'].values, df['Read_count'].values, label=label, color='darkorange')
     plt.title("Coverage {}".format(label), fontsize=16)
     plt.xlabel("Position in the genome (bp)")

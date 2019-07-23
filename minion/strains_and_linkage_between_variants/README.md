@@ -1,5 +1,5 @@
 We provide two ways to analyze the linkage between variants, or to identify the different strains in a population:
-1. Split the population up into strains, where we define a strain as a combination of the occurence or lack of occurence of the varaints provided. 
+1. Split the population up into strains, where we define a strain as a combination of the occurrence or lack of occurrence of the variants provided.
 2. For a provided list of variants, determine the linkage between every pair of variants. 
 
 Both scripts require a list of variants to focus on. This list can either be created by AssociVar or provided by the user.
@@ -92,4 +92,5 @@ calculate_linkage.py [-h] -b INPUT_BLAST_DF -m INPUT_MUTATION_DF -p
 
 Each cell represents the probability of the column when row is true (P(column|row)).
 Row and column names represent either the mutation variant or the WT for that position. For example, "A535.0G" represents the mutation A to G at position 535, and "535" represents the WT base for that position.
+Bottom row shows the probabilty of the column variant (no conditionality).
 It is recommended to open with excel and use Conditional Formatting > Color Scales to view this as presented in the article.
