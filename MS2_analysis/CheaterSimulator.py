@@ -1,21 +1,33 @@
 import numpy as np
 from itertools import permutations
+import math
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import math
 from tqdm import tqdm
-import argparse
+from scipy import stats
+from scipy.stats import hypergeom
 import os
+import argparse
 
 
-THRESHOLD = 10**-3
-BASE_FITNESS = 2
+
+THRESHOLD = 10**-5
+CT_BASE_FITNESS = 0
+SYN_BASE_FITNESS = 0.1
+WT_BASE_FITNESS = 1
+
+
+def nCr(n,r):
+    f = math.factorial
+    return f(n) / f(r) / f(n-r)
 
 class ChtrModel(object):
     """
     This is an implementation of the cheater dynamics model of bacteriophage MS2
     class ChtrModel holds all the initial parameters of the model.
+    we add to this multiplayer model an additional player, which is a synonymous mutation with cheater like behaviour.
     """
     def __init__(self, N, n1, G, r, B, MOI=1):
         self.N = N
@@ -26,8 +38,10 @@ class ChtrModel(object):
         self.moi = MOI
         self.cheater = []
         self.wt = []
+        self.syn = []
         self.ecoli = []
         self.time = []
+
 
 
     def resistantN(self):
@@ -35,14 +49,14 @@ class ChtrModel(object):
 
 
 
-def sum_2_k_pairs(k):
+def sum_2_k_triplets(k):
     #generats a list with pairs (i, j) which sum to k for all 0<=q<=k
 
     options = list(range(k+1))
-    all_pairs = list(permutations(options, 2)) + [(x,x) for x in options]
-    pairs = [pair for pair in all_pairs if sum(pair) in options]
+    all_triplets = list(permutations(options, 3)) + [(x,x,x) for x in options]
+    triplets = [tri for tri in all_triplets if sum(tri) in options]
 
-    return pairs
+    return triplets
 
 
 class Cycle(object):
@@ -53,6 +67,7 @@ class Cycle(object):
         self.n2 = n2
         self.moi = moi
         self.k = k
+        self.payoffs = np.matrix([[1,1], [4,0]])
 
     def setN(self, N):
         self.N = N
@@ -63,42 +78,107 @@ class Cycle(object):
     def set_n2(self, n2):
         self.n2 = n2
 
+    def set_n3(self, n3):
+        self.n3 = n3
+
     def set_moi(self):
         self.moi = (self.n1 + self.n2) / self.N
-        #self.moi = (self.n1) / self.N
 
 
     def poisson_prob(self,k1,k2):
-        # according the poisson distribution calculate the probabilities 
-        return ((self.n1/self.N)**k1)*((self.n2/self.N)**k2)*(math.exp(-(self.n1+self.n2)/self.N))/\
+        # according the poisson distribution calculate the probabilities
+        return ((self.n1/self.N)**k1)*((self.n2/self.N)**k2)*\
+               (math.exp(-(self.n1+self.n2)/self.N))/\
                (math.factorial(k1)*math.factorial(k2))
+
+
+    def binomial_prob(self, k1, k2):
+        # according the poisson distribution calculate the probabilities
+        return stats.binom.pmf(k1, k1+k2, self.n1/(self.n1+self.n2)) * \
+               stats.binom.pmf(k2, k1+k2, self.n2/(self.n1+self.n2))
+
+
+
+
+    def normalize_payoff_rows(self):
+        # this method normalizes the payoff matrix rows to sum to 1
+        payoffs = self.payoffs
+        W = np.zeros(shape=(2, 2))
+
+        for i in range(2):
+            sum_i = payoffs[i,].sum()
+            for j in range(2):
+                W[i,j] = payoffs[i,j] / sum_i
+
+        return W
+
 
     def infection_proba(self, k, b):
 
-        # init the fraction n2
+        # init the fractions for each n_i
+        n1 = 0
         n2 = 0
-        pairs = sum_2_k_pairs(k)
+
+        pairs = sum_2_k_triplets(k)
         P = np.zeros(shape=(k+1, k+1))
+
+        p_no_infection = np.exp(-self.moi)
 
         for pair in pairs:
             i = pair[0]
             j = pair[1]
 
+
             # add the value to the matrix
+
             P[i, j] = self.poisson_prob(i, j)
 
-            # co-infection, i wt's j cheaters, 3.5 arbitrarily chosen to limit cheater fitness when there are much less wt
-            if i != 0 and j != 0 :
-                n2 += self.poisson_prob(i, j) * BASE_FITNESS  * max(1, (j+1/i)) * b * j #we have j cheaters, not one,
-                # each has a burst size b
-            # only cheater infection - there are cheaters coming out
-            if i == 0 and j != 0:
-                n2 += self.poisson_prob(i, j) * BASE_FITNESS * j
-        #print("only cheater")
-        #print(sum([P[i,j] for i in range(k+1) for j in range(k+1) if i==0 and j!=0]))
+        # psum is the probability of infection. sum over all options and subtract the probability of no infection.
+        psum = sum([P[i,j] for i in range(k+1) for j in range(k+1)]) - P[0,0]
 
-        return n2 * self.N
+        # if we have a 10^3 more viruses then cells the poission probability == zero!!
+        if psum == 0:
+            for pair in pairs:
+                i = pair[0]
+                j = pair[1]
+                P[i, j] = self.binomial_prob(i, j)
 
+            # probabilities should sum to 1.
+            psum = sum([P[i, j] for i in range(k + 1) for j in range(k + 1) ]) - p_no_infection
+
+        # get the relative fitness matrix for the next calculations
+        # W = self.update_payoff()
+        W = self.payoffs
+        # W = self.normalize_payoff_rows()
+        # W = self.payoffs_by_freq()
+
+        # start filling the probabilities.
+        for pair in pairs:
+            i = pair[0]
+            j = pair[1]
+
+            # only cheater
+            if i ==0 and j != 0:
+                n2 += (P[i,j]/ psum) * W[1,1] * b * j
+
+
+            # only wt infection, update n1 only
+            if i != 0 and j == 0:
+                n1 += (P[i, j] / psum) * W[0,0] * b
+
+
+            # wt and cheater infection. wt and cheaters are coming out
+            if i != 0 and j != 0:
+                n1 += (P[i, j] / psum) * W[0, 1] * b * j/(j+i)
+                n2 += (P[i, j] / psum) * W[1, 0] * b * i/(j+i)
+
+
+
+        updated_n1 = n1 * self.N + self.n1 * (sum([P[0, j] / psum for j in range(k + 1) for q in range(k + 1)]) + p_no_infection)
+        updated_n2 = n2 * self.N + self.n2 * (sum([P[i, 0] / psum for i in range(k + 1) for q in range(k + 1)]) + p_no_infection)
+
+
+        return updated_n1, updated_n2
 
 
 
@@ -110,13 +190,12 @@ class Cycle(object):
 
         if model.cheater == []:
             model.cheater.append(self.n2)   # first iteration' self.n2 is defined
+
         else:
             dilution_factor = model.N / model.wt[-1]# in each passage we have a dilution factor.
-            print(dilution_factor)
-            if dilution_factor == 1:
-                dilution_factor = 0.001
-            self.set_n2(model.cheater[-1] * dilution_factor + self.n1 *10**-6)
+            self.set_n2(model.cheater[-1] * dilution_factor + self.n1 *10 ** -5)
             model.cheater.append(self.n2)
+
 
         model.time.append(passage)
         model.ecoli.append(self.N)
@@ -127,14 +206,21 @@ class Cycle(object):
 
         print(self.N, self.n1, self.n2, self.moi)
 
+
+        #while there are still cells to infect
         while self.N >= THRESHOLD:
             #update cheater, wt, ecoli and moi
             updatedN = (1 - model.r) * self.N * math.exp(-self.moi) * (2 ** 6)
+
+            updated_n1, updated_n2 = self.infection_proba(self.k, model.b)
+
             if updatedN < THRESHOLD:
+                model.ecoli.append(updatedN)
+                model.wt.append(updated_n1)
+                model.cheater.append(updated_n2)
+                model.time.append(passage)
+
                 break
-            updated_n2 = self.infection_proba(self.k, model.b)
-            # we have a wt population which do not infect. the breast size is for particles that infected an ecoli.
-            updated_n1 = self.n1 * (1-math.exp(-self.n1/self.N)) * model.b + self.n1 * math.exp(-self.n1/self.N)
 
             self.set_n2(updated_n2)
             self.setN(updatedN)
@@ -148,34 +234,8 @@ class Cycle(object):
             model.time.append(passage)
 
 
-        #
-        # print("before while - N is {}".format(self.N))
-        # updatedN = self.N
-        # while updatedN >= THRESHOLD:
-        #     print("updatedN {}".format(updatedN))
-        #     updatedN = (1 - model.r) * self.N * math.exp(-self.moi) * (2**6)
-        #     updated_n2 = self.infection_proba(self.k)
-        #     print("self.N {}".format(self.N))
-        #     self.setN(updatedN)
-        #     print("self.N {}".format(self.N))
-        #     self.set_n1(self.n1 * model.b)
-        #     self.set_n2(updated_n2)
-        #     print("moi now is : {}, n1={} N={}".format(self.moi, self.n1, self.N))
-        #     self.set_moi()
-        #
-        #     # update model
-        #     model.ecoli.append(self.N)
-        #     model.wt.append(self.n1)
-        #     model.cheater.append(self.n2)
-        #     model.time.append(passage)
-        # print("after while - N is {}".format(self.N))
-        # # remove the last almost zero result from calculation
-        # model.ecoli.pop()
-        # model.wt.pop()
-        # model.cheater.pop()
-        # model.time.pop()
 
-
+        print(self.N, self.n1, self.n2, self.moi)
 
 def main(args):
 
@@ -192,35 +252,37 @@ def main(args):
 
 
 
-    df = pd.DataFrame({'Passage':mdl.time, 'N': mdl.ecoli, 'n1':mdl.wt, 'n2':mdl.cheater})
+    df = pd.DataFrame({'Passage':mdl.time, 'N': mdl.ecoli, 'n1':mdl.wt, 'n2':mdl.cheater,})
     df['f1'] = df.apply(lambda row: row['n1'] / (row['n1'] + row['n2']), axis=1)
     df['f2'] = df.apply(lambda row: row['n2'] / (row['n1'] + row['n2']), axis=1)
-    df.to_csv(os.path.join(args.out, 'dynamics_info.csv'), index=False)
+    df.to_csv(args.out, index=False)
 
     sns.set_style('white')
-    sns.pointplot(x='Passage', y='f2', data=df.drop_duplicates('Passage'), color='#3093C4')
+    sns.pointplot(x='Passage', y='f1', data=df.drop_duplicates('Passage'), color='#4696AA')
+    sns.pointplot(x='Passage', y='f2', data=df.drop_duplicates('Passage'), color='#DF1111', labels='T1764-')
     sns.despine(offset=10)
-    # plt.title('r = {}; k = {}; w = {}'.format(mdl.r, c.k, BASE_FITNESS), fontsize=18, x=0.1)
+
+
     plt.xlabel('Passage', fontsize=18)
     plt.ylabel('Cheater frequencies', fontsize=18)
     plt.ylim(0,1)
-    plt.savefig(os.path.join(args.out, 'dynamics.png'), format='png', dpi=400,
+    plt.savefig(os.path.join(args.out, 'singlePlayer.png'), format='png', dpi=400,
                 bbox_inches='tight')
     # plt.show()
     plt.gcf().clear()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("-N", "--N", type=int, help="num of cells",default=10**9)
-    parser.add_argument("-n1", "--n1", type=int, help="wt particles", default=10 ** 9)
+    parser.add_argument("-N", "--N", type=int, help="num of cells",default=10 ** 10)
+    parser.add_argument("-n1", "--n1", type=int, help="wt particles", default=10 ** 10)
     parser.add_argument("-g", "--genome", type=int, help="genome lentgh", default=3569)
     parser.add_argument("-r", "--res", type=float, help="resistence fraction", default=0.3)
     parser.add_argument("-b", "--burst", type=int, help="burst size", default=10 ** 5)
     parser.add_argument("-m", "--expmoi", type=float, help="moi of the experiment", default=1)
-    parser.add_argument("-n2", "--n2", type=int, help="initial number of cheaters", default=1000)
-    parser.add_argument("-k", "--k", type=int, help="maximal cell infected particles", default=10)
+    parser.add_argument("-n2", "--n2", type=int, help="initial number of cheaters", default=10**5)
+    parser.add_argument("-k", "--k", type=int, help="maximal cell infected particles", default=15)
     parser.add_argument("-p", "--passage", type=int, help="num of passages to simulate", default=20)
-    parser.add_argument("-o", "--out", type=int, help="path to save the output figure", default=20)
+    parser.add_argument("-o", "--out", type=str, help="path to save the output figure", required=True)
 
     args = parser.parse_args()
     main(args)
