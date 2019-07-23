@@ -105,12 +105,12 @@ def main(args):
         o.write("Pipeline command used:\n{}\n\n".format(cmd))
         o.write("Blast parameters: %id for blast = {}, E value = {}\n".format(blast_id, evalue))
         o.write("Number of repeats used: {}\n".format(repeats))
-        o.write("Number of reads: {}\n".format(int(num_reads)))
-        o.write("Number of reads mapped to reference: {}\n".format(int(num_reads_mapped)))
-        o.write("Number of reads that were mapped only once: {}\n".format(int(only_once_reads)))
-        o.write("Number of reads that were mapped exactly twice: {}\n".format(int(twice_mapped_reads)))
-        o.write("Number of reads that are contributing to frequency count: {}\n".format(int(freq_contr)))
-        o.write("Number of bases called: {}\n".format(int(num_based_called)))
+        o.write("Number of reads: {}\n".format(num_reads))
+        o.write("Number of reads mapped to reference: {}\n".format(num_reads_mapped))
+        o.write("Number of reads that were mapped only once: {}\n".format(only_once_reads))
+        o.write("Number of reads that were mapped exactly twice: {}\n".format(twice_mapped_reads))
+        o.write("Number of reads that are contributing to frequency count: {}\n".format(freq_contr))
+        o.write("Number of bases called: {}\n".format(num_based_called))
 
 
     #get back to the freq file directory
