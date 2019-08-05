@@ -41,7 +41,7 @@ def mutation_pairings_statistics(args):
     
     mutations_df = mutations_df[mutations_df.full_mutation.isin(recognized_mutations)]
     relevant_mutations = pd.merge(mutations_df, blast_df[['read']], how='right', on='read').fillna(0)
-    print()
+    print(len(relevant_mutations.read.drop_duplicates()))
     # conditional statistics
     matrix = pd.DataFrame(np.zeros(shape=(len(recognized_mutations)*2 + 1,len(recognized_mutations)*2)), columns = recognized_mutations + [f[1:-1].split('.')[0] for f in recognized_mutations], index = recognized_mutations + [f[1:-1].split('.')[0] for f in recognized_mutations] + ['P(column)'])
     for mutation_1 in recognized_mutations:
