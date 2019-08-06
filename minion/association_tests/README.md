@@ -6,7 +6,6 @@ and thus are not independent of each other, while technical sequencing errors ar
 of each other in the population.
 
 
-
 ## Running chi-square tests
 
 1. Run BLAST on all fastq files as described in [AccuNGS paper](https://github.com/SternLabTAU/AccuNGS).
@@ -96,3 +95,15 @@ blasts dataframe and mutations dataframe created in steps 2-3. The script also g
    - usage: variant_association_test.py [-h] -b INPUT_BLAST_DF -m INPUT_MUTATION_DF
                                    -p INPUT_CHOSEN_POSITIONS -o
                                    OUTPUT_DIR
+                                   
+ 
+ 
+### Requirements:
+BLAST (v2.7.1+)
+
+Anaconda python installation OR python (3.4+) with:
+- numpy
+- pandas
+- tqdm
+- matplotlib
+- scipy
