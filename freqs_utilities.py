@@ -484,7 +484,25 @@ def compare_positions_between_freqs(dict_of_freqs, out_path=False, positions_to_
         df_final.to_csv(out_path, index=False)
     return df_final
 
-
+    
+def estimate_insertion_freq(df, extra_columns=[]):
+    '''
+    This function gets a freqs file(s) dataframe, calculates the frequency of insertions by using the read count of the
+    previous base and returns a dataframe including this.
+    :param df: a dataframe of freqs file(s).
+    :param extra_columns: if df contains more than the basic freqs columns, for example a column of Sample_id etc., 
+    provide a list of the extra columns to be included.
+    :return: df with extra columns describing insertion frequency.
+    '''
+    read_counts = df[(df.Ref != '-')][ extra_columns + ['Pos', 'Read_count']].drop_duplicates()
+    read_counts.rename(columns={'Read_count':'estimated_read_count', 'Pos':'rounded_pos'}, inplace=True)
+    insertions = df[(df.Ref == '-')]
+    not_insertions = df[(df.Ref != '-')]
+    insertions['rounded_pos'] = insertions.Pos.astype(int).astype(float)
+    insertions = pd.merge(insertions, read_counts, how='left', on= extra_columns + ['rounded_pos'])
+    insertions['estimated_freq'] = insertions.Freq * insertions.Read_count / insertions.estimated_read_count
+    df = pd.concat([insertions, not_insertions])
+    return df.sort_values(extra_columns + ['Pos'])
 
 if __name__ == "__main__":
     main()

@@ -196,9 +196,9 @@ class Cycle(object):
 
         # get the relative fitness matrix for the next calculations
         # W = self.update_payoff()
-        # W = self.payoffs
+        W = self.payoffs
         # W = self.normalize_payoff_rows()
-        W = self.payoffs_by_freq()
+        # W = self.payoffs_by_freq()
 
         # start filling the probabilities.
         for triplet in triplets:
@@ -351,7 +351,7 @@ if __name__ == '__main__':
     parser.add_argument("-N", "--N", type=int, help="num of cells",default=10**9)
     parser.add_argument("-n1", "--n1", type=int, help="wt particles", default=10 ** 9)
     parser.add_argument("-g", "--genome", type=int, help="genome lentgh", default=3569)
-    parser.add_argument("-r", "--res", type=float, help="resistence fraction", default=0.3)
+    parser.add_argument("-r", "--res", type=float, help="resistence fraction", default=0.2)
     parser.add_argument("-b", "--burst", type=int, help="burst size", default=10 ** 4)
     parser.add_argument("-m", "--expmoi", type=float, help="moi of the experiment", default=1)
     parser.add_argument("-n2", "--n2", type=int, help="initial number of cheaters", default=1000)
