@@ -188,7 +188,7 @@ def pi_diversity_plots():
     pis_by_ind['sample_date'] = pd.to_datetime(pis_by_ind['sample_date'], format='%d/%m/%Y')
     ordered_pis_by_ind = pis_by_ind.sort_values(by=['ind_id', 'sample_date'])
 
-    # coverting "sample_date" to "time_since_infection"
+    # coverting "sample_date" to "years_since_infection"
     first_samples_dates = ordered_pis_by_ind.groupby('ind_id').first().reset_index()
     first_samples_dates = first_samples_dates[['ind_id', 'sample_date']]
     # print(first_samples_dates)
