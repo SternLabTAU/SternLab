@@ -61,7 +61,7 @@ def merge_freqs_files(freqs_files, output):
 def change_ref_to_consensus(freqs_file):
     freqs = pd.read_csv(freqs_file, sep="\t")
     freqs_tmp = pd.read_csv(freqs_file, sep="\t")
-    freqs_tmp = freqs_tmp.drop_duplicates("Pos")
+    freqs_tmp = freqs_tmp.drop_duplicates("Pos") # rank 0 only
     freqs_tmp = freqs_tmp[['Pos', 'Base']]
     transformed_freq = freqs.set_index(freqs.Pos).join(
         freqs_tmp.set_index(freqs_tmp.Pos), rsuffix='_r')
@@ -84,7 +84,8 @@ def add_mutation_to_freq_file(output, freqs_file = None, freqs = None, forced_rf
         raise Exception("Need to specify EITHER freqs file path OR a freqs pandas object - only one!")
     elif freqs_file != None:
         freqs = pd.read_csv(freqs_file, sep="\t")
-    freqs = freqs[freqs.Pos % 1 == 0] #removes insertions
+    # freqs = freqs[freqs.Pos % 1 == 0] #removes insertions #TODO- verify alternative & remove this line
+    freqs = freqs[freqs.Ref  != "-"] # alternative remove insertions
     freqs = freqs[freqs.Base != "-"] #removes deletions
     freqs.reset_index(drop=True, inplace=True)
 
@@ -527,11 +528,11 @@ def main():
     freq_file = options.freqs
     output_freq_file = options.output_file
 
-    print('Handling file:' + freq_file)  # TODO- remove
-    add_mutation_to_freq_file_with_cons_as_ref(output_freq_file, freq_file)
+    print('Handling file:' + freq_file)
+    add_mutation_to_freq_file_with_cons_as_ref(freq_file, output_freq_file)
 
 
-def add_mutation_to_freq_file_with_cons_as_ref(output_freq_file, freq_file):
+def add_mutation_to_freq_file_with_cons_as_ref(freq_file, output_freq_file):
     transformed_freq = change_ref_to_consensus(freq_file)
     add_mutation_to_freq_file(output_freq_file, freqs= transformed_freq)
 
