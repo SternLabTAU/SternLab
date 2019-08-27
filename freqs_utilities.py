@@ -33,7 +33,6 @@ def save_freqs_with_different_delimiter(freqs_file):
     f.to_csv(freqs_file, index=False)
 
 
-
 def merge_freqs_files(freqs_files, output):
     """
     merges freqs files of TILV - the file names are in the following format: P%i-S%i % (passage, segment)
@@ -90,6 +89,7 @@ def add_mutation_to_freq_file(output, freqs_file = None, freqs = None, forced_rf
     freqs.reset_index(drop=True, inplace=True)
 
     first_pos = int(freqs.loc[1].Pos) #gets the first position in the right frameshift
+    first_pos += forced_rf_shift
     if first_pos == 1:
         start_from = first_pos
     elif first_pos % 3 == 1:
@@ -108,9 +108,9 @@ def add_mutation_to_freq_file(output, freqs_file = None, freqs = None, forced_rf
 
     for pos in range(start_from, int(max(freqs.Pos)), 3): # add mutation information
         temp = freqs.loc[freqs['Pos'].isin([pos, pos+1, pos+2])]
-        if len(temp) != 12: #12 - is 4 * 3 [A, C, G, T]
-
+        if len(temp) != 12: # 12 - is 3 positions * 4 base mutations [A, C, G, T] (ordered by Rank)
             continue
+
         first = temp.iloc[0].Ref
         second = temp.iloc[4].Ref
         third = temp.iloc[8].Ref
@@ -151,7 +151,7 @@ def add_mutation_to_freq_file(output, freqs_file = None, freqs = None, forced_rf
             freqs.loc[(freqs["Pos"] == current_pos) & (freqs["Base"] == mut_base), "Mutation"] = ref_base + mut_base
 
     freqs = freqs[freqs.Mutation_type.notnull()] #removes Nones - rows at the beginning and the end
-    freqs.to_csv(output, index=False)
+    freqs.to_csv(output, index=False, sep='\t')
     return freqs
 
 
