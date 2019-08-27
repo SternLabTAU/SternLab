@@ -7,6 +7,7 @@ from scipy.stats import ttest_ind
 import numpy as np
 import os
 from functools import reduce
+from optparse import OptionParser
 
 
 
@@ -57,6 +58,20 @@ def merge_freqs_files(freqs_files, output):
         all = pd.concat([all, f])
     all.to_csv(output, index=False)
     return output, all
+
+def change_ref_to_consensus(freqs_file):
+    freqs = pd.read_csv(freqs_file, sep="\t")
+    freqs_tmp = pd.read_csv(freqs_file, sep="\t")
+    freqs_tmp = freqs_tmp.drop_duplicates("Pos")
+    freqs_tmp = freqs_tmp[['Pos', 'Base']]
+    transformed_freq = freqs.set_index(freqs.Pos).join(
+        freqs_tmp.set_index(freqs_tmp.Pos), rsuffix='_r')
+    transformed_freq.Ref = transformed_freq.Base_r
+    transformed_freq = transformed_freq.loc[(transformed_freq.Pos >= 1456) & (transformed_freq.Pos <= 4488)][
+        ['Pos', 'Base', 'Freq', 'Ref', 'Read_count', 'Rank', 'Prob']]
+
+    return transformed_freq
+
 
 
 def add_mutation_to_freq_file(output, freqs_file = None, freqs = None, forced_rf_shift = 0):
@@ -503,6 +518,23 @@ def estimate_insertion_freq(df, extra_columns=[]):
     insertions['estimated_freq'] = insertions.Freq * insertions.Read_count / insertions.estimated_read_count
     df = pd.concat([insertions, not_insertions])
     return df.sort_values(extra_columns + ['Pos'])
+
+def main():
+    parser = OptionParser("usage: %prog [options]\nTry running %prog --help for more information")
+    parser.add_option("-f", "--freqs", dest="freqs", help="frequency file")
+    parser.add_option("-o", "--output_freqs", dest="output_file", help="output freqs file with mutations")
+    (options, args) = parser.parse_args()
+    freq_file = options.freqs
+    output_freq_file = options.output_file
+
+    print('Handling file:' + freq_file)  # TODO- remove
+    add_mutation_to_freq_file_with_cons_as_ref(output_freq_file, freq_file)
+
+
+def add_mutation_to_freq_file_with_cons_as_ref(output_freq_file, freq_file):
+    transformed_freq = change_ref_to_consensus(freq_file)
+    add_mutation_to_freq_file(output_freq_file, freqs= transformed_freq)
+
 
 if __name__ == "__main__":
     main()
