@@ -235,28 +235,28 @@ def aggregation_attempts():
 
 
 def pi_rates_generate_and_plot_v2():
+    # get freqs raw data
     unified_freq_df = pd.read_csv('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/ET86_4s/unified_freqs_filtered_verbose.csv')
 
-    # add 4 pi rates values
+    # generate pi rate values (global & regionals)
     unified_freq_df = apply_pi_related_filters(unified_freq_df, freq_threshold=0.01, min_read_count=1000)
     pi_rates_by_sample = pis_calc(data=unified_freq_df, pivot_cols= ['ind_id', 'sample_id', 'years_since_infection'])
-    gag_pi_rates_by_sample = pis_calc(data=unified_freq_df, pivot_cols= ['sample_id'], interval=gag_ET86_interval)
-    pol_pi_rates_by_sample = pis_calc(data=unified_freq_df, pivot_cols= ['sample_id'], interval=pol_ET86_interval)
-    env_pi_rates_by_sample = pis_calc(data=unified_freq_df, pivot_cols= ['sample_id'], interval=env_ET86_interval)
 
+    gag_pi_rates_by_sample = pis_calc(data=unified_freq_df, pivot_cols= ['sample_id'], interval=gag_ET86_interval)
     pi_rates_by_sample = pi_rates_by_sample.merge(gag_pi_rates_by_sample, on='sample_id', how='left', sort=False, suffixes=('', '_gag'))
+    pol_pi_rates_by_sample = pis_calc(data=unified_freq_df, pivot_cols= ['sample_id'], interval=pol_ET86_interval)
     pi_rates_by_sample = pi_rates_by_sample.merge(pol_pi_rates_by_sample, on='sample_id', how='left', sort=False, suffixes=('', '_pol'))
+    env_pi_rates_by_sample = pis_calc(data=unified_freq_df, pivot_cols= ['sample_id'], interval=env_ET86_interval)
     pi_rates_by_sample = pi_rates_by_sample.merge(env_pi_rates_by_sample, on='sample_id', how='left', sort=False, suffixes=('', '_env'))
-    print(pi_rates_by_sample)
 
     # plot
     # Explanation: by definition of the pi measure- plotting mean value (weighted mean & median are irrelevant), with no interest in confidence interval.
     # TODO- check this^ understanding with maoz
+
     pi_rates_by_sample = pi_rates_by_sample.melt(id_vars= ('ind_id', 'years_since_infection'),
                         value_vars= ('Pi', 'Pi_gag', 'Pi_pol', 'Pi_env'),
                         var_name='regions',  value_name='pi_diversity'
                         )
-
     g = sns.relplot(
         x='years_since_infection',
         y='pi_diversity',
