@@ -99,6 +99,29 @@ def create_general_stats_table():
     general_stats = general_stats.sort_values(by='reads_mapped_to_ref', ascending=False)
     return general_stats
 
+def mergre_summary_tables():
+    dates_vl = pd.read_csv('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/dates_vl_stats.csv', sep=',')
+    samples_format_conversion = pd.read_csv('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/samples_format_conversion.csv', sep=',')
+    pi_rates = pd.read_csv('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/pi_rates_ZA04_2.csv', sep=',')
+    coverage_stats = pd.read_csv('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/coverage_stats_ET86_2.csv', sep=',')
+
+    dates = dates_vl.set_index('FASTQ_name')
+    conv = samples_format_conversion.set_index('table_fastq')
+    join1 = dates.join(conv).set_index('sample_id')
+    pi_rates = pi_rates.set_index('sample_id')
+    cov = coverage_stats.set_index('sample_id')
+    join2 = pi_rates.join(cov)
+
+    final = join1.join(join2)
+    final['sample_date'] = pd.to_datetime(final['sample_date'], format='%d/%m/%Y')
+    final = final.sort_values(by=['ind_id', 'sample_date'])
+
+    print(final)
+    final.to_csv(path_or_buf='/Users/omer/PycharmProjects/SternLab/RG_data_analysis/final_ET86_pol_cov.csv')
+
+    print(final.loc['130945_S2'])
+
+
 def get_coverage_distribution_from_unified_freq_df():
     unified_freq_df_2s = pd.read_csv('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/ET86_2s/unified_freqs_filtered_verbose.csv')
     unified_freq_df_2s_muts = pd.read_csv('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/ET86_2s/with_muts_coordinated/unified_freqs_filtered_verbose.csv')

@@ -108,49 +108,9 @@ def apply_pi_related_filters(data, freq_threshold, min_read_count):
     return filtered_data
 
 
-def pi_rates_generate_and_plot_v2():
-    unified_freq_df = pd.read_csv('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/ET86_4s/unified_freqs_filtered_verbose.csv')
-
-    # add 4 pi rates values
-    unified_freq_df = apply_pi_related_filters(unified_freq_df, freq_threshold=0.01, min_read_count=1000)
-    pi_rates_by_sample = pis_calc(data=unified_freq_df, pivot_cols= ['ind_id', 'sample_id', 'years_since_infection'])
-    gag_pi_rates_by_sample = pis_calc(data=unified_freq_df, pivot_cols= ['sample_id'], interval=gag_ET86_interval)
-    pol_pi_rates_by_sample = pis_calc(data=unified_freq_df, pivot_cols= ['sample_id'], interval=pol_ET86_interval)
-    env_pi_rates_by_sample = pis_calc(data=unified_freq_df, pivot_cols= ['sample_id'], interval=env_ET86_interval)
-
-    pi_rates_by_sample = pi_rates_by_sample.merge(gag_pi_rates_by_sample, on='sample_id', how='left', sort=False, suffixes=('', '_gag'))
-    pi_rates_by_sample = pi_rates_by_sample.merge(pol_pi_rates_by_sample, on='sample_id', how='left', sort=False, suffixes=('', '_pol'))
-    pi_rates_by_sample = pi_rates_by_sample.merge(env_pi_rates_by_sample, on='sample_id', how='left', sort=False, suffixes=('', '_env'))
-    print(pi_rates_by_sample)
-
-    # plot
-    # Explanation: by definition of the pi measure- plotting mean value (weighted mean & median are irrelevant), with no interest in confidence interval.
-    # TODO- check this^ understanding with maoz
-    pi_rates_by_sample = pi_rates_by_sample.melt(id_vars= ('ind_id', 'years_since_infection'),
-                        value_vars= ('Pi', 'Pi_gag', 'Pi_pol', 'Pi_env'),
-                        var_name='regions',  value_name='pi_diversity'
-                        )
-
-    g = sns.relplot(
-        x='years_since_infection',
-        y='pi_diversity',
-        col='ind_id',
-        hue='regions',
-        data=pi_rates_by_sample,
-        col_wrap=5,
-        kind='line',
-        facet_kws={'sharex': True, 'legend_out': True},
-    )
-    g.set(yscale="log")
-    g.set_ylabels("Pi diversity")
-    g.set_xlabels("ET first sample (Years)")
-
-    # extract plot
-    # plt.show()
-    g.savefig('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/figures/pi_rates_ET86_4s.png')
-
-
 def generate_pi_rates_summary():
+    """Deprecated"""
+
     # freq_files = glob.glob('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/freq_files_ZA04_2/*')
     freq_files = glob.glob('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/ET86_2s/*.freqs')
     pi_diversity_rates = pd.DataFrame(
@@ -190,30 +150,9 @@ def generate_pi_rates_summary():
     return pi_diversity_rates
 
 
-def mergre_summary_tables():
-    dates_vl = pd.read_csv('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/dates_vl_stats.csv', sep=',')
-    samples_format_conversion = pd.read_csv('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/samples_format_conversion.csv', sep=',')
-    pi_rates = pd.read_csv('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/pi_rates_ZA04_2.csv', sep=',')
-    coverage_stats = pd.read_csv('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/coverage_stats_ET86_2.csv', sep=',')
-
-    dates = dates_vl.set_index('FASTQ_name')
-    conv = samples_format_conversion.set_index('table_fastq')
-    join1 = dates.join(conv).set_index('sample_id')
-    pi_rates = pi_rates.set_index('sample_id')
-    cov = coverage_stats.set_index('sample_id')
-    join2 = pi_rates.join(cov)
-
-    final = join1.join(join2)
-    final['sample_date'] = pd.to_datetime(final['sample_date'], format='%d/%m/%Y')
-    final = final.sort_values(by=['ind_id', 'sample_date'])
-
-    print(final)
-    final.to_csv(path_or_buf='/Users/omer/PycharmProjects/SternLab/RG_data_analysis/final_ET86_pol_cov.csv')
-
-    print(final.loc['130945_S2'])
-
-
 def plot_diversity_by_time():
+    """Deprecated"""
+
     pd.set_option('display.width', 600)  # TODO- remove
     pd.set_option('display.max_columns', 16)  # TODO- remove
 
@@ -271,6 +210,8 @@ def plot_diversity_by_time():
     # g.savefig('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/figures/pi_rates_ET86_2.png')
 
 def aggregation_attempts():
+    """Deprecated"""
+
     summary_table = pd.read_csv('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/output_tables/final_ZA04.csv',
                                                sep=',').set_index('sample_id')
     # a= summary_table.groupby('ind_id')['sample_date'].aggregate(min).unstack().reset_index()
@@ -291,6 +232,48 @@ def aggregation_attempts():
     # diversity_trends2 = summary_table.groupby('ind_id').apply(list)
     # diversity_trends_x = summary_table.groupby('ind_id')['sample_date'].apply(list)
     # # diversity_trends = summary_table.groupby('ind_id').agg({'sample_date':'list','pi_diversity':'sum'})
+
+
+def pi_rates_generate_and_plot_v2():
+    unified_freq_df = pd.read_csv('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/ET86_4s/unified_freqs_filtered_verbose.csv')
+
+    # add 4 pi rates values
+    unified_freq_df = apply_pi_related_filters(unified_freq_df, freq_threshold=0.01, min_read_count=1000)
+    pi_rates_by_sample = pis_calc(data=unified_freq_df, pivot_cols= ['ind_id', 'sample_id', 'years_since_infection'])
+    gag_pi_rates_by_sample = pis_calc(data=unified_freq_df, pivot_cols= ['sample_id'], interval=gag_ET86_interval)
+    pol_pi_rates_by_sample = pis_calc(data=unified_freq_df, pivot_cols= ['sample_id'], interval=pol_ET86_interval)
+    env_pi_rates_by_sample = pis_calc(data=unified_freq_df, pivot_cols= ['sample_id'], interval=env_ET86_interval)
+
+    pi_rates_by_sample = pi_rates_by_sample.merge(gag_pi_rates_by_sample, on='sample_id', how='left', sort=False, suffixes=('', '_gag'))
+    pi_rates_by_sample = pi_rates_by_sample.merge(pol_pi_rates_by_sample, on='sample_id', how='left', sort=False, suffixes=('', '_pol'))
+    pi_rates_by_sample = pi_rates_by_sample.merge(env_pi_rates_by_sample, on='sample_id', how='left', sort=False, suffixes=('', '_env'))
+    print(pi_rates_by_sample)
+
+    # plot
+    # Explanation: by definition of the pi measure- plotting mean value (weighted mean & median are irrelevant), with no interest in confidence interval.
+    # TODO- check this^ understanding with maoz
+    pi_rates_by_sample = pi_rates_by_sample.melt(id_vars= ('ind_id', 'years_since_infection'),
+                        value_vars= ('Pi', 'Pi_gag', 'Pi_pol', 'Pi_env'),
+                        var_name='regions',  value_name='pi_diversity'
+                        )
+
+    g = sns.relplot(
+        x='years_since_infection',
+        y='pi_diversity',
+        col='ind_id',
+        hue='regions',
+        data=pi_rates_by_sample,
+        col_wrap=5,
+        kind='line',
+        facet_kws={'sharex': True, 'legend_out': True},
+    )
+    g.set(yscale="log")
+    g.set_ylabels("Pi diversity")
+    g.set_xlabels("ET first sample (Years)")
+
+    # extract plot
+    # plt.show()
+    g.savefig('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/figures/pi_rates_ET86_4s.png')
 
 
 def pi_rates_generate_and_plot_v1():
