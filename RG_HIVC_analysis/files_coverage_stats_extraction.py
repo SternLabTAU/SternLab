@@ -1,6 +1,10 @@
 import pandas as pd
 import glob
 import os
+import matplotlib.pyplot as plt
+import seaborn as sns;
+
+
 from RG_HIVC_analysis.constants import gag_ET86_start, gag_ET86_end, pol_ET86_start, pol_ET86_end, env_ET86_start, \
     env_ET86_end
 
@@ -12,7 +16,7 @@ def create_coverage_stats_table():
     i=0
     for file in freq_files:
         sample_id = str(file).split("/")[8]
-        cov_median = extract_cov_median(file)
+        cov_median = extract_coverage_median(file)
         long_cov, gag_cov, pol_cov, env_cov = extract_long_cov(file)
         file_size = os.path.getsize("/sternadi/datasets/volume2/HIV_ravi_gupta_processed/"+sample_id+"/"+sample_id+"_R1.fastq.gz")
         file_size += os.path.getsize(
@@ -27,7 +31,7 @@ def create_coverage_stats_table():
     coverage_stats = coverage_stats.sort_values(by='coverage_median', ascending=False)
     return coverage_stats
 
-def extract_cov_median(freq_file):
+def extract_coverage_median(freq_file):
     df = pd.read_csv(freq_file, sep='\t')
     df_filtered = df.loc[df['Read_count'] > 100]
     cov_median = df_filtered['Read_count'].median()
@@ -43,10 +47,6 @@ def extract_long_cov(freq_file):
     pol_cov = df['Pos'].loc[(df['Pos'] > pol_ET86_start) & (df['Pos'] < pol_ET86_end)].count()
     env_cov = df['Pos'].loc[(df['Pos'] > env_ET86_start) & (df['Pos'] < env_ET86_end)].count()
     return long_cov, gag_cov, pol_cov, env_cov
-
-if __name__ == "__main__":
-    coverage_stats = create_coverage_stats_table()
-    coverage_stats.to_csv(path_or_buf='/sternadi/home/volume1/shared/analysis/HIV_ravi_gupta/coverage_stats_ZA04_2.csv', index=False)
 
 
 def compare_coverage_mad_increase():
@@ -99,3 +99,30 @@ def create_general_stats_table():
     general_stats = general_stats.sort_values(by='reads_mapped_to_ref', ascending=False)
     return general_stats
 
+def get_coverage_distribution_from_unified_freq_df():
+    unified_freq_df_2s = pd.read_csv('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/ET86_2s/unified_freqs_filtered_verbose.csv')
+    unified_freq_df_2s_muts = pd.read_csv('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/ET86_2s/with_muts_coordinated/unified_freqs_filtered_verbose.csv')
+    unified_freq_df_4s = pd.read_csv('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/ET86_4s/unified_freqs_filtered_verbose.csv')
+    unified_freq_df_4s_muts = pd.read_csv('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/ET86_4s/with_muts_and_con_as_ref/unified_freqs_filtered_verbose.csv')
+
+    freq_series = [unified_freq_df_2s, unified_freq_df_2s_muts, unified_freq_df_4s, unified_freq_df_4s_muts]
+
+    for f in freq_series:
+        # coverage_median = f.groupby('ind_id').mean()['Read_count']
+        # print(coverage_median)
+
+        # g = sns.distplot(f['Read_count'])
+        g = sns.boxplot(x='ind_id', y='Read_count', data=f)
+
+        plt.show()
+
+    # b = unified_freq_df[unified_freq_df["Read_count"] > 1000]
+    # long_cov = b.groupby('ind_id').count()['Read_count']
+    # print(long_cov)
+
+
+
+if __name__ == "__main__":
+    # coverage_stats = create_coverage_stats_table()
+    # coverage_stats.to_csv(path_or_buf='/sternadi/home/volume1/shared/analysis/HIV_ravi_gupta/coverage_stats_ZA04_2.csv', index=False)
+    get_coverage_distribution_from_unified_freq_df()
