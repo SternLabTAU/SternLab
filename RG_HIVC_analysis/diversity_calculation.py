@@ -1,4 +1,5 @@
 import os
+import warnings
 
 import pandas as pd
 import glob
@@ -37,7 +38,7 @@ def count_major_subs(freq_file):
     return subs_count
 
 
-def pis_calc(data, pivot_cols=[], min_read_count = 0, freq_threshold = 0, interval = (0, sys.maxsize)): # start_pos=0, end_pos= sys.maxsize
+def pis_calc(data, pivot_cols=[], interval = (0, sys.maxsize)): # start_pos=0, end_pos= sys.maxsize
     """
     Calculates PI diversity per position, than calculates mean per group according to pivot_vols. Assumes data is not indexed.
     :param data:
@@ -54,24 +55,11 @@ def pis_calc(data, pivot_cols=[], min_read_count = 0, freq_threshold = 0, interv
         return numerator * 1.0 / denominator
 
     # Filters
-    # TODO for each filter: place here or extract from method?
-    # transitions only
-    data["mutation_type"] = data['Base'] + data['Ref']
-    filtered_data = data[data["mutation_type"].isin(['GA','AG','GG','AA','CT','TC','CC','TT'])]
-    # remove indels
-    filtered_data = filtered_data[(filtered_data["Base"] != "-") & (filtered_data["Ref"] != "-")]
-    # TODO- remove insertions
-    # remove low coverage
-    filtered_data = filtered_data[filtered_data["Read_count"] > min_read_count]
-    # set low frequency to 0
-    # filtered_data = filtered_data[filtered_data["Freq"] >= freq_threshold]
-    filtered_data["Freq"] = np.where(filtered_data["Freq"] >= freq_threshold, filtered_data["Freq"], 0)
     # choose interval
-    filtered_data = filtered_data[(filtered_data["Pos"] >= interval[0]) & (filtered_data["Pos"] <= interval[1])]
+    filtered_data = data[(data["Pos"] >= interval[0]) & (data["Pos"] <= interval[1])]
 
     if filtered_data.empty:
-        # TODO - change to warning
-        print('No relevant data after filtering. Skipping')
+        warnings.warn("No relevant data after filtering. Skipping")
         return None
 
     filtered_data['counts_for_position'] = np.round(filtered_data['Read_count'] * filtered_data['Freq'])
@@ -106,9 +94,65 @@ def pis_calc(data, pivot_cols=[], min_read_count = 0, freq_threshold = 0, interv
     return pis
 
 
-def pi_rates_summary():
+def apply_pi_related_filters(data, freq_threshold, min_read_count):
+    # transitions only
+    data["mutation_type"] = data['Base'] + data['Ref']
+    filtered_data = data[data["mutation_type"].isin(['GA', 'AG', 'GG', 'AA', 'CT', 'TC', 'CC', 'TT'])]
+    # remove indels
+    filtered_data = filtered_data[(filtered_data["Base"] != "-") & (filtered_data["Ref"] != "-")]
+    # TODO- remove insertions
+    # remove low coverage
+    filtered_data = filtered_data[filtered_data["Read_count"] > min_read_count]
+    # set low frequencies to 0
+    filtered_data["Freq"] = np.where(filtered_data["Freq"] >= freq_threshold, filtered_data["Freq"], 0)
+    return filtered_data
+
+
+def pi_rates_generate_and_plot_v2():
+    unified_freq_df = pd.read_csv('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/ET86_4s/unified_freqs_filtered_verbose.csv')
+
+    # add 4 pi rates values
+    unified_freq_df = apply_pi_related_filters(unified_freq_df, freq_threshold=0.01, min_read_count=1000)
+    pi_rates_by_sample = pis_calc(data=unified_freq_df, pivot_cols= ['ind_id', 'sample_id', 'years_since_infection'])
+    gag_pi_rates_by_sample = pis_calc(data=unified_freq_df, pivot_cols= ['sample_id'], interval=gag_ET86_interval)
+    pol_pi_rates_by_sample = pis_calc(data=unified_freq_df, pivot_cols= ['sample_id'], interval=pol_ET86_interval)
+    env_pi_rates_by_sample = pis_calc(data=unified_freq_df, pivot_cols= ['sample_id'], interval=env_ET86_interval)
+
+    pi_rates_by_sample = pi_rates_by_sample.merge(gag_pi_rates_by_sample, on='sample_id', how='left', sort=False, suffixes=('', '_gag'))
+    pi_rates_by_sample = pi_rates_by_sample.merge(pol_pi_rates_by_sample, on='sample_id', how='left', sort=False, suffixes=('', '_pol'))
+    pi_rates_by_sample = pi_rates_by_sample.merge(env_pi_rates_by_sample, on='sample_id', how='left', sort=False, suffixes=('', '_env'))
+    print(pi_rates_by_sample)
+
+    # plot
+    # Explanation: by definition of the pi measure- plotting mean value (weighted mean & median are irrelevant), with no interest in confidence interval.
+    # TODO- check this^ understanding with maoz
+    pi_rates_by_sample = pi_rates_by_sample.melt(id_vars= ('ind_id', 'years_since_infection'),
+                        value_vars= ('Pi', 'Pi_gag', 'Pi_pol', 'Pi_env'),
+                        var_name='regions',  value_name='pi_diversity'
+                        )
+
+    g = sns.relplot(
+        x='years_since_infection',
+        y='pi_diversity',
+        col='ind_id',
+        hue='regions',
+        data=pi_rates_by_sample,
+        col_wrap=5,
+        kind='line',
+        facet_kws={'sharex': True, 'legend_out': True},
+    )
+    g.set(yscale="log")
+    g.set_ylabels("Pi diversity")
+    g.set_xlabels("ET first sample (Years)")
+
+    # extract plot
+    # plt.show()
+    g.savefig('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/figures/pi_rates_ET86_4s.png')
+
+
+def generate_pi_rates_summary():
     # freq_files = glob.glob('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/freq_files_ZA04_2/*')
-    freq_files = glob.glob('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/ET86_2s/*.freqs')
+    freq_files = glob.glob('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/ET86_2s/*.freqs')
     pi_diversity_rates = pd.DataFrame(
         columns=['sample_id', 'global', 'gag', 'pol', 'env'])
 
@@ -122,7 +166,8 @@ def pi_rates_summary():
         print('Handling sample: ' + sample_id)
 
         freq_df = pd.read_csv(file, sep='\t')
-        global_pi_rate = pis_calc(data=freq_df, min_read_count= 1000, freq_threshold= 0.01)
+        filtered_freq_df = apply_pi_related_filters(freq_df, freq_threshold= 0.01, min_read_count= 1000)
+        global_pi_rate = pis_calc(data=filtered_freq_df)
 
         # hxb2_file = glob.glob('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/freq_files_HXB2_2/{}/*.freqs'.format(sample_id))[0]
         # freq_df_hxb2 = pd.read_csv(hxb2_file, sep='\t')
@@ -130,23 +175,19 @@ def pi_rates_summary():
         # freq_df_et86 = pd.read_csv(et86_file, sep='\t')
         # global_pi_rate2 = pis_calc(data=freq_df_et86, min_read_count= 1000, freq_threshold= 0)
 
-        gag_pi_rate = pis_calc(data=freq_df, min_read_count= 1000, freq_threshold= 0.01, interval= gag_ET86_interval)
-        pol_pi_rate = pis_calc(data=freq_df, min_read_count= 1000, freq_threshold= 0.01, interval= pol_ET86_interval)
-        env_pi_rate = pis_calc(data=freq_df, min_read_count= 1000, freq_threshold= 0.01, interval= env_ET86_interval)
+        gag_pi_rate = pis_calc(data=filtered_freq_df, interval= gag_ET86_interval)
+        pol_pi_rate = pis_calc(data=filtered_freq_df, interval= pol_ET86_interval)
+        env_pi_rate = pis_calc(data=filtered_freq_df, interval= env_ET86_interval)
 
         row = [sample_id] + [global_pi_rate] + [gag_pi_rate] + [pol_pi_rate] + [env_pi_rate]
         # print(row)
         pi_diversity_rates.loc[i] = row
         i = i + 1
 
-    pi_diversity_rates = pi_diversity_rates.sort_values(by='pi_diversity_global', ascending=False)
+    pi_diversity_rates = pi_diversity_rates.sort_values(by='global', ascending=False)
     print(pi_diversity_rates)
-    pi_diversity_rates.to_csv('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/pi_rates_ET86_2.csv', index=False)
+    pi_diversity_rates.to_csv('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/output_tables/pi_rates_ET86_2.csv', index=False)
     return pi_diversity_rates
-
-def main1():
-    # pi_rates_summary()
-    pi_diversity_plots()
 
 
 def mergre_summary_tables():
@@ -172,15 +213,15 @@ def mergre_summary_tables():
     print(final.loc['130945_S2'])
 
 
-def pi_diversity_plots():
+def plot_diversity_by_time():
     pd.set_option('display.width', 600)  # TODO- remove
     pd.set_option('display.max_columns', 16)  # TODO- remove
 
     # joining diversity values with patient & date info
-    samples_to_patient_and_dates = pd.read_csv('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/final_ZA04.csv',
+    samples_to_patient_and_dates = pd.read_csv('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/output_tables/final_ZA04.csv',
                                 sep=',')[['sample_id', 'ind_id', 'sample_date']]
     samples_to_patient_and_dates = samples_to_patient_and_dates.set_index('sample_id')
-    pi_rates = pd.read_csv('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/pi_rates_ET86_2.csv', sep=',').set_index('sample_id')
+    pi_rates = pd.read_csv('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/output_tables/pi_rates_ET86_2_median.csv', sep=',').set_index('sample_id')
 
     pis_by_ind = samples_to_patient_and_dates.join(pi_rates)
 
@@ -225,12 +266,12 @@ def pi_diversity_plots():
     # g.set_xticklabels(rotation=45, fontsize=14)
 
     # extracting plot
-    # plt.show()
-    plt.savefig(fname= '/Users/omer/PycharmProjects/SternLab/RG_data_analysis/pi_trends_ET86_2.pdf')
-    # g.savefig('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/pi_rates_ET86_2.png')
+    plt.show()
+    # plt.savefig(fname= '/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/figures/pi_trends_ET86_2.pdf')
+    # g.savefig('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/figures/pi_rates_ET86_2.png')
 
-def aggregation_tries():
-    summary_table = pd.read_csv('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/final_ZA04.csv',
+def aggregation_attempts():
+    summary_table = pd.read_csv('/Users/omer/PycharmProjects/SternLab/RG_data_analysis/output_tables/final_ZA04.csv',
                                                sep=',').set_index('sample_id')
     # a= summary_table.groupby('ind_id')['sample_date'].aggregate(min).unstack().reset_index()
     a = summary_table[['ind_id', 'sample_date']].groupby('ind_id').agg(lambda x: x.iloc[0]).set_index('ind_id')
@@ -252,5 +293,11 @@ def aggregation_tries():
     # # diversity_trends = summary_table.groupby('ind_id').agg({'sample_date':'list','pi_diversity':'sum'})
 
 
+def pi_rates_generate_and_plot_v1():
+    generate_pi_rates_summary()
+    plot_diversity_by_time()
+
+
 if __name__ == "__main__":
-    main1()
+    # pi_rates_generate_and_plot_v1()
+    pi_rates_generate_and_plot_v2()
