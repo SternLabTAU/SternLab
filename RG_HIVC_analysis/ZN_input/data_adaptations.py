@@ -8,7 +8,7 @@ from RG_HIVC_analysis import constants
 
 
 def convert_freqs_to_zn_input_format():
-    freq_files = glob.glob('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/ET86_2s/*.freqs')
+    freq_files = glob.glob('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/ET86_4s/*.freqs')
     # freq_files = glob.glob('/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/ET86_2s/100888_S14.freqs')
 
     for file in freq_files:
@@ -41,7 +41,7 @@ def convert_freqs_to_zn_input_format():
         counts_array = counts_df.to_numpy().astype(int).transpose()
         # print(counts_array.shape)
 
-        output_folder = '/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/ZN_input/single_nucleotide_variants/'
+        output_folder = '/Users/omer/PycharmProjects/SternLab/RG_HIVC_analysis/ZN_input/single_nucleotide_variants_improved/'
         npy_file_name = os.path.splitext(os.path.basename(file))[0] + '.npy'
         path = output_folder + npy_file_name
         print(path)
