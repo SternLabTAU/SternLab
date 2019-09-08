@@ -63,7 +63,7 @@ def generate_unified_filtered_verbose_freqs_df(min_read_count = 100, freq_thresh
     return unified_freq_df_with_ids_ysi
 
 
-def plot_error_rate_distribution(unified_freq_df):
+def plot_mutation_rate_distribution(unified_freq_df):
     pd.set_option('display.width', 600)  # TODO- remove
     pd.set_option('display.max_columns', 16)  # TODO- remove
 
@@ -94,7 +94,7 @@ def plot_error_rate_distribution(unified_freq_df):
     # g.savefig('')
 
 
-def plot_error_rate_conf_interval(unified_freq_df):
+def plot_mutation_rate_conf_interval(unified_freq_df):
     add_weighted_freq(unified_freq_df)
 
     def weighted_varaint(x, **kws):
@@ -251,8 +251,8 @@ if __name__ == "__main__":
     # unified_freq_df = unified_freq_df[unified_freq_df['Mutation'] == 'GA']
     # print(len(unified_freq_df))
 
-    # plot_error_rate_distribution(unified_freq_df)
-    # plot_error_rate_conf_interval(unified_freq_df)
+    # plot_mutation_rate_distribution(unified_freq_df)
+    # plot_mutation_rate_conf_interval(unified_freq_df)
 
     # manual verification analysis
     # verify_chosen_stats(unified_freq_df)
