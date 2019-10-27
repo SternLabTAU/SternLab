@@ -11,7 +11,7 @@
 
 **Cool qstat aliases:**
 * To get job description: qstat -f <JobID>
-* To get a jog array progress by each array entry: qstat -f <JobID[]>
+* To get a job array progress by each array entry: qstat -f <JobID[]>
 * To get all computational nodes for all jobs running: `for job in `qstat | grep username | cut -f1 -d.`; do echo  $job; qstat -f $job | grep host;  done`
 * **-a** Display all jobs in any status (running, queued, held)
 * **-r** Display all running or suspended jobs
@@ -102,7 +102,7 @@ Where clustInteractive.cmd consists of:
 ```##############################################################
 # Interactive Job Script 0.2
 #
-# This gives you a command prompt running in the kerenh queue.
+# This gives you a command prompt running in the adis queue.
 # Resources:
 # - Bash shell
 # - 4 GB RAM
